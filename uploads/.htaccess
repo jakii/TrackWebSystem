@@ -1,0 +1,31 @@
+# Prevent direct access to uploaded files
+# Files should only be accessed through the download script
+
+# Deny all direct access
+Order Deny,Allow
+Deny from all
+
+# Allow access from PHP scripts
+<FilesMatch "\.(php)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Prevent execution of PHP files
+<FilesMatch "\.(php|php3|php4|php5|phtml)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Additional security - prevent common attack files
+<FilesMatch "\.(bat|exe|cmd|sh|pif|scr|vbs|asp|aspx|jsp)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
