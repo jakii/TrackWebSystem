@@ -93,7 +93,7 @@ $search = trim($_GET['search'] ?? '');
                                     <?php endif; ?>
                                     <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Are you sure you want to delete this document?');"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                                        <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" data-bs-toggle="tooltip" title="Delete"><i class="fas fa-trash me-2"></i> Delete</a></li>
                                     <?php endif; ?>
                                 </ul>
                             </div>

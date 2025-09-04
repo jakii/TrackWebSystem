@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../config/database.php';
+require_once '../includes/activity_logger.php';
 requireAuth();
 
 $document_id = (int)($_GET['id'] ?? 0);
@@ -25,7 +26,7 @@ if (!$document) {
     header('Location: ../dashboard.php?error=Document not found or access denied.');
     exit();
 }
-
+logDocumentActivity($document_id, $_SESSION['user_id'], 'view');
 //check if user can delete this document
 $can_delete = ($document['uploaded_by'] == $_SESSION['user_id'] || isAdmin());
 

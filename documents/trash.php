@@ -47,7 +47,7 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     background: #e0eafc;
   }
   .btn-restore {
-    background: linear-gradient(90deg, #2AB7CA 0%, #004F80 100%);
+    background-color: #004F80;
     color: #fff;
     font-weight: 600;
     border-radius: 10px;
@@ -57,13 +57,14 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     transition: background 0.2s, box-shadow 0.2s;
   }
   .btn-restore:hover {
-    background: linear-gradient(90deg, #004F80 0%, #2AB7CA 100%);
-    color: #FFD166;
-    box-shadow: 0 6px 24px rgba(0,79,128,0.18);
+    background-color: #004F80;
+    color: #fff;
+    box-shadow: 0 6px 24px #004f802e;
+    transform: translateY(-2px) scale(1.04);
   }
   .btn-delete {
-    background: linear-gradient(90deg, #FFD166 0%, #FF4F4F 100%);
-    color: #fff;
+    background:  #FFD166;
+    color: #2F4858;
     font-weight: 600;
     border-radius: 10px;
     padding: 6px 18px;
@@ -72,9 +73,10 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     transition: background 0.2s, box-shadow 0.2s;
   }
   .btn-delete:hover {
-    background: linear-gradient(90deg, #FF4F4F 0%, #FFD166 100%);
-    color: #fff;
-    box-shadow: 0 6px 24px rgba(255,79,79,0.18);
+    background: #FFD166;
+    color: #2F4858;
+    box-shadow: 0 6px 24px #004f802e;
+    transform: translateY(-2px) scale(1.04);
   }
 </style>
 <div class="container fade-in delay-1">
@@ -82,50 +84,98 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Trash Bin</h4>
     <p class="text-muted">Documents you deleted will appear here. You can restore or permanently delete them.</p>
     <hr>
-    <?php if (empty($trash_documents)): ?>
-      <div class="alert alert-info">Trash is empty.</div>
-    <?php else: ?>
-      <div class="table-responsive fade-in delay-2">
-        <table class="table trash-table align-middle mb-0">
-          <thead>
+<?php if (empty($trash_documents)): ?>
+  <div class="alert alert-info">Trash is empty.</div>
+<?php else: ?>
+  <form id="bulkActionForm" method="POST">
+    <div class="d-flex justify-content-end mb-2">
+      <button type="submit" name="bulk_restore" class="btn btn-restore me-2">Restore</button>
+      <button type="submit" name="bulk_delete" class="btn btn-delete">Delete</button>
+    </div>
+    <div class="table-responsive fade-in delay-2">
+      <table class="table trash-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>
+              <input type="checkbox" id="selectAll">
+            </th>
+            <th>Document Name</th>
+            <th>Category</th>
+            <th>Folder</th>
+            <th>Deleted At</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($trash_documents as $doc): ?>
             <tr>
-              <th>Document Name</th>
-              <th>Category</th>
-              <th>Folder</th>
-              <th>Deleted At</th>
-              <th class="text-center">Actions</th>
+              <td>
+                <input type="checkbox" name="selected_docs[]" value="<?= $doc['id'] ?>" class="doc-checkbox">
+              </td>
+              <td><?= htmlspecialchars($doc['title']) ?></td>
+              <td><?= htmlspecialchars($doc['category_name']) ?></td>
+              <td><?= htmlspecialchars($doc['folder_name']) ?></td>
+              <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
+              <td class="text-center">
+                <form action="restore_document.php" method="POST" class="d-inline restore-form">
+                  <input type="hidden" name="id" value="<?= $doc['id'] ?>">
+                  <button type="submit" class="btn btn-sm btn-restore">Restore</button>
+                </form>
+                <form action="permanent_delete_document.php" method="POST" class="d-inline delete-form">
+                  <input type="hidden" name="id" value="<?= $doc['id'] ?>">
+                  <button type="submit" class="btn btn-sm btn-delete">Delete</button>
+                </form>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($trash_documents as $doc): ?>
-              <tr>
-                <td><?= htmlspecialchars($doc['title']) ?></td>
-                <td><?= htmlspecialchars($doc['category_name']) ?></td>
-                <td><?= htmlspecialchars($doc['folder_name']) ?></td>
-                <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
-                <td class="text-center">
-                  <form action="restore_document.php" method="POST" class="d-inline restore-form">
-                    <input type="hidden" name="id" value="<?= $doc['id'] ?>">
-                    <button type="submit" class="btn btn-sm btn-restore">Restore</button>
-                  </form>
-                  <form action="permanent_delete_document.php" method="POST" class="d-inline delete-form">
-                    <input type="hidden" name="id" value="<?= $doc['id'] ?>">
-                    <button type="submit" class="btn btn-sm btn-delete">Delete</button>
-                  </form>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </form>
+<?php endif; ?>
+<script>
+  // Select All functionality
+  document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.doc-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+  });
+
+  // Bulk Action Confirmation
+  document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const selected = document.querySelectorAll('.doc-checkbox:checked');
+    if (selected.length === 0) {
+      Swal.fire('No documents selected', 'Please select at least one document.', 'warning');
+      return;
+    }
+
+    let action = e.submitter.name === "bulk_restore" ? "restore" : "delete";
+    let confirmText = action === "restore" ? "Yes, restore them!" : "Yes, delete them!";
+    let titleText = action === "restore" ? "Restore selected documents?" : "Delete selected documents permanently?";
+
+    Swal.fire({
+      title: titleText,
+      icon: action === "restore" ? "question" : "warning",
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: "Cancel"
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.action = action === "restore" ? "bulk_restore.php" : "bulk_delete.php";
+        this.submit();
+      }
+    });
+  });
+</script>
+
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.querySelectorAll('.restore-form').forEach(form => {
     form.addEventListener('submit', function(e) {
-      e.preventDefault();  // prevent immediate submit
+      e.preventDefault();
       Swal.fire({
         title: 'Restore Document?',
         icon: 'question',
@@ -134,7 +184,7 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         cancelButtonText: 'Cancel'
       }).then(result => {
         if (result.isConfirmed) {
-          form.submit(); // submit form after confirmation
+          form.submit();
         }
       });
     });

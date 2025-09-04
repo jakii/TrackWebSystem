@@ -17,10 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parent = $parent_stmt->fetch();
         $parent_id = $parent ? $parent['parent_id'] : 0;
 
-        header("Location: ../folders/folder_view.php?folder=$parent_id");
+        header("Location: ../documents/browse.php?folder=$parent_id");
         exit();
     }
 }
 
-header("Location: ../folders/folder_view.php");
+header("Location: ../documents/browse.php");
 exit();

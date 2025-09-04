@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
             $user_id = $_SESSION['user_id'];
             $doc_title = $document['title'] ?? 'Unknown';
             logActivity($db, $user_id, "Deleted document: {$doc_title} (ID: {$document_id})");
-            header('Location: ../dashboard.php?success=Document moved to trash.');
+            $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php';
+            header("Location: $redirect?success=Document moved to trash.");
             exit();
         } else {
             $error = 'Failed to move document to trash.';
@@ -87,16 +88,17 @@ require_once '../includes/header.php';
                         </p>
                     </div>
                 </div>
-                
                 <form method="POST" class="mt-3">
                     <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                    <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php'); ?>">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="view.php?id=<?php echo $document['id']; ?>" class="btn btn-secondary me-md-2">Cancel</a>
+                        <a href="<?php echo htmlspecialchars($_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php'); ?>" 
+                           class="btn btn-secondary me-md-2">Cancel</a>
                         <button type="submit" name="confirm_delete" class="btn btn-danger">
                             <i class="fas fa-trash me-2"></i>Delete Document
                         </button>
                     </div>
-                </form>
+                </form>               
             </div>
         </div>
     </div>

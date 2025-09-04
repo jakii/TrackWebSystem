@@ -20,7 +20,6 @@
         </a>
       </div>
     <?php else: ?>
-      <!-- ✅ Scrollable Table Wrapper -->
       <div style="max-height: 400px; overflow-y: auto;">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light sticky-top">
@@ -28,6 +27,7 @@
               <th class="ps-3">Document</th>
               <th>Category</th>
               <th>Size</th>
+              <th>Owner</th>
               <th>Date</th>
               <th class="text-center">Actions</th>
             </tr>
@@ -49,6 +49,7 @@
                   <?php endif; ?>
                 </td>
                 <td><?php echo formatFileSize($doc['file_size']); ?></td>
+                <td><?php echo htmlspecialchars($doc['uploader_name']); ?></td>
                 <td><?php echo date('M j, Y g:i A', strtotime($doc['created_at'])); ?></td>
                 <td class="text-center">
                   <div class="dropdown">
@@ -72,8 +73,6 @@
           </tbody>
         </table>
       </div>
-
-      
     <?php endif; ?>
   </div>
 </div>

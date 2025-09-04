@@ -7,7 +7,7 @@ require_once '../includes/header.php';
     <div class="row justify-content-center">
         <div class="col-lg-10 col-md-12 fade-in delay-1">
             <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4 card shadow rounded-4 border-0 px-4 py-3 bg-white">
+            <div>
                 <div class="d-flex w-100 justify-content-between align-items-center gap-3">
                     <h2 class="mb-0 d-flex align-items-center">
                         <i class="fas fa-folder-open me-2" style="color: #004F80;"></i>
@@ -21,7 +21,7 @@ require_once '../includes/header.php';
 
             <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb bg-white rounded-4 px-3 py-2 shadow-sm">
+                <ol class="breadcrumb bg-white">
                     <li class="breadcrumb-item">
                         <a href="folder_view.php"><i class="fas fa-home" style="color: #004F80;"></i> Root</a>
                     </li>
@@ -37,7 +37,7 @@ require_once '../includes/header.php';
             <!-- Folder Display -->
             <?php if (!empty($subfolders)): ?>
             <div class="mb-4 card shadow rounded-4 border-0 bg-white">
-                <h5 class="mb-3"><i class="fas fa-folder me-2" style="color: #004F80;"></i>Folders</h5>
+                
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
@@ -88,7 +88,6 @@ require_once '../includes/header.php';
             <!-- Document Section -->
             <?php if (!empty($documents)): ?>
             <div class="mb-4 card shadow rounded-4 border-0 bg-white">
-                <h5 class="mb-3"><i class="fas fa-file me-2" style="color: #2AB7CA;"></i>Documents</h5>
                 <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
@@ -131,44 +130,9 @@ require_once '../includes/header.php';
                                                     <i class="fas fa-share me-2"></i>Share
                                                 </a>
                                             </li>
-                                            <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
-                                            <li>
-                                                <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('move_doc_id').value='<?php echo $doc['id']; ?>'; var modal = new bootstrap.Modal(document.getElementById('moveDocumentModal')); modal.show();">
-                                                    <i class="fas fa-folder-open me-2"></i>Move to Folder
-                                                </a>
-                                            </li>
-                                            <?php endif; ?>
                                         </ul>
                                     </div>
                                 </td>
-                                <!-- Move Document Modal -->
-                                <div class="modal fade" id="moveDocumentModal" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="POST" action="../api/api_folder_create.php">
-                                                <input type="hidden" name="move_doc_id" id="move_doc_id">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title"><i class="fas fa-folder-open me-2"></i>Move Document to Folder</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="target_folder_id" class="form-label">Select Folder</label>
-                                                        <select class="form-select" id="target_folder_id" name="target_folder_id" required>
-                                                            <?php foreach ($subfolders as $folder): ?>
-                                                                <option value="<?php echo $folder['id']; ?>"><?php echo htmlspecialchars($folder['name']); ?></option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-primary">Move</button>
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

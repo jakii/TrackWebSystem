@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $folder = $stmt->fetch();
     $parent_id = $folder ? $folder['parent_id'] : 0;
 
-    $docCheck = $db->prepare("SELECT COUNT(*) FROM documents WHERE folder_id = ?");
+    $docCheck = $db->prepare("SELECT COUNT(*) FROM documents WHERE folder_id = ? AND (is_deleted IS NULL OR is_deleted = 0)");
     $docCheck->execute([$folder_id]);
     $docCount = $docCheck->fetchColumn();
 
     if ($docCount > 0) {
-        header("Location: ../folders/folder_view.php?folder=$parent_id&error=has_documents");
+        header("Location: ../documents/browse.php?folder=$parent_id&error=has_documents");
         exit();
     }
 
@@ -24,9 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $db->prepare("DELETE FROM folders WHERE id = ?")->execute([$folder_id]);
 
-    header("Location: ../folders/folder_view.php?folder=$parent_id&success=folder_deleted");
+    header("Location: ../documents/browse.php?folder=$parent_id&success=folder_deleted");
     exit();
-}
+    }
 
-header("Location: ../folders/folder_view.php");
-exit();
+    header("Location: ../documents/browse.php");
+    exit();

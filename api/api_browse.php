@@ -86,38 +86,6 @@ if (isAdmin()) {
 
 $page_title = $current_folder ? $current_folder['name'] . ' - Browse' : 'Document Browser';
 
-// Renders folder sidebar tree
-function renderSidebarTree($db, $parent_id = null, $level = 0, $current_id = null) {
-    $user_id = $_SESSION['user_id'];
-    $is_admin = isAdmin();
-
-    $query = "
-        SELECT f.*, COUNT(DISTINCT d.id) as document_count
-        FROM folders f 
-        LEFT JOIN documents d ON f.id = d.folder_id 
-        WHERE f.parent_id " . ($parent_id ? "= " . (int)$parent_id : "IS NULL") . "
-        GROUP BY f.id 
-        ORDER BY f.sort_order, f.name
-    ";
-
-    $folders = $db->query($query)->fetchAll();
-
-    foreach ($folders as $folder) {
-        $is_current = $folder['id'] == $current_id;
-        echo '<div class="sidebar-folder-item" style="padding-left: ' . ($level * 15) . 'px;">';
-        echo '<a href="browse.php?folder=' . $folder['id'] . '" class="sidebar-folder-link ' . ($is_current ? 'active' : '') . '">';
-        echo '<i class="fas fa-folder me-1" style="color: ' . htmlspecialchars($folder['color']) . ';"></i>';
-        echo htmlspecialchars($folder['name']);
-        if ($folder['document_count'] > 0) {
-            echo ' <small class="text-muted">(' . $folder['document_count'] . ')</small>';
-        }
-        echo '</a>';
-        echo '</div>';
-
-        renderSidebarTree($db, $folder['id'], $level + 1, $current_id);
-    }
-}
-
 // Folder creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_folder') {
     $folder_name = trim($_POST['folder_name'] ?? '');

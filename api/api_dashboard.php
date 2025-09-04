@@ -80,10 +80,9 @@ if ($is_admin) {
 
 $totalPages = ceil($totalDocuments / $perPage);
 
-// Fetch paginated documents
 // Fetch documents
 if ($is_admin) {
-    // Admin → still paginated
+    // Admin → fetch all docs
     $recent_documents_stmt = $db->prepare("
         SELECT d.*, 
            c.name AS category_name, 
@@ -95,31 +94,29 @@ if ($is_admin) {
         LEFT JOIN folders f ON d.folder_id = f.id
         WHERE (d.is_deleted IS NULL OR d.is_deleted = 0)
         ORDER BY d.created_at DESC
-        LIMIT ? OFFSET ?
     ");
-    $recent_documents_stmt->bindValue(1, $perPage, PDO::PARAM_INT);
-    $recent_documents_stmt->bindValue(2, $offset, PDO::PARAM_INT);
+    $recent_documents_stmt->execute();
 } else {
-    // USER → show all documents (no pagination)
-    $recent_documents_stmt = $db->prepare("
-        SELECT d.*, 
+    // USER → fetch all docs (same as before)
+$recent_documents_stmt = $db->prepare("
+    SELECT d.*, 
            c.name AS category_name, 
            c.color AS category_color,
            f.name AS folder_name,
-           f.color AS folder_color
-        FROM documents d
-        LEFT JOIN categories c ON d.category_id = c.id
-        LEFT JOIN folders f ON d.folder_id = f.id
-        WHERE d.uploaded_by = ?
-          AND (d.is_deleted IS NULL OR d.is_deleted = 0)
-        ORDER BY d.created_at DESC
-    ");
-    $recent_documents_stmt->execute([$user_id]);
+           f.color AS folder_color,
+           u.full_name AS uploader_name
+    FROM documents d
+    LEFT JOIN categories c ON d.category_id = c.id
+    LEFT JOIN folders f ON d.folder_id = f.id
+    LEFT JOIN users u ON d.uploaded_by = u.id
+    WHERE (d.is_deleted IS NULL OR d.is_deleted = 0)
+    ORDER BY d.created_at DESC
+");
+$recent_documents_stmt->execute();
 }
 
-
-$recent_documents_stmt->execute();
 $recent_documents = $recent_documents_stmt->fetchAll();
+
 
 // 📂 5 Documents Shared With User
 $shared_documents = $db->prepare("

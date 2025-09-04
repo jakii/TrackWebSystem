@@ -163,6 +163,60 @@ include '../api/api_upload.php';
         </div>
     </div>
 
+    <!-- Edit Folder Modal -->
+    <div class="modal fade" id="editFolderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="../api/api_folder_edit.php">
+                    <input type="hidden" name="folder_id" id="edit_id">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Folder</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Folder Name</label>
+                            <input type="text" class="form-control" name="folder_name" id="edit_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="folder_description" id="edit_description" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Folder Color</label>
+                            <input type="color" class="form-control form-control-color" name="folder_color" id="edit_color">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn" style="background-color: #004F80; color: white;"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+                                    
+    <!-- Delete Folder Modal -->
+    <div class="modal fade" id="deleteFolderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="../api/api_folder_delete.php">
+                    <input type="hidden" name="folder_id" id="delete_id">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-trash-alt me-2"></i>Delete Folder</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this folder? This will also delete all its subfolders.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt me-2"></i>Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- Table/List View -->
         <?php if (!empty($subfolders) || !empty($documents)): ?>
             <div class="fade-in delay-2 mt-3 shadow rounded-4 border-0">
@@ -177,29 +231,81 @@ include '../api/api_upload.php';
                         </tr>
                     </thead>
                     <tbody>
-                <?php foreach ($subfolders as $folder): ?>
-                    <tr class="folder-row" ondblclick="window.location.href='browse.php?folder=<?php echo $folder['id']; ?>'" style="cursor:pointer;">
-                        <td>
-                            <i class="fas fa-folder me-2" style="color: <?php echo htmlspecialchars($folder['color']); ?>"></i>
-                            <strong><?php echo htmlspecialchars($folder['name']); ?></strong>
-                        </td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td><?php echo date('M j, Y', strtotime($folder['created_at'])); ?></td>
-                        <td>
-                            <small class="text-muted">
-                                <?php
-                                    $folders = $folder['subfolder_count'];
-                                    $docs = $folder['document_count'];
-                                    if ($folders || $docs) {
-                                        echo "$folders " . ($folders == 1 ? "folder" : "folders") . " • $docs " . ($docs == 1 ? "doc" : "docs");
-                                    }
-                                ?>
-                            </small>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                    <?php foreach ($subfolders as $folder): ?>
+                        <tr class="folder-row" 
+                            ondblclick="window.location.href='browse.php?folder=<?php echo $folder['id']; ?>'" 
+                            style="cursor:pointer;">
 
+                            <!-- Name -->
+                            <td>
+                                <i class="fas fa-folder me-2" style="color: <?php echo htmlspecialchars($folder['color']); ?>"></i>
+                                <strong><?php echo htmlspecialchars($folder['name']); ?></strong>
+                            </td>
+                    
+                            <!-- Counts in the Size column -->
+                            <td>
+                                <small class="text-muted">
+                                    <?php
+                                        $folders = $folder['subfolder_count'] ?? 0;
+                                        $docs = $folder['document_count'] ?? 0;
+                                        if ($folders || $docs) {
+                                            echo "$folders " . ($folders == 1 ? "folder" : "folders");
+                                            echo " • $docs " . ($docs == 1 ? "doc" : "docs");
+                                        } else {
+                                            echo "—";
+                                        }
+                                    ?>
+                                </small>
+                            </td>
+                                    
+                            <!-- Owner -->
+                            <td>
+                                <?php echo !empty($folder['owner']) ? htmlspecialchars($folder['owner']) : '—'; ?>
+                            </td>
+                                    
+                            <!-- Modified -->
+                            <td>
+                                <?php echo !empty($folder['created_at']) ? date('M j, Y', strtotime($folder['created_at'])) : '—'; ?>
+                            </td>
+                                    
+                            <!-- Actions -->
+                            <td class="text-center">
+                                <?php if (isAdmin()): ?>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-circle" type="button" 
+                                                id="folderActions<?= $folder['id'] ?>" 
+                                                data-bs-toggle="dropdown" aria-expanded="false" 
+                                                style="border: none;">
+                                            <i class="fas fa-ellipsis-v" style="font-size: 1rem; color: #2F4858;"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="folderActions<?= $folder['id'] ?>">
+                                            <li>
+                                                <a class="dropdown-item" href="#" 
+                                                   onclick="event.stopPropagation(); 
+                                                            document.getElementById('edit_id').value='<?php echo $folder['id']; ?>'; 
+                                                            document.getElementById('edit_name').value='<?php echo htmlspecialchars($folder['name'], ENT_QUOTES); ?>'; 
+                                                            document.getElementById('edit_description').value='<?php echo htmlspecialchars($folder['description'], ENT_QUOTES); ?>'; 
+                                                            document.getElementById('edit_color').value='<?php echo $folder['color']; ?>'; 
+                                                            var modal = new bootstrap.Modal(document.getElementById('editFolderModal')); 
+                                                            modal.show();">
+                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" 
+                                                   onclick="event.stopPropagation(); 
+                                                            document.getElementById('delete_id').value='<?php echo $folder['id']; ?>'; 
+                                                            var modal = new bootstrap.Modal(document.getElementById('deleteFolderModal')); 
+                                                            modal.show();">
+                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 <?php foreach ($documents as $doc): ?>
                     <tr>
                         <td>
@@ -227,7 +333,12 @@ include '../api/api_upload.php';
                                     <?php endif; ?>
                                     <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                       <li><hr class="dropdown-divider"></li>
-                                      <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                                      <li>
+                                        <a class="dropdown-item text-danger" 
+                                           href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
+                                           <i class="fas fa-trash me-2"></i> Delete
+                                        </a>
+                                      </li>
                                     <?php endif; ?>
                                 </ul>
                             </div>
@@ -237,11 +348,11 @@ include '../api/api_upload.php';
             </tbody>
         </table>
         </div>
-        <?php else: ?>
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
-                <h4 class="text-muted">This folder is empty</h4>
-                <p class="text-muted">Upload documents or create folders to get started.</p>
-            </div>
-        <?php endif; ?>
+    <?php else: ?>
+        <div class="text-center py-5 fade-in delay-2">
+            <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">This folder is empty</h4>
+            <p class="text-muted">Upload documents or create folders to get started.</p>
+        </div>
+    <?php endif; ?>
 </div>
