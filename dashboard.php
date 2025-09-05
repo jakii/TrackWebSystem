@@ -51,6 +51,31 @@ include 'includes/header.php';
         </div>
       </div>
     </div>
+    <?php else: ?>
+    <!-- User: Recent Folders -->
+     <?php if (empty($recent_folders)): ?>
+  <div class="col-12">
+    <div class="alert alert-info">No recent folders found.</div>
+  </div>
+<?php endif; ?>
+    <?php foreach ($recent_folders as $folder): ?>
+<div class="col-md-4">
+    <div class="card shadow rounded-4 border-0" style="background-color: #004F80; color: white; cursor: pointer;"
+         onclick="window.location.href='documents/browse.php?folder=<?= $folder['id'] ?>'">
+        <div class="card-body d-flex align-items-center">
+            <!-- Folder Icon -->
+            <div class="me-3 d-flex align-items-center justify-content-center" 
+                 style="width: 50px; height: 50px; background-color: <?= htmlspecialchars($folder['color']); ?>; border-radius: 8px;">
+                <i class="fas fa-folder fa-lg me-2 text-white"></i>
+            </div>
+            <div>
+                <h5 class="mb-0"><?= htmlspecialchars($folder['name']); ?></h5>
+                <small class="text-light">Created <?= date('M j, Y', strtotime($folder['created_at'])); ?></small>
+            </div>
+        </div>
+    </div>
+</div>
+    <?php endforeach; ?>
   <?php endif; ?>
 </div>
 <div class="row g-2 fade-in delay-3">
@@ -59,51 +84,51 @@ include 'includes/header.php';
   <script src="assets/js/weekly_uploads.js"></script>
   <script src="assets/js/counter.js"></script>
   <script src="assets/js/statistics.js"></script>
-   <?php if (isAdmin()): ?>
-    <?php if (!empty($weekly_uploads) && array_sum($weekly_uploads) > 0): ?>
-      <div class="col-md-8">
-        <div class="card h-100 shadow rounded-4 border-0">
-          <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
-            <h5 class="mb-0">
-              <i class="fas fa-chart-line me-2" style="color: #004F80;"></i> Weekly Uploads
-            </h5>
-            <a href="all_reports.php" class="btn btn-sm rounded-pill px-3" style="background-color: #2AB7CA; color: white; font-weight: 500;">
-              View All
-            </a>
-          </div>
-          <div class="card-body">
-            <canvas id="weeklyUploadsChart"
-              height="250"
-              data-labels='<?php echo json_encode(array_keys($weekly_uploads)); ?>'
-              data-data='<?php echo json_encode(array_values($weekly_uploads)); ?>'>
-            </canvas>
-          </div>
-        </div> 
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100 shadow rounded-4 border-0">
-          <div class="card-header bg-white border-bottom rounded-top-4">
-            <h5 class="mb-0">
-              <i class="fas fa-chart-area me-2" style="color: #2AB7CA;"></i> Statistics
-            </h5>
-          </div>
-          <div class="card-body">
-            <canvas id="statisticsChart" height="250"></canvas>
-          </div>
+
+  <?php if (isAdmin()): ?>
+    <!-- Weekly Uploads Chart -->
+    <div class="col-md-8">
+      <div class="card h-100 shadow rounded-4 border-0">
+        <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2" style="color: #004F80;"></i> Weekly Uploads
+          </h5>
+          <a href="all_reports.php" class="btn btn-sm rounded-pill px-3" style="background-color: #2AB7CA; color: white; font-weight: 500;">
+            View All
+          </a>
+        </div>
+        <div class="card-body">
+          <canvas id="weeklyUploadsChart"
+            height="250"
+            data-labels='<?php echo json_encode(array_keys($weekly_uploads ?? [])); ?>'
+            data-data='<?php echo json_encode(array_values($weekly_uploads ?? [])); ?>'>
+          </canvas>
+        </div>
+      </div> 
+    </div>
+
+    <!-- Statistics Chart -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow rounded-4 border-0">
+        <div class="card-header bg-white border-bottom rounded-top-4">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-area me-2" style="color: #2AB7CA;"></i> Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <canvas id="statisticsChart" height="250"></canvas>
         </div>
       </div>
-    <?php else: ?>
-      <div>
-        <?php include 'recent_documents_partial.php';?>
-      </div>
-    <?php endif; ?>
+    </div>
   <?php else: ?>
-    <div>
-      <?php include 'recent_documents_partial.php';?>
+    <div class="col-12 ">
+      <?php include 'recent_documents_partial.php'; ?>
     </div>
   <?php endif; ?>
+</div>
+
  <?php if (isAdmin()): ?>
-  <div class="card shadow rounded-4 border-0">
+  <div class="card shadow rounded-4 border-0 mt-4">
     <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
       <div>
         <h5 class="mb-0">

@@ -143,4 +143,17 @@ $shared_documents = $shared_documents->fetchAll();
 $categories = $db->prepare("SELECT * FROM categories ORDER BY name");
 $categories->execute();
 $categories = $categories->fetchAll();
+
+if (!$is_admin) {
+    $recent_folders_stmt = $db->query("
+        SELECT id, name, color, created_at
+        FROM folders
+        ORDER BY created_at DESC
+        LIMIT 3
+    ");
+    $recent_folders = $recent_folders_stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $recent_folders = [];
+}
+
 ?>
