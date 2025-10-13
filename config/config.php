@@ -7,7 +7,7 @@ define('DB_PASS', '');
 define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
 define('BASE_URL', '/TrackWeb/');
 
-define('UPLOAD_DIR', 'uploads/');
+define('UPLOAD_DIR', __DIR__ . '/../documents/uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', [
     'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png',

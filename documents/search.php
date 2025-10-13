@@ -2,7 +2,7 @@
 require_once '../includes/header.php';
 include '../api/api_search.php';
 ?>
-<div class="row fade-in delay-1">
+<div class="row">
     <div class="col-md-12">
         <h1>
             <i class="fas fa-search me-2" style="color: #004F80;"></i>Search Documents
@@ -12,88 +12,102 @@ include '../api/api_search.php';
 </div>
 
 <!-- Search Form -->
-<div class="card mb-4 fade-in delay-2 shadow rounded-4 border-0">
-    <div class="card-body">
-        <form method="GET" class="row g-3" id="searchForm">
-            <div class="col-md-4">
-                <label for="search" class="form-label">Search</label>
-                <input type="text" class="form-control rounded-pill" id="search" name="search" 
-                value="<?php echo htmlspecialchars($search); ?>" 
-                placeholder="Search by title, description, tags, or filename">
-            </div>
-            
-            <div class="col-md-2">
-                <label for="category" class="form-label">Category</label>
-                <select class="form-select rounded-pill" id="category" name="category">
-                    <option value="">All Categories</option>
-                    <?php foreach ($categories as $category): ?>
-                    <option value="<?php echo $category['id']; ?>" 
-                            <?php echo $category_id == $category['id'] ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($category['name']); ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <div class="col-md-2">
-                <label for="file_type" class="form-label">File Type</label>
-                <select class="form-select rounded-pill" id="file_type" name="file_type">
-                    <option value="">All Types</option>
-                    <option value="pdf" <?php echo $file_type === 'pdf' ? 'selected' : ''; ?>>PDF</option>
-                    <option value="doc" <?php echo $file_type === 'doc' ? 'selected' : ''; ?>>Word</option>
-                    <option value="image" <?php echo $file_type === 'image' ? 'selected' : ''; ?>>Images</option>
-                    <option value="excel" <?php echo $file_type === 'excel' ? 'selected' : ''; ?>>Excel</option>
-                    <option value="powerpoint" <?php echo $file_type === 'powerpoint' ? 'selected' : ''; ?>>PowerPoint</option>
-                </select>
-            </div>
-            
-            <div class="col-md-2">
-                <label for="sort" class="form-label">Sort By</label>
-                <select class="form-select rounded-pill" id="sort" name="sort">
-                    <option value="created_at" <?php echo $sort_by === 'created_at' ? 'selected' : ''; ?>>Date</option>
-                    <option value="title" <?php echo $sort_by === 'title' ? 'selected' : ''; ?>>Title</option>
-                    <option value="file_size" <?php echo $sort_by === 'file_size' ? 'selected' : ''; ?>>Size</option>
-                    <option value="download_count" <?php echo $sort_by === 'download_count' ? 'selected' : ''; ?>>Downloads</option>
-                </select>
-            </div>
-            
-            <div class="col-md-2">
-                <label for="order" class="form-label">Order</label>
-                <select class="form-select rounded-pill" id="order" name="order">
-                    <option value="desc" <?php echo $sort_order === 'desc' ? 'selected' : ''; ?>>Descending</option>
-                    <option value="asc" <?php echo $sort_order === 'asc' ? 'selected' : ''; ?>>Ascending</option>
-                </select>
-            </div>
-            
-            <div class="col-12">
-                <button type="submit" class="btn me-2 rounded-pill" style ="background-color: #004F80; color: white;">
-                    <i class="fas fa-search me-2"></i>Search
-                </button>
-                <a href="search.php" class="btn btn-outline-secondary rounded-pill">
-                    <i class="fas fa-times me-2"></i>Clear
-                </a>
-            </div>
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const form = document.getElementById('searchForm');
-                    const autoSubmitFields = ['category', 'file_type', 'sort', 'order'];
-                
-                    autoSubmitFields.forEach(function (id) {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.addEventListener('change', function () {
-                                form.submit();
-                            });
-                        }
-                    });
-                });
-            </script>
-        </form>
-    </div>
+<div class="card mb-4 shadow rounded-4 border-0">
+  <div class="card-body">
+    <form method="GET" class="row g-3" id="searchForm">
+
+      <!-- Search -->
+      <div class="col-md-4">
+        <label for="search" class="form-label">Search</label>
+        <input type="text" class="form-control rounded-pill" id="search" name="search"
+               value="<?= htmlspecialchars($search ?? '') ?>"
+               placeholder="Search by title, description, tags, or filename">
+      </div>
+
+      <!-- Category -->
+      <div class="col-md-2">
+        <label for="category" class="form-label">Category</label>
+        <select class="form-select rounded-pill" id="category" name="category">
+          <option value="">All Categories</option>
+          <?php foreach ($categories as $category): ?>
+            <option value="<?= $category['id']; ?>" 
+                    <?= ($category_id == $category['id']) ? 'selected' : ''; ?>>
+              <?= htmlspecialchars($category['name']); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <!-- File Type -->
+      <div class="col-md-2">
+        <label for="file_type" class="form-label">File Type</label>
+        <select class="form-select rounded-pill" id="file_type" name="file_type">
+          <option value="">All Types</option>
+          <option value="pdf" <?= ($file_type === 'pdf') ? 'selected' : ''; ?>>PDF</option>
+          <option value="doc" <?= ($file_type === 'doc') ? 'selected' : ''; ?>>Word</option>
+          <option value="image" <?= ($file_type === 'image') ? 'selected' : ''; ?>>Images</option>
+          <option value="excel" <?= ($file_type === 'excel') ? 'selected' : ''; ?>>Excel</option>
+          <option value="powerpoint" <?= ($file_type === 'powerpoint') ? 'selected' : ''; ?>>PowerPoint</option>
+        </select>
+      </div>
+
+      <!-- Date Filter -->
+      <div class="col-md-2">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" class="form-control rounded-pill" id="date" name="date"
+               value="<?= htmlspecialchars($_GET['date'] ?? '') ?>">
+      </div>
+
+      <!-- Order -->
+      <div class="col-md-2">
+        <label for="order" class="form-label">Order</label>
+        <select class="form-select rounded-pill" id="order" name="order">
+          <option value="desc" <?= ($sort_order === 'desc') ? 'selected' : ''; ?>>Descending</option>
+          <option value="asc" <?= ($sort_order === 'asc') ? 'selected' : ''; ?>>Ascending</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="col-12">
+        <button type="submit" class="btn me-2 rounded-pill" style="background-color: #004F80; color: white;">
+          <i class="fas fa-search me-2"></i>Search
+        </button>
+        <a href="browse.php" class="btn btn-outline-secondary rounded-pill">
+          <i class="fas fa-times me-2"></i>Clear
+        </a>
+      </div>
+
+    </form>
+  </div>
 </div>
 
+<!-- Auto-submit filters JS -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('searchForm');
+
+    // Dropdown filters: submit on change
+    ['category', 'file_type', 'order'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', () => form.submit());
+        }
+    });
+
+    // Date picker: submit immediately when a date is selected
+    const dateInput = document.getElementById('date');
+    if (dateInput) {
+        dateInput.addEventListener('input', () => {
+            if (dateInput.value) form.submit();
+        });
+    }
+});
+</script>
+
+
+
 <!-- Results -->
-<div class="card fade-in delay-3 shadow rounded-4 border-0">
+<div class="card shadow rounded-4 border-0">
     <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
         <div>
             <h5 class="mb-0">

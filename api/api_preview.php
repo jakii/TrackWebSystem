@@ -1,9 +1,13 @@
-
 <?php
 require_once '../includes/auth_check.php';
 require_once '../config/database.php';
 require_once '../includes/activity_logger.php';
 requireAuth();
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $document_id = (int)($_GET['id'] ?? 0);
 
@@ -44,4 +48,16 @@ $is_excel = in_array($file_extension, ['xls', 'xlsx']);
 $is_powerpoint = in_array($file_extension, ['ppt', 'pptx']);
 $is_text = in_array($file_extension, ['txt']);
 $is_archive = in_array($file_extension, ['zip', 'rar']);
-$is_zip = in_array(strtolower($file_extension), ['zip']);
+
+// Build public URL for browser preview - FIXED
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$baseUrl = $protocol . '://' . $host;
+
+// Get relative path from document root
+$docRoot = realpath($_SERVER['DOCUMENT_ROOT']);
+$fileRealPath = realpath($document['file_path']);
+$relativePath = str_replace($docRoot, '', $fileRealPath);
+$relativePath = str_replace('\\', '/', ltrim($relativePath, '/\\'));
+
+$document['public_url'] = $baseUrl . '/' . $relativePath;

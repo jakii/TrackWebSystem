@@ -4,7 +4,7 @@ include '../api/api_search.php';
 // Get search query from GET
 $search = trim($_GET['search'] ?? '');
 ?>
-<div class="row fade-in delay-1">
+<div class="row">
     <div class="col-md-12">
         <h1>
             <i class="fas fa-search me-2" style="color: #2AB7CA;"></i>Search Results
@@ -12,7 +12,7 @@ $search = trim($_GET['search'] ?? '');
         <hr>
     </div>
 </div>
-<div class="card fade-in delay-2 shadow rounded-4 border-0">
+<div class="card shadow rounded-4 border-0">
     <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
         <div>
             <h5 class="mb-0">

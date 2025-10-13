@@ -1,66 +1,175 @@
 <?php 
-include '../api/api_register.php';
-include '../includes/header.php';
+require_once '../api/api_register.php';
+require_once '../includes/header.php';
 ?>
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="col-md-5 col-lg-5">
-        <div class="card shadow-sm rounded-4 border-0 animate-fade-slide">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i class="fas fa-user-plus fa-2x mb-2" style="color: #004F80;"></i>
-                    <h4 class="fw-semibold">Create an Account</h4>
-                    <p class="text-muted small">Fill out the form below to register</p>
-                </div>
+<link rel="icon" href="../assets/images/LOGO.png" type="image/x-icon">
 
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                <?php endif; ?>
+<!-- External CSS -->
+<link rel="stylesheet" href="../assets/css/register.css">
 
-                <?php if ($success): ?>
-                    <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
-                <?php endif; ?>
+<!-- Back to Home Button -->
+<a href="../index.php" class="back-home">
+    <i class="fas fa-arrow-left"></i> Back to Home
+</a>
 
-                <form method="POST" novalidate>
-                    <div class="mb-3">
-                        <label for="full_name" class="form-label fw-medium">Full Name</label>
-                        <input type="text" class="form-control form-control-sm rounded-3" id="full_name" name="full_name" 
-                            value="<?php echo htmlspecialchars($full_name ?? ''); ?>" required>
-                    </div>
+<!-- Background Circles -->
+<div class="bg-circle one"></div>
+<div class="bg-circle two"></div>
 
-                    <div class="mb-3">
-                        <label for="username" class="form-label fw-medium">Username</label>
-                        <input type="text" class="form-control form-control-sm rounded-3" id="username" name="username" 
-                            value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
-                    </div>
+<!-- Register Container -->
+<div class="register-container">
+    <div class="register-card">
+        <!-- Header -->
+        <div class="register-header">
+            <div class="logo-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>Create an Account</h1>
+            <p>Fill out the form below to get started</p>
+        </div>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-medium">Email</label>
-                        <input type="email" class="form-control form-control-sm rounded-3" id="email" name="email" 
-                            value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
-                    </div>
+        <!-- Alerts -->
+        <?php if (!empty($error)): ?>
+            <div class="alert-custom">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label fw-medium">Password</label>
-                        <input type="password" class="form-control form-control-sm rounded-3" id="password" name="password" required>
-                        <div class="form-text">Password must be at least 6 characters long.</div>
-                    </div>
+        <?php if (!empty($success)): ?>
+            <div class="alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <?php echo htmlspecialchars($success); ?>
+            </div>
+        <?php endif; ?>
 
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label fw-medium">Confirm Password</label>
-                        <input type="password" class="form-control form-control-sm rounded-3" id="confirm_password" name="confirm_password" required>
-                    </div>
+        <!-- Register Form -->
+        <form method="POST" autocomplete="off" novalidate id="registerForm">
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    name="full_name" 
+                    value="<?php echo htmlspecialchars($full_name ?? ''); ?>" 
+                    placeholder="Enter your full name"
+                    required
+                >
+            </div>
 
-                    <button type="submit" class="btn w-100 rounded-pill py-2 fw-semibold" style="background-color: #004F80; color: white;">
-                        <i class="fas fa-user-plus me-2"></i>Register
-                    </button>
-                </form>
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    value="<?php echo htmlspecialchars($username ?? ''); ?>" 
+                    placeholder="Choose a username"
+                    required
+                >
+            </div>
 
-                <div class="text-center mt-4">
-                    <p class="mb-0">Already have an account?
-                        <a href="login.php" class="text-decoration-none fw-medium">Login here</a>
-                    </p>
+            <div class="form-group">
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    value="<?php echo htmlspecialchars($email ?? ''); ?>" 
+                    placeholder="Enter your email address"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        minlength="6"
+                        placeholder="Create a password (min. 6 characters)"
+                        required
+                    >
+                    <span class="toggle-password" id="togglePassword1">
+                        <i class="fas fa-eye"></i>
+                    </span>
                 </div>
             </div>
+
+            <div class="form-group">
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        placeholder="Re-enter your password"
+                        required
+                    >
+                    <span class="toggle-password" id="togglePassword2">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-user-plus me-2"></i>Register
+            </button>
+        </form>
+
+        <div class="register-footer">
+            <p>Already have an account? <a href="login.php">Login here</a></p>
         </div>
     </div>
 </div>
+
+<script>
+// Password Toggle for Password Field
+document.getElementById('togglePassword1').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Password Toggle for Confirm Password Field
+document.getElementById('togglePassword2').addEventListener('click', function() {
+    const passwordInput = document.getElementById('confirm_password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Form Submit Loading State
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.classList.add('loading');
+    submitBtn.innerHTML = '<span style="opacity: 0;">Processing...</span>';
+});
+
+// Input Focus Animation
+const inputs = document.querySelectorAll('.form-group input');
+inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'translateY(-2px)';
+        this.parentElement.style.transition = 'transform 0.3s ease';
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'translateY(0)';
+    });
+});
+</script>

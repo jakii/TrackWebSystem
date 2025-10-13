@@ -48,14 +48,14 @@ $recent_logs = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 ?>
 
-<div class="container-fluid px-4 fade-in delay-1">
+<div class="container-fluid px-4">
     <h4 class="mt-4">Activity Logs</h4>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item active">Audit Trail</li>
     </ol>
 <hr>
     <!-- Filter Form -->
-    <div class="card mb-4 fade-in delay-2">
+    <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-2">
                 <div class="col-md-4">
@@ -72,7 +72,7 @@ $stmt->close();
     </div>
 
     <!-- Logs Table -->
-    <div class="card mb-4 fade-in delay-3">
+    <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-clipboard-list me-1"></i> Recent Activities
         </div>

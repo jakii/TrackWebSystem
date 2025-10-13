@@ -21,17 +21,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             SELECT id, username, email, password, full_name, role, status
             FROM users 
             WHERE username = ? OR email = ?
+            LIMIT 1
         ");
         $user_query->execute([$username, $username]);
-        $user = $user_query->fetch();
+        $user = $user_query->fetch(PDO::FETCH_ASSOC);
         
         if ($user && password_verify($password, $user['password'])) {
-
+            // Account status checks
             if ($user['status'] === 'disabled') {
                 $error = 'Your account has been disabled. Please contact the administrator.';
             } elseif ($user['status'] !== 'active') {
                 $error = 'Your account is pending approval by the admin.';
             } else {
+                // ✅ Regenerate session to prevent fixation
+                session_regenerate_id(true);
+
                 // Set session variables
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
@@ -49,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: ../dashboard.php');
                 exit();
             }
-        
         } else {
             $error = 'Invalid username or password.';
         }

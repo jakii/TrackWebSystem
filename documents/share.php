@@ -4,7 +4,7 @@ include '../api/api_share.php';
 ?>
 <div class="row">
     <div class="col-md-8">
-        <div class="card shadow rounded-4 border-0 fade-in delay-1">
+        <div class="card shadow rounded-4 border-0">
             <div class="card-header">
                 <h4 class="mb-0">
                     <i class="fas fa-share-alt me-2" style="color: #004F80;"></i>Share Document
@@ -70,7 +70,7 @@ include '../api/api_share.php';
             </div>
         </div>
 
-        <div class="card mt-4 shadow rounded-4 border-0 fade-in delay-3">
+        <div class="card mt-4 shadow rounded-4 border-0">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-users me-2" style="color: #004F80;"></i>Currently Shared With
@@ -128,7 +128,7 @@ include '../api/api_share.php';
     </div>
     
     <div class="col-md-4">
-        <div class="card shadow rounded-4 border-0 fade-in delay-2">
+        <div class="card shadow rounded-4 border-0">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-cog me-2" style="color: #004F80;"></i>Quick Actions
@@ -142,8 +142,8 @@ include '../api/api_share.php';
                     <a href="view.php?id=<?php echo $document['id']; ?>" class="btn" style ="background-color: #FFD166";>
                         <i class="fas fa-info-circle me-2"></i>View Details
                     </a>
-                    <a href="../dashboard.php" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    <a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Back
                     </a>
                 </div>
             </div>

@@ -50,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
     }
 }
 
-
 require_once '../includes/header.php';
 ?>
 <div class="row justify-content-center">

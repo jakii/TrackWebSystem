@@ -119,9 +119,10 @@ include '../includes/header.php';
                         <i class="fas fa-edit me-2"></i>Edit Details
                       </a>
                     <?php endif; ?>
-                    <a href="../dashboard.php" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                    </a>
+<a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back
+</a>
+
                 </div>
             </div>
         </div>

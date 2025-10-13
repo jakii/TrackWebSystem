@@ -2,22 +2,8 @@
 require_once '../includes/auth_check.php';
 require_once '../config/database.php';
 require_once '../includes/header.php';
+require_once '../api/api_trash.php';
 requireAuth();
-
-$user_id = $_SESSION['user_id'] ?? null;
-
-$stmt = $db->prepare("
-    SELECT d.*, 
-           c.name AS category_name, 
-           f.name AS folder_name
-    FROM documents d
-    LEFT JOIN categories c ON d.category_id = c.id
-    LEFT JOIN folders f ON d.folder_id = f.id
-    WHERE d.uploaded_by = ? AND d.is_deleted = 1
-    ORDER BY d.deleted_at DESC
-");
-$stmt->execute([$user_id]);
-$trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>
@@ -79,7 +65,7 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     transform: translateY(-2px) scale(1.04);
   }
 </style>
-<div class="container fade-in delay-1">
+<div class="container">
   <div class="trash-card">
     <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Trash Bin</h4>
     <p class="text-muted">Documents you deleted will appear here. You can restore or permanently delete them.</p>
@@ -96,14 +82,13 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <table class="table trash-table align-middle mb-0">
         <thead>
           <tr>
-            <th>
-              <input type="checkbox" id="selectAll">
-            </th>
+            <th><input type="checkbox" id="selectAll"></th>
             <th>Document Name</th>
             <th>Category</th>
-            <th>Folder</th>
             <th>Deleted At</th>
-            <th class="text-center">Actions</th>
+            <?php if ($is_admin): ?>
+              <th>Owner</th>
+            <?php endif; ?>
           </tr>
         </thead>
         <tbody>
@@ -114,18 +99,10 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
               </td>
               <td><?= htmlspecialchars($doc['title']) ?></td>
               <td><?= htmlspecialchars($doc['category_name']) ?></td>
-              <td><?= htmlspecialchars($doc['folder_name']) ?></td>
               <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
-              <td class="text-center">
-                <form action="restore_document.php" method="POST" class="d-inline restore-form">
-                  <input type="hidden" name="id" value="<?= $doc['id'] ?>">
-                  <button type="submit" class="btn btn-sm btn-restore">Restore</button>
-                </form>
-                <form action="permanent_delete_document.php" method="POST" class="d-inline delete-form">
-                  <input type="hidden" name="id" value="<?= $doc['id'] ?>">
-                  <button type="submit" class="btn btn-sm btn-delete">Delete</button>
-                </form>
-              </td>
+              <?php if ($is_admin): ?>
+                <td><?= htmlspecialchars($doc['owner_name']) ?></td>
+              <?php endif; ?>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -134,13 +111,11 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </form>
 <?php endif; ?>
 <script>
-  // Select All functionality
   document.getElementById('selectAll').addEventListener('change', function() {
     const checkboxes = document.querySelectorAll('.doc-checkbox');
     checkboxes.forEach(cb => cb.checked = this.checked);
   });
 
-  // Bulk Action Confirmation
   document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -192,7 +167,7 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   document.querySelectorAll('.delete-form').forEach(form => {
     form.addEventListener('submit', function(e) {
-      e.preventDefault();  // prevent immediate submit
+      e.preventDefault();
       Swal.fire({
         title: 'Permanently delete document?',
         text: "This action cannot be undone!",
@@ -202,7 +177,7 @@ $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         cancelButtonText: 'Cancel'
       }).then(result => {
         if (result.isConfirmed) {
-          form.submit(); // submit form after confirmation
+          form.submit();
         }
       });
     });

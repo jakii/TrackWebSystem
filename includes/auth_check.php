@@ -1,6 +1,17 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
+if (!isset($db) || $db === null) {
+    $configPath = __DIR__ . '/../config/config.php';
+    $dbPath = __DIR__ . '/../config/database.php';
+
+    if (file_exists($configPath)) {
+        require_once $configPath;
+    }
+    if (file_exists($dbPath)) {
+        require_once $dbPath;
+    }
+}
 //Start the session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -22,6 +33,21 @@ function isAdmin() {
 //Redirect to login if not authenticated
 function requireAuth() {
     if (!isLoggedIn()) {
+        header('Location: auth/login.php');
+        exit();
+    }
+
+    require_once __DIR__ . '/../config/database.php';
+    global $db;
+
+    $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        // Deleted na ang user — destroy session at redirect sa login
+        session_unset();
+        session_destroy();
         header('Location: auth/login.php');
         exit();
     }

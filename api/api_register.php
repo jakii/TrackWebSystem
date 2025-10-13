@@ -22,22 +22,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'All fields are required.';
     } elseif ($password !== $confirm_password) {
         $error = 'Passwords do not match.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
+    } 
+    elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
+        $error = 'Password must be at least 8 characters long and include an uppercase letter, 
+                  a lowercase letter, a number, and a special character.';
     } else {
-
         $check_user_query = $db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
         $check_user_query->execute([$username, $email]);
 
         if ($check_user_query->fetch()) {
             $error = 'Username or email already exists.';
         } else {
-
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $status = 'pending';
             $role = 'user';
+
             $insert_user_query = $db->prepare("
                 INSERT INTO users (username, email, password, full_name, role, status, created_at) 
                 VALUES (?, ?, ?, ?, ?, ?, NOW())
@@ -47,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = 'Registration successful! Your account is pending admin approval.';
                 $user_id = $db->lastInsertId();
                 logActivity($db, $user_id, 'User registered.');
+                
                 $username = $email = $full_name = '';
+                
                 header('Location: ../auth/login.php?success=Your account is pending admin approval.');
                 exit();
             } else {

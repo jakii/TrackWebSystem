@@ -3,82 +3,62 @@ require_once '../includes/auth_check.php';
 require_once '../config/database.php';
 requireAuth();
 requireAdmin();
-
-$errors = [];
-$success = false;
-
-// Fetch current settings
-$stmt = $db->query("SELECT * FROM system_settings");
-$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-
-// Default values if empty
-$site_name = $settings['site_name'] ?? '';
-$site_email = $settings['site_email'] ?? '';
-$items_per_page = $settings['items_per_page'] ?? 20;
-
-// Handle form submission (optional: can be via API)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate inputs
-    $site_name = trim($_POST['site_name'] ?? '');
-    $site_email = trim($_POST['site_email'] ?? '');
-    $items_per_page = intval($_POST['items_per_page'] ?? 20);
-
-    if ($site_name === '') {
-        $errors[] = "Site name is required.";
-    }
-    if (!filter_var($site_email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email address.";
-    }
-    if ($items_per_page <= 0) {
-        $errors[] = "Items per page must be positive.";
-    }
-
-    if (empty($errors)) {
-        // Save settings (you can do individual upserts)
-        $updateStmt = $db->prepare("INSERT INTO system_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)");
-
-        $updateStmt->execute(['site_name', $site_name]);
-        $updateStmt->execute(['site_email', $site_email]);
-        $updateStmt->execute(['items_per_page', $items_per_page]);
-
-        $success = true;
-    }
-}
-
 include '../includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <h4><i class="fas fa-cogs me-2" style="color: #004F80;"></i>System Settings</h4>
-    <p class="text-muted">Configure your system-wide settings below.</p>
+  <div class="card shadow rounded-4 border-0 ">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h4 class="mb-0">
+        <i class="fas fa-gear me-2" style="color:#004F80;"></i>System Settings
+      </h4>
 
-    <?php if ($success): ?>
-      <div class="alert alert-success">Settings updated successfully.</div>
-    <?php endif; ?>
+      <!-- Go Back Button -->
+      <a href="javascript:void(0);" 
+         onclick="if (document.referrer !== '') { window.history.back(); } else { window.location.href='<?php echo BASE_URL; ?>dashboard.php'; }" 
+         class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-2"></i> Go Back
+      </a>
+    </div>
 
-    <?php if (!empty($errors)): ?>
-      <div class="alert alert-danger">
-        <ul class="mb-0">
-          <?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
+    <div class="card-body">
+      <div class="row mt-4 g-3">
+        <div class="col-md-3 col-sm-6">
+          <a href="<?= BASE_URL ?>categories/manage.php" class="text-decoration-none text-dark">
+            <div class="card p-3 shadow-sm rounded-4 text-center h-100 hover-shadow">
+              <i class="fas fa-layer-group fa-2x mb-2" style="color:#004F80;"></i>
+              <h6 class="fw-semibold mb-0">Manage Categories</h6>
+            </div>
+          </a>
+        </div>
 
-    <form method="POST" action="system.php" novalidate>
-      <div class="mb-3">
-        <label for="siteName" class="form-label">Site Name</label>
-        <input type="text" class="form-control" id="siteName" name="site_name" value="<?= htmlspecialchars($site_name) ?>" required>
+        <div class="col-md-3 col-sm-6">
+          <a href="<?= BASE_URL ?>users/manage_user.php" class="text-decoration-none text-dark">
+            <div class="card p-3 shadow-sm rounded-4 text-center h-100 hover-shadow">
+              <i class="fas fa-user-gear fa-2x mb-2" style="color:#004F80;"></i>
+              <h6 class="fw-semibold mb-0">Manage Users</h6>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <a href="<?= BASE_URL ?>logs/audit.php" class="text-decoration-none text-dark">
+            <div class="card p-3 shadow-sm rounded-4 text-center h-100 hover-shadow">
+              <i class="fas fa-clipboard-check fa-2x mb-2" style="color:#004F80;"></i>
+              <h6 class="fw-semibold mb-0">Activity Logs</h6>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <a href="<?= BASE_URL ?>backup_recovery/backup.php" class="text-decoration-none text-dark">
+            <div class="card p-3 shadow-sm rounded-4 text-center h-100 hover-shadow">
+              <i class="fas fa-database fa-2x mb-2" style="color:#004F80;"></i>
+              <h6 class="fw-semibold mb-0">Backup & Recovery</h6>
+            </div>
+          </a>
+        </div>
       </div>
-      <div class="mb-3">
-        <label for="siteEmail" class="form-label">Admin Email</label>
-        <input type="email" class="form-control" id="siteEmail" name="site_email" value="<?= htmlspecialchars($site_email) ?>" required>
-      </div>
-      <div class="mb-3">
-        <label for="itemsPerPage" class="form-label">Items Per Page</label>
-        <input type="number" class="form-control" id="itemsPerPage" name="items_per_page" value="<?= (int)$items_per_page ?>" min="1" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Save Settings</button>
-    </form>
+    </div>
+  </div>
 </div>

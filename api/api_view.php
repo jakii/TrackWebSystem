@@ -7,7 +7,7 @@ requireAuth();
 $document_id = (int)($_GET['id'] ?? 0);
 
 if (!$document_id) {
-    header('Location: ../dashboard.php?error=Invalid document ID.');
+    echo "<script>window.location.href='../dashboard.php?error=Invalid document ID.'</script>";
     exit();
 }
 
@@ -23,7 +23,7 @@ $doc_query->execute([$document_id, $_SESSION['user_id']]);
 $document = $doc_query->fetch();
 
 if (!$document) {
-    header('Location: ../dashboard.php?error=Document not found or access denied.');
+    echo "<script>window.location.href='../dashboard.php?error=Document not found.';</script>";
     exit();
 }
 logDocumentActivity($document_id, $_SESSION['user_id'], 'view');
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && $can_del
         //delete document
         $delete_doc_query = $db->prepare("DELETE FROM documents WHERE id = ?");
         if ($delete_doc_query->execute([$document_id])) {
-            header('Location: ../dashboard.php?success=Document deleted successfully.');
+            echo "<script>window.location.href='../dashboard.php?success=Document deleted successfully.';</script>";
             exit();
         } else {
             $error = 'Failed to delete document.';

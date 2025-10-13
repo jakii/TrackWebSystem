@@ -1,161 +1,149 @@
 <?php
 include '../api/api_browse.php';
 include '../includes/header.php';
-include '../api/api_upload.php';
+require_once '../api/delete_folder.php';
+requireAuth();
+
+$current_folder_id = $_GET['folder'] ?? null;
+$view = $_GET['view'] ?? 'list';
 ?>
 
-<!--main content-->
 <div class="container-fluid">
-        <div class="pt-3 pb-2 mb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap fade-in delay-1">
-            <div>
-                <h1 class="h4 mb-0">
-                    <i class="fas fa-folder-open me-2" style="color: #004F80;"></i>
-                    <?php echo $current_folder ? htmlspecialchars($current_folder['name']) : 'All Documents'; ?>
-                    <?php if (isAdmin()): ?>
-                        <a href="../folders/folder_view.php" class="ms-2 text-decoration-none" title="Manage Folders">
-                            <i class="fas fa-cog" style="color: #004F80;"></i>
+    <!-- HEADER + BREADCRUMB -->
+    <div class="pt-3 pb-2 mb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="h4 mb-0">
+                <i class="fas fa-folder-open me-2" style="color: #004F80;"></i>
+                <?php echo $current_folder ? htmlspecialchars($current_folder['name']) : 'All Documents'; ?>
+            </h1>
+            <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a href="browse.php" style="text-decoration:none;">
+                            <i class="fas fa-home" style="color:#004F80;margin-right:5px;"></i> Home
                         </a>
-                    <?php endif; ?>
-                </h1>
-
-                <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb" class="mt-2">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item">
-                            <a href="browse.php"><i class="fas fa-home"style="color: #004F80;"></i> Home</a>
-                        </li>
-                        <?php foreach ($breadcrumb as $index => $crumb): ?>
-                            <li class="breadcrumb-item <?php echo $index == count($breadcrumb) - 1 ? 'active' : ''; ?>">
-                                <?php if ($index == count($breadcrumb) - 1): ?>
+                    </li>
+                    <?php foreach ($breadcrumb as $index => $crumb): ?>
+                        <li class="breadcrumb-item <?php echo $index == count($breadcrumb) - 1 ? 'active' : ''; ?>">
+                            <?php if ($index == count($breadcrumb) - 1): ?>
+                                <?php echo htmlspecialchars($crumb['name']); ?>
+                            <?php else: ?>
+                                <a href="browse.php?folder=<?php echo $crumb['id']; ?>" style="text-decoration:none;color:black;">
                                     <?php echo htmlspecialchars($crumb['name']); ?>
-                                <?php else: ?>
-                                    <a href="browse.php?folder=<?php echo $crumb['id']; ?>">
-                                        <?php echo htmlspecialchars($crumb['name']); ?>
-                                    </a>
-                                <?php endif; ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ol>
-                </nav>
-            </div>
-            <div class="btn-toolbar gap-2">
-                <div class="btn-group">
-                    <button class="btn btn-sm rounded-pill me-2" style="background-color: #004F80; color: white;" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                        <i class="fas fa-upload me-1"></i> Upload
-                    </button>
-                    <?php if (isAdmin()): ?>
-                        <button class="btn btn-sm rounded-pill" style="background-color: #FFD166; color: #2F4858;" data-bs-toggle="modal" data-bs-target="#createFolderModal">
-                            <i class="fas fa-folder-plus me-1"></i> New Folder
-                        </button>
-                    <?php endif; ?>
-                </div>
-            </div>
+                                </a>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            </nav>
         </div>
 
-    <!-- Upload Modal -->
+        <!-- TOOLBAR -->
+        <div class="btn-toolbar gap-2">
+            <div class="btn-group">
+                <button class="btn btn-sm rounded-pill me-2" style="background-color:#004F80;color:white;" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="fas fa-upload me-1"></i> Upload
+                </button>
+                <?php if (isAdmin()): ?>
+                    <button class="btn btn-sm rounded-pill me-2" style="background-color:#FFD166;color:#2F4858;" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                        <i class="fas fa-folder-plus me-1"></i> New Folder
+                    </button>
+                <?php endif; ?>
+                <button id="toggleViewBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
+                    <i class="fas <?php echo $view === 'grid' ? 'fa-list' : 'fa-th-large'; ?> me-1"></i>
+                    <?php echo $view === 'grid' ? 'List View' : 'Grid View'; ?>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================== UPLOAD MODAL ================== -->
     <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <script src="../assets/js/upload.js"></script>
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="uploadModalLabel">
-                            <i class="fas fa-upload me-2" style="color: #004F80;"></i>Upload Document
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+            <div class="modal-content shadow-lg rounded-4 border-0">
+                <div class="modal-header" style="background-color:#004F80;color:white;">
+                    <h5 class="modal-title" id="uploadModalLabel">
+                        <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="../api/api_browse.php" enctype="multipart/form-data">
+                        <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
 
-                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-                        <?php if (isset($error)): ?>
-                            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                        <?php endif; ?>
-
-                        <div class="mb-3">
-                            <label for="document" class="form-label">Select File</label>
-                            <input type="file" class="form-control" id="document" name="document" required>
-                            <div class="form-text">
-                                Max size: <?php echo formatFileSize(MAX_FILE_SIZE); ?>.
-                                Allowed types: <?php echo implode(', ', ALLOWED_EXTENSIONS); ?>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Upload Files</label>
+                            <div id="drop-zone" class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" style="cursor:pointer;">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                                <p class="mb-1 fw-semibold">Drag & drop files here</p>
+                                <small class="text-muted">or click to select files</small>
                             </div>
+                            <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple>
+                            <div id="file-list" class="mt-3 small text-muted"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="title" class="form-label">Document Title</label>
-                            <input type="text" class="form-control" id="title" name="title"
-                                   value="<?php echo htmlspecialchars($title ?? ''); ?>" required>
+                            <label for="description" class="form-label fw-bold">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"><?php echo htmlspecialchars($description ?? ''); ?></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="category_id" class="form-label">Category</label>
-                            <select class="form-select" id="category_id" name="category_id">
+                            <label for="category_id" class="form-label fw-bold">Category</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
                                 <option value="">Select a category</option>
                                 <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo $category['id']; ?>"
-                                            <?php echo (isset($category_id) && $category_id == $category['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($category['name']); ?>
-                                    </option>
+                                    <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="tags" class="form-label">Tags</label>
-                            <input type="text" class="form-control" id="tags" name="tags"
-                                   value="<?php echo htmlspecialchars($tags ?? ''); ?>"
-                                   placeholder="Enter tags separated by commas">
-                            <div class="form-text">Helps with organizing and searching documents.</div>
+                            <label for="tags" class="form-label fw-bold">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="is_public" name="is_public"
-                                   <?php echo (isset($is_public) && $is_public) ? 'checked' : ''; ?>>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
                             <label class="form-check-label" for="is_public">Make this document public</label>
                         </div>
-                    </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="upload" class="btn" style ="background-color: #004F80; color: white;">
-                            <i class="fas fa-upload me-2"></i>Upload Document
-                        </button>
-                    </div>
-                </form>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" name="upload" class="btn" style="background-color:#004F80;color:white;">
+                                <i class="fas fa-upload me-2"></i> Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Create Folder Modal -->
+    <!-- ================== FOLDER MODALS ================== -->
+    <!-- Create Folder -->
     <div class="modal fade" id="createFolderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="POST">
                     <input type="hidden" name="action" value="create_folder">
+                    <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="fas fa-folder-plus me-2" style="color: #004F80;"></i>Create New Folder</h5>
+                        <h5 class="modal-title"><i class="fas fa-folder-plus me-2" style="color:#004F80;"></i> Create Folder</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="folder_name" class="form-label">Folder Name</label>
-                            <input type="text" class="form-control" id="folder_name" name="folder_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="folder_description" class="form-label">Description</label>
-                            <textarea class="form-control" id="folder_description" name="folder_description" rows="2"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="folder_color" class="form-label">Folder Color</label>
-                            <input type="color" class="form-control form-control-color" id="folder_color" name="folder_color" value="#004F80">
-                        </div>
+                        <label class="form-label">Folder Name</label>
+                        <input type="text" class="form-control mb-3" name="folder_name" required>
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control mb-3" name="folder_description" rows="2"></textarea>
+                        <label class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" name="folder_color" value="#004F80">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn" style ="background-color: #004F80; color: white;">
-                            <i class="fas fa-folder-plus me-2"></i>Create Folder
+                        <button type="submit" class="btn" style="background-color:#004F80;color:white;">
+                            <i class="fas fa-folder-plus me-2"></i>Create
                         </button>
                     </div>
                 </form>
@@ -163,7 +151,7 @@ include '../api/api_upload.php';
         </div>
     </div>
 
-    <!-- Edit Folder Modal -->
+    <!-- Edit Folder -->
     <div class="modal fade" id="editFolderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -174,29 +162,25 @@ include '../api/api_upload.php';
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Folder Name</label>
-                            <input type="text" class="form-control" name="folder_name" id="edit_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="folder_description" id="edit_description" rows="2"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Folder Color</label>
-                            <input type="color" class="form-control form-control-color" name="folder_color" id="edit_color">
-                        </div>
+                        <label>Folder Name</label>
+                        <input type="text" class="form-control mb-3" name="folder_name" id="edit_name" required>
+                        <label>Description</label>
+                        <textarea class="form-control mb-3" name="folder_description" id="edit_description" rows="2"></textarea>
+                        <label>Color</label>
+                        <input type="color" class="form-control form-control-color" name="folder_color" id="edit_color">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn" style="background-color: #004F80; color: white;"><i class="fas fa-save me-2"></i>Save Changes</button>
+                        <button type="submit" class="btn" style="background-color:#004F80;color:white;">
+                            <i class="fas fa-save me-2"></i> Save
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-                                    
-    <!-- Delete Folder Modal -->
+
+    <!-- Delete Folder -->
     <div class="modal fade" id="deleteFolderModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -207,19 +191,23 @@ include '../api/api_upload.php';
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to delete this folder? This will also delete all its subfolders.</p>
+                        <p>Are you sure you want to delete this folder?</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt me-2"></i>Delete</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i> Delete
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <!-- Table/List View -->
+
+    <!-- =============== LIST VIEW =============== -->
+    <div id="listView" class="<?php echo $view === 'grid' ? 'd-none' : ''; ?>">
         <?php if (!empty($subfolders) || !empty($documents)): ?>
-            <div class="fade-in delay-2 mt-3 shadow rounded-4 border-0">
+            <div class="mt-3 shadow rounded-4 border-0">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
@@ -231,128 +219,182 @@ include '../api/api_upload.php';
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($subfolders as $folder): ?>
-                        <tr class="folder-row" 
-                            ondblclick="window.location.href='browse.php?folder=<?php echo $folder['id']; ?>'" 
-                            style="cursor:pointer;">
-
-                            <!-- Name -->
-                            <td>
-                                <i class="fas fa-folder me-2" style="color: <?php echo htmlspecialchars($folder['color']); ?>"></i>
-                                <strong><?php echo htmlspecialchars($folder['name']); ?></strong>
-                            </td>
-                    
-                            <!-- Counts in the Size column -->
-                            <td>
-                                <small class="text-muted">
-                                    <?php
-                                        $folders = $folder['subfolder_count'] ?? 0;
-                                        $docs = $folder['document_count'] ?? 0;
-                                        if ($folders || $docs) {
-                                            echo "$folders " . ($folders == 1 ? "folder" : "folders");
-                                            echo " • $docs " . ($docs == 1 ? "doc" : "docs");
-                                        } else {
-                                            echo "—";
-                                        }
-                                    ?>
-                                </small>
-                            </td>
-                                    
-                            <!-- Owner -->
-                            <td>
-                                <?php echo !empty($folder['owner']) ? htmlspecialchars($folder['owner']) : '—'; ?>
-                            </td>
-                                    
-                            <!-- Modified -->
-                            <td>
-                                <?php echo !empty($folder['created_at']) ? date('M j, Y', strtotime($folder['created_at'])) : '—'; ?>
-                            </td>
-                                    
-                            <!-- Actions -->
-                            <td class="text-center">
-                                <?php if (isAdmin()): ?>
+                        <?php foreach ($subfolders as $folder): ?>
+                            <tr ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'" style="cursor:pointer;">
+                                <td><i class="fas fa-folder me-2" style="color:<?= $folder['color'] ?>"></i><?= htmlspecialchars($folder['name']) ?></td>
+                                <td><small class="text-muted"><?= ($folder['document_count'] ?? 0) ?> docs</small></td>
+                                <td><?= htmlspecialchars($folder['owner'] ?? '—') ?></td>
+                                <td><?= date('M j, Y', strtotime($folder['created_at'])) ?></td>
+                                <td class="text-center">
                                     <div class="dropdown">
-                                        <button class="btn btn-light btn-sm rounded-circle" type="button" 
-                                                id="folderActions<?= $folder['id'] ?>" 
-                                                data-bs-toggle="dropdown" aria-expanded="false" 
-                                                style="border: none;">
-                                            <i class="fas fa-ellipsis-v" style="font-size: 1rem; color: #2F4858;"></i>
+                                        <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                            <i class="fas fa-ellipsis-v"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="folderActions<?= $folder['id'] ?>">
+                                        <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
-                                                <a class="dropdown-item" href="#" 
-                                                   onclick="event.stopPropagation(); 
-                                                            document.getElementById('edit_id').value='<?php echo $folder['id']; ?>'; 
-                                                            document.getElementById('edit_name').value='<?php echo htmlspecialchars($folder['name'], ENT_QUOTES); ?>'; 
-                                                            document.getElementById('edit_description').value='<?php echo htmlspecialchars($folder['description'], ENT_QUOTES); ?>'; 
-                                                            document.getElementById('edit_color').value='<?php echo $folder['color']; ?>'; 
-                                                            var modal = new bootstrap.Modal(document.getElementById('editFolderModal')); 
-                                                            modal.show();">
-                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                <a class="dropdown-item" href="#" onclick="
+                                                    document.getElementById('edit_id').value='<?= $folder['id'] ?>';
+                                                    document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
+                                                    document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
+                                                    document.getElementById('edit_color').value='<?= $folder['color'] ?>';
+                                                    var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
+                                                    <i class='fas fa-edit me-2'></i>Edit
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item text-danger" href="#" 
-                                                   onclick="event.stopPropagation(); 
-                                                            document.getElementById('delete_id').value='<?php echo $folder['id']; ?>'; 
-                                                            var modal = new bootstrap.Modal(document.getElementById('deleteFolderModal')); 
-                                                            modal.show();">
-                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                <a class="dropdown-item text-danger" href="#" onclick="
+                                                    document.getElementById('delete_id').value='<?= $folder['id'] ?>';
+                                                    var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
+                                                    <i class='fas fa-trash me-2'></i>Delete
                                                 </a>
                                             </li>
                                         </ul>
                                     </div>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php foreach ($documents as $doc): ?>
-                    <tr>
-                        <td>
-                            <i class="<?php echo getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)); ?> me-2"></i>
-                            <?php echo htmlspecialchars($doc['title']); ?>
-                            <?php if ($doc['is_shared_with_me']): ?>
-                                <i class="fas fa-share text-warning ms-2" title="Shared with you"></i>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo formatFileSize($doc['file_size']); ?></td>
-                        <td><?php echo htmlspecialchars($doc['uploader_name']); ?></td>
-                        <td><?php echo date('M j, Y', strtotime($doc['created_at'])); ?></td>
-                        <td class="text-center">
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+
+                        <?php foreach ($documents as $doc): ?>
+                            <tr>
+                                <td><i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2"></i><?= htmlspecialchars($doc['title']) ?></td>
+                                <td><?= formatFileSize($doc['file_size']) ?></td>
+                                <td><?= htmlspecialchars($doc['uploader_name']) ?></td>
+                                <td><?= date('M j, Y', strtotime($doc['created_at'])) ?></td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i> Preview</a></li>
+                                            <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i> Download</a></li>
+                                            <li><a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i> Share</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">This folder is empty</h4>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- =============== GRID VIEW =============== -->
+    <div id="gridView" class="<?= $view === 'grid' ? '' : 'd-none' ?>">
+        <div class="row g-3 mt-2">
+            <?php foreach ($subfolders as $folder): ?>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale"
+                            style="cursor:pointer;"
+                            ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <i class="fas fa-folder fa-2x" style="color:<?= $folder['color'] ?>"></i>
                             <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-circle" type="button" id="docActions<?= $doc['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false" style="border: none;">
-                                    <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                    <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="docActions<?= $doc['id'] ?>">
-                                    <li><a class="dropdown-item" href="preview.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-eye me-2"></i> Preview</a></li>
-                                    <?php if (!isset($doc['share_permission']) || $doc['share_permission'] === 'download' || $doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                        <li><a class="dropdown-item" href="download.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-download me-2"></i> Download</a></li>
-                                    <?php endif; ?>
-                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                        <li><a class="dropdown-item" href="share.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-share me-2"></i> Share</a></li>
-                                    <?php endif; ?>
-                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                      <li><hr class="dropdown-divider"></li>
-                                      <li>
-                                        <a class="dropdown-item text-danger" 
-                                           href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
-                                           <i class="fas fa-trash me-2"></i> Delete
-                                        </a>
-                                      </li>
-                                    <?php endif; ?>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="
+                                        document.getElementById('edit_id').value='<?= $folder['id'] ?>';
+                                        document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
+                                        document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
+                                        document.getElementById('edit_color').value='<?= $folder['color'] ?>';
+                                        var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
+                                        <i class='fas fa-edit me-2'></i>Edit</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="
+                                        document.getElementById('delete_id').value='<?= $folder['id'] ?>';
+                                        var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
+                                        <i class='fas fa-trash me-2'></i>Delete</a></li>
                                 </ul>
                             </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($folder['name']) ?></h6>
+                            <small class="text-muted"><?= ($folder['document_count'] ?? 0) ?> docs</small>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
+            <?php foreach ($documents as $doc): ?>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> fa-2x text-secondary"></i>
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                    <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                    <li><a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($doc['title']) ?></h6>
+                            <small class="text-muted"><?= htmlspecialchars($doc['uploader_name']) ?></small>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-    <?php else: ?>
-        <div class="text-center py-5 fade-in delay-2">
-            <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
-            <h4 class="text-muted">This folder is empty</h4>
-            <p class="text-muted">Upload documents or create folders to get started.</p>
-        </div>
-    <?php endif; ?>
+    </div>
 </div>
+
+<!-- ========== SCRIPT TO TOGGLE VIEW ========== -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const toggleBtn = document.getElementById("toggleViewBtn");
+    const listView = document.getElementById("listView");
+    const gridView = document.getElementById("gridView");
+
+    let currentView = sessionStorage.getItem("viewMode") || "list";
+
+    if (currentView === "grid") {
+        listView.classList.add("d-none");
+        gridView.classList.remove("d-none");
+        toggleBtn.innerHTML = '<i class="fas fa-list me-1"></i> List View';
+    } else {
+        gridView.classList.add("d-none");
+        listView.classList.remove("d-none");
+        toggleBtn.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
+    }
+
+    toggleBtn.addEventListener("click", function() {
+        listView.classList.toggle("d-none");
+        gridView.classList.toggle("d-none");
+
+        if (gridView.classList.contains("d-none")) {
+            toggleBtn.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
+            currentView = "list";
+        } else {
+            toggleBtn.innerHTML = '<i class="fas fa-list me-1"></i> List View';
+            currentView = "grid";
+        }
+
+        sessionStorage.setItem("viewMode", currentView);
+    });
+
+    document.querySelectorAll("[data-folder-link]").forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            const href = this.getAttribute("href");
+            const separator = href.includes("?") ? "&" : "?";
+            window.location.href = href + separator + "view=" + currentView;
+        });
+    });
+});
+</script>
+
