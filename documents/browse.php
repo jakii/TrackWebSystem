@@ -203,6 +203,17 @@ $view = $_GET['view'] ?? 'list';
             </div>
         </div>
     </div>
+    <!-- SEARCH BAR -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" id="folderSearch" class="form-control border-start-0 rounded-end-pill" placeholder="Search folder or document...">
+            </div>
+        </div>
+    </div>
 
     <!-- =============== LIST VIEW =============== -->
     <div id="listView" class="<?php echo $view === 'grid' ? 'd-none' : ''; ?>">
@@ -226,6 +237,7 @@ $view = $_GET['view'] ?? 'list';
                                 <td><?= htmlspecialchars($folder['owner'] ?? '—') ?></td>
                                 <td><?= date('M j, Y', strtotime($folder['created_at'])) ?></td>
                                 <td class="text-center">
+                                <?php if (isAdmin()): ?>
                                     <div class="dropdown">
                                         <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
                                             <i class="fas fa-ellipsis-v"></i>
@@ -250,8 +262,9 @@ $view = $_GET['view'] ?? 'list';
                                             </li>
                                         </ul>
                                     </div>
-                                </td>
-                            </tr>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
 
                         <?php foreach ($documents as $doc): ?>
@@ -268,9 +281,11 @@ $view = $_GET['view'] ?? 'list';
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i> Preview</a></li>
                                             <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i> Download</a></li>
-                                            <li><a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i> Share</a></li>
+                                            <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                                            <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                            <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            <?php endif; ?>
                                         </ul>
                                     </div>
                                 </td>
@@ -295,27 +310,35 @@ $view = $_GET['view'] ?? 'list';
                     <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale"
                             style="cursor:pointer;"
                             ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <i class="fas fa-folder fa-2x" style="color:<?= $folder['color'] ?>"></i>
-                            <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="
-                                        document.getElementById('edit_id').value='<?= $folder['id'] ?>';
-                                        document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
-                                        document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
-                                        document.getElementById('edit_color').value='<?= $folder['color'] ?>';
-                                        var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
-                                        <i class='fas fa-edit me-2'></i>Edit</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="
-                                        document.getElementById('delete_id').value='<?= $folder['id'] ?>';
-                                        var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
-                                        <i class='fas fa-trash me-2'></i>Delete</a></li>
-                                </ul>
+                             <div class="d-flex justify-content-between align-items-start">
+                                <i class="fas fa-folder fa-2x" style="color:<?= $folder['color'] ?>"></i>
+                                <?php if (isAdmin()): ?>
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="
+                                                document.getElementById('edit_id').value='<?= $folder['id'] ?>';
+                                                document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
+                                                document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
+                                                document.getElementById('edit_color').value='<?= $folder['color'] ?>';
+                                                var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
+                                                <i class='fas fa-edit me-2'></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="
+                                                document.getElementById('delete_id').value='<?= $folder['id'] ?>';
+                                                var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
+                                                <i class='fas fa-trash me-2'></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                        </div>
                         <div class="mt-3">
                             <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($folder['name']) ?></h6>
                             <small class="text-muted"><?= ($folder['document_count'] ?? 0) ?> docs</small>
@@ -336,9 +359,11 @@ $view = $_GET['view'] ?? 'list';
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
                                     <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
-                                    <li><a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                        <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    <?php endif; ?>
                                 </ul>
                             </div>
                         </div>
@@ -354,47 +379,5 @@ $view = $_GET['view'] ?? 'list';
 </div>
 
 <!-- ========== SCRIPT TO TOGGLE VIEW ========== -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const toggleBtn = document.getElementById("toggleViewBtn");
-    const listView = document.getElementById("listView");
-    const gridView = document.getElementById("gridView");
-
-    let currentView = sessionStorage.getItem("viewMode") || "list";
-
-    if (currentView === "grid") {
-        listView.classList.add("d-none");
-        gridView.classList.remove("d-none");
-        toggleBtn.innerHTML = '<i class="fas fa-list me-1"></i> List View';
-    } else {
-        gridView.classList.add("d-none");
-        listView.classList.remove("d-none");
-        toggleBtn.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
-    }
-
-    toggleBtn.addEventListener("click", function() {
-        listView.classList.toggle("d-none");
-        gridView.classList.toggle("d-none");
-
-        if (gridView.classList.contains("d-none")) {
-            toggleBtn.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
-            currentView = "list";
-        } else {
-            toggleBtn.innerHTML = '<i class="fas fa-list me-1"></i> List View';
-            currentView = "grid";
-        }
-
-        sessionStorage.setItem("viewMode", currentView);
-    });
-
-    document.querySelectorAll("[data-folder-link]").forEach(link => {
-        link.addEventListener("click", function(e) {
-            e.preventDefault();
-            const href = this.getAttribute("href");
-            const separator = href.includes("?") ? "&" : "?";
-            window.location.href = href + separator + "view=" + currentView;
-        });
-    });
-});
-</script>
+<script src="../assets/js/browse.js"></script>
 

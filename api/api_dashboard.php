@@ -78,6 +78,7 @@ function getRecentDocuments($db, $user_id = null, $is_admin = false, $limit = nu
                 LEFT JOIN folders f ON d.folder_id = f.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
                 WHERE (d.is_deleted IS NULL OR d.is_deleted = 0)
+                  AND (d.is_archived IS NULL OR d.is_archived = 0)
                 ORDER BY d.created_at DESC
             ";
             if ($limit) {
@@ -98,8 +99,9 @@ function getRecentDocuments($db, $user_id = null, $is_admin = false, $limit = nu
                 LEFT JOIN categories c ON d.category_id = c.id
                 LEFT JOIN folders f ON d.folder_id = f.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
-                WHERE d.uploaded_by = ? 
+                WHERE d.uploaded_by = ?
                   AND (d.is_deleted IS NULL OR d.is_deleted = 0)
+                  AND (d.is_archived IS NULL OR d.is_archived = 0)
                 ORDER BY d.created_at DESC
             ";
             if ($limit) {
@@ -185,6 +187,20 @@ if (!$is_admin) {
     }
 } else {
     $recent_folders = [];
+}
+
+// 📂 Total Count of Shared Documents for this user
+try {
+    $shared_count_stmt = $db->prepare("
+        SELECT COUNT(*) AS total_shared
+        FROM document_shares
+        WHERE shared_with = ?
+    ");
+    $shared_count_stmt->execute([$user_id]);
+    $shared_docs_count = (int) $shared_count_stmt->fetchColumn();
+} catch (PDOException $e) {
+    error_log("Shared document count query error: " . $e->getMessage());
+    $shared_docs_count = 0;
 }
 
 ?>

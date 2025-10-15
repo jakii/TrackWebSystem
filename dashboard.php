@@ -218,6 +218,7 @@ requireAuth();
                                                         <li><a class="dropdown-item" href="documents/share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
                                                         <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                                             <li><hr class="dropdown-divider"></li>
+                                                            <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                                             <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                                         <?php endif; ?>
                                                     </ul>
@@ -237,7 +238,6 @@ requireAuth();
                     <?php endif; ?>
                 </div>
             </div>
-
         <?php else: ?>
             <!-- ===================== USER DASHBOARD ===================== -->
             <?php include 'partials/user_dashboard_content.php'; ?>

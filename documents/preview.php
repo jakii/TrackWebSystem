@@ -34,37 +34,80 @@ require_once '../includes/preview_helpers.php';
                    </a>
                <?php endif; ?>
 
-               <!-- Print Button -->
-               <button onclick="printPreview()" class="btn" style="border:none;">
-                   <i class="fas fa-print me-2"></i>
-               </button>
-            </div>
+    <!-- Print Button -->
+    <?php if (!$is_pdf): ?>
+    <button id="printBtn" 
+            class="btn" 
+            style="border:none;">
+        <i class="fas fa-print me-2"></i>
+    </button>
+    <?php endif; ?>
+</div>
 <script>
-function printPreview() {
-    // target yung card-body (laman ng preview lang ang ipiprint)
-    var content = document.querySelector('.card-body').innerHTML;
-    var printWindow = window.open('', '', 'width=900,height=650');
+document.getElementById('printBtn').addEventListener('click', function() {
+    const cardBody = document.querySelector('.card-body');
+    const clone = cardBody.cloneNode(true);
+
+    // Remove scroll restrictions
+    clone.style.maxHeight = 'none';
+    clone.style.overflow = 'visible';
+
+    // Automatically insert page breaks for tall elements
+    const pageHeight = 1100; // approx pixels for A4, adjust as needed
+    let accumulatedHeight = 0;
+
+    const elements = clone.querySelectorAll('div, table, img, pre, .bg-light');
+    elements.forEach(el => {
+        const elHeight = el.offsetHeight;
+
+        if (accumulatedHeight + elHeight > pageHeight) {
+            // Insert page break before this element
+            const breakDiv = document.createElement('div');
+            breakDiv.style.pageBreakBefore = 'always';
+            el.parentNode.insertBefore(breakDiv, el);
+            accumulatedHeight = elHeight;
+        } else {
+            accumulatedHeight += elHeight;
+        }
+    });
+
+    // Open print window
+    const printWindow = window.open('', '', 'width=900,height=650');
+
     printWindow.document.write(`
         <html>
         <head>
             <title>Print Preview</title>
             <style>
                 body { font-family: 'Times New Roman', serif; font-size:14px; line-height:1.6; padding:20px; }
-                .docx-preview { max-width: 100%; margin: 0 auto; }
-                table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+
+                /* Prevent images from splitting across pages */
+                img { max-width:100%; height:auto; display:block; margin:10px auto; page-break-inside: avoid; }
+
+                /* Tables */
+                table { border-collapse: collapse; width: 100%; margin: 15px 0; page-break-inside: auto; }
                 table td, table th { border: 1px solid #000; padding: 6px 10px; }
-                img { max-width: 100%; height: auto; display:block; margin:10px auto; }
+                tr { page-break-inside: avoid; page-break-after: auto; }
+
+                /* Preformatted text */
+                pre { white-space: pre-wrap; word-wrap: break-word; }
+
+                /* Scrollable divs */
+                .bg-light { background-color: #f8f9fa !important; padding:15px; border-radius:5px; max-height: none !important; overflow: visible !important; }
+
+                /* Avoid breaking inside headings and paragraphs */
+                h1, h2, h3, h4, h5, h6, p { page-break-inside: avoid; }
             </style>
         </head>
-        <body onload="window.print();window.close();">
-            <div class="docx-preview">${content}</div>
+        <body onload="window.print(); window.close();">
+            ${clone.outerHTML}
         </body>
         </html>
     `);
-    printWindow.document.close();
-}
-</script>
 
+    printWindow.document.close();
+});
+</script>
             </div>
             <div class="card-body">
                 <?php if ($is_image): ?>

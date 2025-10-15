@@ -2,6 +2,7 @@
 // ===== Document Stats =====
 $stats = getDocumentStats($db, $user_id, $is_admin);
 
+// Fetch stats depending on role
 if ($is_admin) {
     $total_admin_docs = $stats['total'] ?? 0;
     $total_admin_size = $stats['total_size'] ?? 0;
@@ -10,6 +11,41 @@ if ($is_admin) {
     $total_user_docs = $stats['total'] ?? 0;
     $total_user_size = $stats['total_size'] ?? 0;
     $recent_user_documents = getRecentDocuments($db, $user_id, $is_admin, 15);
+}
+
+// ===== Shared Documents =====
+try {
+    // Get the documents shared with this user
+    $stmt = $db->prepare("
+        SELECT d.*, 
+               c.name AS category_name, 
+               c.color AS category_color, 
+               f.name AS folder_name,
+               f.color AS folder_color,
+               u.full_name AS owner_name, 
+               ds.permission
+        FROM documents d 
+        LEFT JOIN categories c ON d.category_id = c.id
+        LEFT JOIN folders f ON d.folder_id = f.id
+        LEFT JOIN users u ON d.uploaded_by = u.id
+        JOIN document_shares ds ON d.id = ds.document_id
+        WHERE ds.shared_with = ?
+        ORDER BY ds.created_at DESC
+    ");
+    $stmt->execute([$user_id]);
+    $shared_docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Count total shared documents
+    $shared_count_stmt = $db->prepare("
+        SELECT COUNT(*) FROM document_shares WHERE shared_with = ?
+    ");
+    $shared_count_stmt->execute([$user_id]);
+    $shared_docs_count = (int) $shared_count_stmt->fetchColumn();
+
+} catch (PDOException $e) {
+    error_log("Error fetching shared documents: " . $e->getMessage());
+    $shared_docs = [];
+    $shared_docs_count = 0;
 }
 ?>
 
@@ -33,7 +69,7 @@ if ($is_admin) {
         [
             'title' => 'Shared with Me',
             'icon' => 'fa-share-alt',
-            'value' => count($shared_docs ?? []),
+            'value' => $shared_docs_count,
             'desc' => 'Files shared by others'
         ]
     ];
@@ -48,7 +84,7 @@ if ($is_admin) {
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-white-50 mb-1"><?= $stat['title'] ?></h6>
-                            <div class="stat-value"><?= $stat['value'] ?></div>
+                            <div class="stat-value"><?= htmlspecialchars($stat['value']); ?></div>
                             <small class="text-white-50"><?= $stat['desc'] ?></small>
                         </div>
                     </div>
@@ -57,6 +93,7 @@ if ($is_admin) {
         </div>
     <?php endforeach; ?>
 </div>
+
 
 <!-- ===================== RECENT UPLOADS ===================== -->
 
@@ -135,8 +172,9 @@ if ($is_admin) {
                       <li><a class="dropdown-item" href="documents/download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
                       <li><a class="dropdown-item" href="documents/view.php?id=<?= $doc['id'] ?>"><i class="fas fa-info-circle me-2"></i>Details</a></li>
                       <li><a class="dropdown-item" href="documents/share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
-                      <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
+                      <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
                         <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                       <?php endif; ?>
                     </ul>

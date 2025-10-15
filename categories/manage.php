@@ -108,9 +108,11 @@ $view = $_GET['view'] ?? 'table';
           <?php foreach ($categories as $category): ?>
             <tr>
               <td>
-                <span class="badge rounded-pill px-3 py-2" style="background-color:<?= htmlspecialchars($category['color']); ?>">
+                <a href="view_category.php?id=<?= $category['id']; ?>" 
+                   class="badge rounded-pill px-3 py-2 text-decoration-none" 
+                   style="background-color:<?= htmlspecialchars($category['color']); ?>; color:white;">
                   <?= htmlspecialchars($category['name']); ?>
-                </span>
+                </a>
               </td>
               <td><?= htmlspecialchars($category['description'] ?: 'No description'); ?></td>
               <td><span class="badge bg-warning text-dark"><?= number_format($category['document_count']); ?></span></td>
@@ -139,29 +141,31 @@ $view = $_GET['view'] ?? 'table';
       <div class="row g-4 slide-in-up">
         <?php foreach ($categories as $category): ?>
           <div class="col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 rounded-4 h-100 text-center hover-shadow transition">
-              <div class="card-body">
-                <span class="badge rounded-pill px-4 py-2 mb-2" style="background-color:<?= htmlspecialchars($category['color']); ?>">
-                  <?= htmlspecialchars($category['name']); ?>
-                </span>
-                <p class="text-muted small mb-3"><?= htmlspecialchars($category['description'] ?: 'No description'); ?></p>
-                <span class="badge bg-warning text-dark px-3 py-2 mb-3"><?= number_format($category['document_count']); ?> Documents</span>
-                <p class="small text-muted mb-2"><i class="fas fa-user me-1"></i><?= htmlspecialchars($category['creator_name'] ?: 'Unknown'); ?></p>
-                <?php if ($category['document_count'] == 0): ?>
-                  <form method="POST" onsubmit="return confirm('Delete category “<?= htmlspecialchars($category['name']); ?>”?');">
-                    <input type="hidden" name="category_id" value="<?= $category['id']; ?>">
-                    <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
-                    <button type="submit" name="delete_category" class="btn btn-sm btn-outline-danger rounded-pill">
-                      <i class="fas fa-trash"></i> Delete
+            <a href="view_category.php?id=<?= $category['id']; ?>" class="text-decoration-none text-dark">
+              <div class="card shadow-sm border-0 rounded-4 h-100 text-center hover-shadow transition">
+                <div class="card-body">
+                  <span class="badge rounded-pill px-4 py-2 mb-2" style="background-color:<?= htmlspecialchars($category['color']); ?>">
+                    <?= htmlspecialchars($category['name']); ?>
+                  </span>
+                  <p class="text-muted small mb-3"><?= htmlspecialchars($category['description'] ?: 'No description'); ?></p>
+                  <span class="badge bg-warning text-dark px-3 py-2 mb-3"><?= number_format($category['document_count']); ?> Documents</span>
+                  <p class="small text-muted mb-2"><i class="fas fa-user me-1"></i><?= htmlspecialchars($category['creator_name'] ?: 'Unknown'); ?></p>
+                  <?php if ($category['document_count'] == 0): ?>
+                    <form method="POST" onsubmit="return confirm('Delete category “<?= htmlspecialchars($category['name']); ?>”?');">
+                      <input type="hidden" name="category_id" value="<?= $category['id']; ?>">
+                      <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                      <button type="submit" name="delete_category" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  <?php else: ?>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>
+                      <i class="fas fa-lock"></i> In Use
                     </button>
-                  </form>
-                <?php else: ?>
-                  <button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>
-                    <i class="fas fa-lock"></i> In Use
-                  </button>
-                <?php endif; ?>
+                  <?php endif; ?>
+                </div>
               </div>
-            </div>
+            </a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -172,7 +176,6 @@ $view = $_GET['view'] ?? 'table';
 </div>
 
 <script>
-  // Auto refresh after success
   <?php if (!empty($success)): ?>
   setTimeout(() => window.location.href = '?view=<?= $view ?>', 1200);
   <?php endif; ?>
@@ -183,6 +186,11 @@ $view = $_GET['view'] ?? 'table';
 .slide-in-up { animation: slideInUp 0.3s ease; }
 .hover-shadow:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
 .transition { transition: all 0.25s ease; }
+
+a .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
 
 @keyframes fadeIn {
   from { opacity: 0; }
