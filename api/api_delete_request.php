@@ -16,7 +16,7 @@ if (!$request_id) {
   exit;
 }
 
-// Only allow deletion if request is denied and user is either sender or admin
+// Only allow deletion if request is approved or denied and user is either sender or admin
 $stmt = $db->prepare("
   SELECT sender_id, status FROM file_requests WHERE id = ?
 ");
@@ -28,7 +28,7 @@ if (!$request) {
   exit;
 }
 
-if ($request['status'] !== 'denied' && !isAdmin()) {
+if (!in_array($request['status'], ['approved', 'denied']) && !isAdmin()) {
   header('Location: ../documents/shared.php?status=forbidden');
   exit;
 }
@@ -38,9 +38,10 @@ if ($request['sender_id'] != $user_id && !isAdmin()) {
   exit;
 }
 
-// Delete the denied request
+// Delete the request (approved or denied)
 $stmt = $db->prepare("DELETE FROM file_requests WHERE id = ?");
 $stmt->execute([$request_id]);
 
 header('Location: ../documents/shared.php?status=deleted');
 exit;
+?>

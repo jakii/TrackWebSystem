@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_archive'])) {
 
 require_once '../includes/header.php';
 ?>
-
+<link rel="stylesheet" href="../assets/css/archive.css">
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card">

@@ -88,7 +88,7 @@ requireAuth();
                 ];
                 foreach ($stats as $stat): ?>
                     <div class="col-xl-4 col-md-6">
-                        <div class="stat-card h-100">
+                        <div class="stat-card h-90">
                             <div class="card-body text-white p-4">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-circle">

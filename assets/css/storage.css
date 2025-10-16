@@ -1,0 +1,80 @@
+/* ==== STORAGE PAGE (No Gradient Design) ==== */
+:root {
+  --primary: #004f80;
+  --accent: #007bff;
+  --bg-light: #f8f9fa;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --text-dark: #212529;
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Headings */
+h2 i {
+  color: var(--accent);
+}
+
+/* Card Styling */
+.card {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-body h5 {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Tables */
+.table thead {
+  background-color: #e9ecef;
+  font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+/* Progress Bar */
+.progress {
+  background-color: #e9ecef;
+  border-radius: 8px;
+}
+
+.progress-bar {
+  border-radius: 8px;
+  transition: width 0.4s ease;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0066b2;
+}
+
+/* Alert */
+.alert-success {
+  border-left: 4px solid var(--primary);
+}
+
+/* Inputs */
+input.form-control {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}

@@ -130,11 +130,20 @@ include '../includes/header.php';
 ?>
 
 <div class="container-fluid px-4">
-    <h4 class="mt-4">Activity Logs</h4>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item active">Audit Trail</li>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+  <div>
+    <h4 class="mb-1">Activity Logs</h4>
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item active">Audit Trail</li>
     </ol>
-    <hr>
+  </div>
+
+  <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
+    <i class="fas fa-arrow-left me-2"></i> Go Back
+  </button>
+</div>
+
+<hr class="mt-3 mb-4">
 
     <!-- Filter Form -->
     <div class="card mb-4 shadow-sm border-0">

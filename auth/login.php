@@ -21,7 +21,7 @@ require_once '../includes/header.php';
 <div class="login-container">
     <div class="login-card">
         <!-- Logo/Icon -->
-        <div class="logo-container">
+        <div class="logo-salogin">
             <div class="logo-icon">
                 <i class="fas fa-lock"></i>
             </div>

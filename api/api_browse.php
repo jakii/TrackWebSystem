@@ -101,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         if (!in_array($ext, ALLOWED_EXTENSIONS)) continue;
         if ($file_size > MAX_FILE_SIZE) continue;
 
-        // ✅ Check again individually if each file exceeds total limit (in case of multiple uploads)
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
             echo "<script>alert('❌ Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
@@ -110,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
         $unique_filename = uniqid() . "_" . time() . "." . $ext;
         $destination    = UPLOAD_DIR . $unique_filename;
-
+        
         if (move_uploaded_file($tmp_file, $destination)) {
             $title       = pathinfo($name, PATHINFO_FILENAME);
             $folder_id   = $current_folder_id;

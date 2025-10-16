@@ -28,7 +28,9 @@ $view = $_GET['view'] ?? 'table';
       <i class="fas fa-plus-circle me-2"></i>New Category
     </button>
 
-    <a href="../dashboard.php" class="btn btn-secondary rounded-pill">
+    <a href="javascript:void(0);" 
+        onclick="if (document.referrer !== '') { window.history.back(); } else { window.location.href='<?php echo BASE_URL; ?>dashboard.php'; }"
+        class="btn btn-secondary rounded-pill">
       <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
     </a>
   </div>

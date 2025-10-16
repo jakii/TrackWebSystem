@@ -21,6 +21,7 @@ include '../includes/header.php';
             <button type="button" class="btn" style="background-color: #004F80; color: white;" data-bs-toggle="modal" data-bs-target="#addUserModal">
                 <i class="fas fa-user-plus me-1"></i> Add User
             </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();"><i class="fas fa-arrow-left me-2"></i> Go Back</button>
         </div>
     </div>
 

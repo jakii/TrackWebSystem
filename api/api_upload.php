@@ -35,32 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             // Generate unique filename for internal storage
             $unique = uniqid() . "_" . time() . "." . $ext;
             $dest   = UPLOAD_DIR . $unique;
-            
-            // Create backup directory if it doesn't exist
-            $backup_dir = UPLOAD_DIR . 'backups/';
-            if (!is_dir($backup_dir)) {
-                mkdir($backup_dir, 0755, true);
-            }
-            
-            // Backup with original filename
-            $backup_name = $name;
-            $backup_path = $backup_dir . $backup_name;
-            
-            // Handle duplicate filenames in backup
-            $backup_counter = 1;
-            while (file_exists($backup_path)) {
-                $file_info = pathinfo($name);
-                $backup_name = $file_info['filename'] . '_' . $backup_counter . '.' . $file_info['extension'];
-                $backup_path = $backup_dir . $backup_name;
-                $backup_counter++;
-            }
 
             if (move_uploaded_file($tmp, $dest)) {
                 // Create backup with original filename
-                copy($dest, $backup_path);
+                
                 
                 $title = pathinfo($name, PATHINFO_FILENAME);
-
                 $folder_id   = !empty($_POST['folder_id']) ? (int)$_POST['folder_id'] : null;
                 $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;
                 $description = $_POST['description'] ?? '';

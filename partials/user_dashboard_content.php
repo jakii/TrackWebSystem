@@ -76,7 +76,7 @@ try {
 
     foreach ($userStats as $stat): ?>
         <div class="col-xl-4 col-md-6">
-            <div class="card stat-card h-100">
+            <div class="card stat-card h-90">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="icon-circle me-3">

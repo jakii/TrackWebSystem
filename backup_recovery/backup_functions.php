@@ -72,7 +72,7 @@ function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $
         'backup_type' => $backup_type,
         'include_files' => $include_files,
         'created_by' => $user_id,
-        'schedule_type' => $schedule_type, // daily / weekly / monthly / manual
+        'schedule_type' => $schedule_type,
         'app_version' => '1.0',
         'database' => DB_NAME
     ];
@@ -133,38 +133,21 @@ function restoreBackup($db, $backup_folder) {
 }
 
 /**
- * === DELETE BACKUP ===
- */
-function deleteBackup($backup_folder) {
-    $backup_path = "../backups/{$backup_folder}/";
-    if (!is_dir($backup_path)) throw new Exception("Backup directory not found");
-
-    $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($backup_path, RecursiveDirectoryIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST
-    );
-
-    foreach ($files as $file) {
-        if ($file->isDir()) rmdir($file->getPathname());
-        else unlink($file->getPathname());
-    }
-
-    rmdir($backup_path);
-}
-
-/**
  * === BACKUP LIST ===
  */
 function getBackupList() {
     $backups = [];
-    $backups_dir = "../backups/";
+    $backups_dir = "../backups/uploads/";
 
     if (!is_dir($backups_dir)) mkdir($backups_dir, 0755, true);
-    $folders = glob($backups_dir . "backup_*", GLOB_ONLYDIR);
+
+    $folders = glob($backups_dir . "*", GLOB_ONLYDIR);
 
     foreach ($folders as $folder) {
         $folder_name = basename($folder);
         $info_file = $folder . '/backup_info.json';
+        $zip_file = $backups_dir . $folder_name . '.zip';
+
         if (file_exists($info_file)) {
             $info = json_decode(file_get_contents($info_file), true);
             $backups[] = [
@@ -174,7 +157,9 @@ function getBackupList() {
                 'include_files' => $info['include_files'] ?? false,
                 'created_by' => $info['created_by'] ?? 'system',
                 'schedule_type' => $info['schedule_type'] ?? 'manual',
-                'size' => formatFolderSize($folder)
+                'size' => formatFolderSize($folder),
+                'zip_exists' => file_exists($zip_file),
+                'zip_file' => basename($zip_file)
             ];
         }
     }
@@ -183,63 +168,78 @@ function getBackupList() {
     return $backups;
 }
 
-/**
- * === FOLDER SIZE ===
- */
-function formatFolderSize($path) {
+function formatFolderSize($dir) {
     $size = 0;
-    $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
-    );
-    foreach ($files as $file) $size += $file->getSize();
-    $units = ['B', 'KB', 'MB', 'GB'];
-    $pow = $size > 0 ? floor(log($size, 1024)) : 0;
-    $pow = min($pow, count($units) - 1);
-    $size /= (1 << (10 * $pow));
-    return round($size, 2) . ' ' . $units[$pow];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)) as $file) {
+        $size += $file->getSize();
+    }
+    return formatSizeUnits($size);
+}
+
+function formatSizeUnits($bytes) {
+    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
+    elseif ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
+    elseif ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
+    elseif ($bytes > 1) return $bytes . ' bytes';
+    elseif ($bytes == 1) return '1 byte';
+    return '0 bytes';
 }
 
 /**
- * === ZIP BACKUP ===
+ * Create a ZIP of the backup folder
  */
-function zipBackup($folderPath) {
-    $zipFile = rtrim($folderPath, '/') . '.zip';
-    $rootPath = realpath($folderPath);
+function zipBackup($backup_dir) {
+    $zip_path = rtrim($backup_dir, '/') . '.zip';
     $zip = new ZipArchive();
-
-    if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
+    
+    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
         $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($rootPath),
+            new RecursiveDirectoryIterator($backup_dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
         foreach ($files as $file) {
-            if (!$file->isDir()) {
-                $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($rootPath) + 1);
-                $zip->addFile($filePath, $relativePath);
-            }
+            $filePath = $file->getRealPath();
+            $relativePath = substr($filePath, strlen($backup_dir) + 1);
+            $zip->addFile($filePath, $relativePath);
         }
+
         $zip->close();
+        return $zip_path;
     }
 
-    return basename($zipFile);
+    throw new Exception("Failed to create ZIP file for backup.");
 }
 
 /**
- * === AUTOMATIC BACKUP (for cron or scheduled) ===
+ * Delete backup folder and its ZIP file
  */
-function autoBackup($db, $type = 'daily', $user_id = 0) {
-    $backup_dir = "../backups/backup_" . date('Y-m-d_H-i-s') . "_{$type}/";
-    if (!is_dir($backup_dir)) mkdir($backup_dir, 0755, true);
+function deleteBackup($backup_folder) {
+    $backup_dir = "../backups/uploads/" . basename($backup_folder);
+    $zip_path = $backup_dir . ".zip";
 
-    backupDatabase($db, $backup_dir);
-    backupFiles($backup_dir);
-    createBackupInfo($backup_dir, 'both', true, $user_id, $type);
-    $zipName = zipBackup($backup_dir);
+    if (!is_dir($backup_dir)) {
+        throw new Exception("Backup folder not found: " . htmlspecialchars($backup_folder));
+    }
 
-    deleteBackup(basename($backup_dir));
+    // Delete all files/subfolders
+    $it = new RecursiveDirectoryIterator($backup_dir, RecursiveDirectoryIterator::SKIP_DOTS);
+    $files = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
 
-    return "../backups/" . $zipName;
+    foreach ($files as $file) {
+        if ($file->isDir()) {
+            rmdir($file->getRealPath());
+        } else {
+            unlink($file->getRealPath());
+        }
+    }
+
+    // Remove folder and zip file
+    rmdir($backup_dir);
+    if (file_exists($zip_path)) {
+        unlink($zip_path);
+    }
+
+    return true;
 }
 ?>

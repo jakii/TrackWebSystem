@@ -1,0 +1,101 @@
+/* ==== ARCHIVE PAGE (Flat Design, No Gradient) ==== */
+:root {
+  --primary: #004f80;
+  --accent: #007bff;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --bg-light: #f8f9fa;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --text-dark: #212529;
+}
+
+/* General Page Style */
+body {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Card Container */
+.card {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* Card Header */
+.card-header {
+  background-color: var(--warning) !important;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-color);
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+/* Nested Card (document details) */
+.card.bg-light {
+  border: 1px solid var(--border-color);
+  background-color: #f1f3f5 !important;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.alert-warning {
+  background-color: #fff8e1;
+  border-left: 4px solid var(--warning);
+}
+
+.alert-danger {
+  border-left: 4px solid var(--danger);
+}
+
+/* Buttons */
+.btn-warning {
+  background-color: var(--warning);
+  border: none;
+  font-weight: 600;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border: none;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Document Details */
+.card-body h6 {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.card-body small {
+  color: #6c757d;
+}
+
+/* Layout Fixes */
+.row.justify-content-center {
+  margin-top: 50px;
+}
+
+.d-grid .btn {
+  min-width: 140px;
+}

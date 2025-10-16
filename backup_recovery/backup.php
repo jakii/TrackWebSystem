@@ -5,11 +5,10 @@ require_once 'backup_functions.php';
 
 requireAdmin();
 
-// Get list of existing backups
 $backups = getBackupList();
 ?>
 <?php include '../includes/header.php'; ?>
-    
+    <link rel="stylesheet" href="../assets/css/backup.css">
     <div class="container-fluid mt-4">
         <div class="row">
             <div>
@@ -17,6 +16,9 @@ $backups = getBackupList();
                     <h2 class="h4 mb-0">
                         <i class="fas fa-database me-2"></i>Backup & Recovery
                     </h2>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
+                        <i class="fas fa-arrow-left me-2"></i> Go Back
+                    </button>
                 </div>
 
                 <div id="alert-container"></div>
@@ -141,21 +143,20 @@ $backups = getBackupList();
                                                         <i class="fas fa-times text-danger"></i>
                                                     <?php endif; ?>
                                                 </td>
+                                                    <td>
+                                                        <?php if (!empty($backup['zip_exists'])): ?>
+                                                            <a href="../backups/uploads/<?php echo htmlspecialchars($backup['zip_file']); ?>" 
+                                                               class="btn btn-sm btn-outline-success me-1" download>
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                        <?php endif; ?>
+                                                        
+                                                        <button class="btn btn-sm btn-outline-danger delete-backup"
+                                                                data-backup-folder="<?php echo htmlspecialchars($backup['folder']); ?>">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-danger delete-backup" 
-                                                            data-backup-folder="<?php echo htmlspecialchars($backup['folder']); ?>">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                <?php if (!empty($backup['zip_exists'])): ?>
-                                                    <a href="backups/<?php echo htmlspecialchars($backup['zip_file']); ?>" 
-                                                       class="btn btn-sm btn-outline-success me-1" 
-                                                       download>
-                                                       <i class="fas fa-download"></i>
-                                                    </a>
-                                                <?php endif; ?>
-
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

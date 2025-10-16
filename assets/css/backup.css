@@ -1,0 +1,158 @@
+/* ==== BACKUP & RECOVERY PAGE (Flat, No Gradient) ==== */
+:root {
+  --primary: #004f80;
+  --accent: #007bff;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #17a2b8;
+  --success: #28a745;
+  --secondary: #6c757d;
+  --bg-light: #f8f9fa;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --text-dark: #212529;
+}
+
+/* Body */
+body {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Header Section */
+.container-fluid .d-flex {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+/* === CARD BASE === */
+.card {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* === CARD HEADERS === */
+.card-header {
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-header.bg-primary {
+  background-color: var(--primary) !important;
+  color: #fff !important;
+}
+
+.card-header.bg-warning {
+  background-color: var(--warning) !important;
+  color: var(--text-dark) !important;
+}
+
+.card-header.bg-secondary {
+  background-color: var(--secondary) !important;
+  color: #fff !important;
+}
+
+/* === ALERTS === */
+.alert {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+.alert-info {
+  background-color: #e8f4ff;
+  border-left: 4px solid var(--accent);
+}
+.alert-warning {
+  background-color: #fff8e1;
+  border-left: 4px solid var(--warning);
+}
+.alert-danger {
+  background-color: #fdecea;
+  border-left: 4px solid var(--danger);
+}
+.alert-success {
+  background-color: #e8f9f0;
+  border-left: 4px solid var(--success);
+}
+
+/* === BUTTONS === */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+.btn-primary {
+  background-color: var(--primary);
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #0066b2;
+}
+.btn-warning {
+  background-color: var(--warning);
+  border: none;
+  color: var(--text-dark);
+}
+.btn-warning:hover {
+  background-color: #e0a800;
+}
+.btn-outline-danger {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.btn-outline-danger:hover {
+  background-color: var(--danger);
+  color: #fff;
+}
+.btn-outline-success {
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+.btn-outline-success:hover {
+  background-color: var(--success);
+  color: #fff;
+}
+
+/* === TABLES === */
+.table {
+  border-color: var(--border-color);
+}
+.table thead {
+  background-color: #f1f3f5;
+  font-weight: 600;
+}
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f9fafb;
+}
+.table-hover tbody tr:hover {
+  background-color: #f1f3f5;
+}
+.table td, .table th {
+  vertical-align: middle;
+}
+
+/* === ICONS === */
+i {
+  color: inherit;
+}
+
+/* === Empty State === */
+.text-center .fa-inbox {
+  opacity: 0.4;
+}
+
+/* === Layout === */
+.container-fluid {
+  max-width: 1200px;
+}
+.row .col-md-6 {
+  display: flex;
+  flex-direction: column;
+}

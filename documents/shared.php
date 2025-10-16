@@ -6,30 +6,45 @@ include '../api/api_shared.php';
   <div class="row">
     <div class="col-12">
       <div class="card shadow-sm rounded-3 border-0">
+
+        <!-- ===== Card Header ===== -->
         <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom py-3">
           <div class="d-flex align-items-center">
-            <div class="icon-wrapper rounded-circle d-flex align-items-center justify-content-center me-3" style="background-color: rgba(42, 183, 202, 0.1); width: 48px; height: 48px;">
+            <!-- Icon -->
+            <div class="icon-wrapper rounded-circle d-flex align-items-center justify-content-center me-3"
+              style="background-color: rgba(42, 183, 202, 0.1); width: 48px; height: 48px;">
               <i class="fas fa-users" style="color: #2AB7CA; font-size: 1.2rem;"></i>
             </div>
+
+            <!-- Title + Subtitle -->
             <div>
-              <h4 class="mb-0 fw-bold text-dark">Documents Shared With Me</h4>
+              <h4 class="mb-1 fw-bold text-dark">Documents Shared With Me</h4>
               <small class="text-muted">Files shared with you by other users</small>
             </div>
           </div>
-          <?php if (!empty($shared_documents)): ?>
-            <div class="d-flex align-items-center">
+
+          <!-- Right: Button + Badge -->
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#requestFileModal"
+              style="background: linear-gradient(135deg, #004F80, #0073b6); color: white;">
+              <i class="fas fa-plus me-1"></i> Request Files
+            </button>
+
+            <?php if (!empty($shared_documents)): ?>
               <span class="badge rounded-pill px-3 py-2 fw-medium" style="background-color: #2AB7CA; color: white;">
                 <?php echo count($shared_documents); ?> shared document<?php echo count($shared_documents) !== 1 ? 's' : ''; ?>
               </span>
-            </div>
-          <?php endif; ?>
+            <?php endif; ?>
+          </div>
         </div>
-        
+        <!-- ===== Card Body ===== -->
         <div class="card-body p-0">
           <?php if (empty($shared_documents)): ?>
             <div class="text-center py-5 my-4">
               <div class="empty-state-icon mb-4">
-                <i class="fas fa-share-alt fa-4x text-light" style="color: #e9ecef;"></i>
+                <i class="fas fa-share-alt fa-4x" style="color: #e9ecef;"></i>
               </div>
               <h5 class="text-muted mb-2">No shared documents</h5>
               <p class="text-muted mb-4">Files that others share with you will appear here.</p>
@@ -63,6 +78,7 @@ include '../api/api_shared.php';
                         </div>
                       </div>
                     </td>
+
                     <td class="py-3">
                       <div class="d-flex align-items-center">
                         <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center me-2">
@@ -71,6 +87,7 @@ include '../api/api_shared.php';
                         <?php echo htmlspecialchars($doc['owner_name']); ?>
                       </div>
                     </td>
+
                     <td class="py-3">
                       <?php if ($doc['category_name']): ?>
                         <span class="badge rounded-pill px-3 py-2" style="background-color: <?php echo $doc['category_color']; ?>; color: white;">
@@ -80,21 +97,27 @@ include '../api/api_shared.php';
                         <span class="badge rounded-pill bg-light text-muted px-3 py-2">Uncategorized</span>
                       <?php endif; ?>
                     </td>
+
                     <td class="py-3">
                       <span class="badge rounded-pill px-3 py-2 bg-<?php echo $doc['permission'] === 'download' ? 'success' : 'info'; ?>">
                         <i class="fas fa-<?php echo $doc['permission'] === 'download' ? 'download' : 'eye'; ?> me-1"></i>
                         <?php echo $doc['permission'] === 'download' ? 'View & Download' : 'View Only'; ?>
                       </span>
                     </td>
+
                     <td class="py-3">
                       <span class="text-muted"><?php echo formatFileSize($doc['file_size']); ?></span>
                     </td>
+
                     <td class="text-center py-3">
                       <div class="dropdown">
-                        <button class="btn btn-light btn-sm rounded-circle" type="button" id="sharedDocActions<?= $doc['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; width: 36px; height: 36px;">
+                        <button class="btn btn-light btn-sm rounded-circle" type="button"
+                          id="sharedDocActions<?= $doc['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false"
+                          style="border: none; width: 36px; height: 36px;">
                           <i class="fas fa-ellipsis-v" style="font-size: 1rem; color: #6c757d;"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" aria-labelledby="sharedDocActions<?= $doc['id'] ?>">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
+                          aria-labelledby="sharedDocActions<?= $doc['id'] ?>">
                           <li><a class="dropdown-item py-2" href="preview.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-eye me-2 text-primary"></i> Preview</a></li>
                           <?php if ($doc['permission'] === 'download'): ?>
                             <li><a class="dropdown-item py-2" href="download.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-download me-2 text-success"></i> Download</a></li>
@@ -103,8 +126,8 @@ include '../api/api_shared.php';
                           <li><hr class="dropdown-divider my-1"></li>
                           <li>
                             <a class="dropdown-item py-2 text-danger" href="#"
-                               onclick="removeAccess(<?= $doc['id']; ?>)">
-                               <i class="fas fa-ban me-2"></i> Remove Access
+                              onclick="removeAccess(<?= $doc['id']; ?>)">
+                              <i class="fas fa-ban me-2"></i> Remove Access
                             </a>
                           </li>
                         </ul>
@@ -116,7 +139,7 @@ include '../api/api_shared.php';
             </table>
           <?php endif; ?>
         </div>
-        
+        <!-- ===== Footer ===== -->
         <?php if (!empty($shared_documents)): ?>
           <div class="card-footer bg-white border-top py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -127,11 +150,6 @@ include '../api/api_shared.php';
                 <button class="btn btn-sm btn-outline-secondary me-2">
                   <i class="fas fa-sync-alt me-1"></i> Refresh
                 </button>
-                <!-- ✅ Trigger Modal -->
-                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#requestFileModal"
-                  style="background: linear-gradient(135deg, #004F80, #0073b6); color: white;">
-                  <i class="fas fa-plus me-1"></i> Request Files
-                </button>
               </div>
             </div>
           </div>
@@ -140,6 +158,7 @@ include '../api/api_shared.php';
     </div>
   </div>
 </div>
+
 <hr class="my-5">
 <div class="card shadow-sm border-0 rounded-3">
   <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
@@ -206,10 +225,10 @@ include '../api/api_shared.php';
                         <i class="fas fa-times"></i>
                       </button>
                     </form>
-                  
-                  <?php elseif ($req['status'] === 'denied' && ($req['sender_id'] == $user_id || isAdmin())): ?>
-                    <!-- ✅ Delete Button when Denied -->
-                    <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_delete_request.php" onsubmit="return confirm('Delete this denied request?');">
+
+                  <?php elseif ($req['status'] === 'denied' || $req['status'] === 'approved' && ($req['sender_id'] == $user_id || isAdmin())): ?>
+                    
+                    <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_delete_request.php" onsubmit="return confirm('Delete this request?');">
                       <input type="hidden" name="id" value="<?= $req['id']; ?>">
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                         <i class="fas fa-trash-alt"></i>
@@ -312,6 +331,4 @@ async function removeAccess(documentId) {
     location.reload();
   }
 }
-
 </script>
-
