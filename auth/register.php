@@ -85,7 +85,7 @@ require_once '../includes/header.php';
                         id="password" 
                         name="password" 
                         minlength="6"
-                        placeholder="Create a password (min. 6 characters)"
+                        placeholder="Create a password (min. 8 characters)"
                         required
                     >
                     <span class="toggle-password" id="togglePassword1">

@@ -4,7 +4,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
 $user_full_name = $_SESSION['full_name'] ?? null;
 $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest';
-$user_initial = $user_full_name ? strtoupper(substr($user_full_name, 0, 1)) : '?';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -127,17 +126,14 @@ $user_initial = $user_full_name ? strtoupper(substr($user_full_name, 0, 1)) : '?
   </a>
 
   <div>
-    <button class="btn btn-light d-flex align-items-center px-2 py-1 rounded-pill"
-            type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-      <div class="d-flex align-items-center">
-        <div style="width: 34px; height: 34px; border-radius: 50%;
-                    background: linear-gradient(135deg, #004F80, #0073b6);
-                    display: flex; align-items: center; justify-content: center;
-                    color: white !important; font-weight: 600; font-size: 0.9rem;">
-          <?php echo $user_initial; ?>
-        </div>
-      </div>
-    </button>
+<div style="padding: 6px 14px; border-radius: 50px;
+            background: linear-gradient(135deg, #004F80, #0073b6);
+            display: flex; align-items: center; justify-content: center;
+            color: white !important; font-weight: 600; font-size: 0.9rem;
+            white-space: nowrap;">
+  <?php echo $username_display; ?>
+</div>
+
   </div>
 </div>
 

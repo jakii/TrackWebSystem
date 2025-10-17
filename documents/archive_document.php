@@ -65,34 +65,54 @@ requireAuth();
         <i class="fas fa-box-archive me-1"></i> Unarchive
       </button>
     </div>
-    <div class="table-responsive fade-in delay-2">
-      <table class="table archive-table align-middle mb-0">
-        <thead>
-          <tr>
-            <th><input type="checkbox" id="selectAll"></th>
-            <th>Document Name</th>
-            <th>Category</th>
-            <th>Archived At</th>
-            <?php if ($is_admin): ?>
-              <th>Owner</th>
-            <?php endif; ?>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($archived_documents as $doc): ?>
-            <tr>
-              <td><input type="checkbox" name="selected_docs[]" value="<?= $doc['id'] ?>" class="doc-checkbox"></td>
-              <td><?= htmlspecialchars($doc['title']) ?></td>
-              <td><?= htmlspecialchars($doc['category_name']) ?></td>
-              <td><?= date('M d, Y h:i A', strtotime($doc['archived_at'])) ?></td>
-              <?php if ($is_admin): ?>
-                <td><?= htmlspecialchars($doc['owner_name']) ?></td>
-              <?php endif; ?>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
+  <div class="table-responsive fade-in delay-2">
+  <table class="table archive-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll"></th>
+        <th>Document Name</th>
+        <th>Category</th>
+        <th>Archived At</th>
+        <?php if ($is_admin): ?>
+          <th>Owner</th>
+        <?php endif; ?>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($archived_documents as $doc): ?>
+        <tr>
+          <td>
+            <input type="checkbox" name="selected_docs[]" value="<?= $doc['id'] ?>" class="doc-checkbox">
+          </td>
+          <td>
+            <div class="d-flex align-items-center">
+              <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2 text-secondary"></i>
+              <span><?= htmlspecialchars($doc['title']) ?></span>
+            </div>
+          </td>
+          <td><?= htmlspecialchars($doc['category_name']) ?></td>
+          <td><?= date('M d, Y h:i A', strtotime($doc['archived_at'])) ?></td>
+          <?php if ($is_admin): ?>
+            <td>
+              <div class="d-flex align-items-center">
+                <?php 
+                  $initial = strtoupper(substr($doc['owner_name'], 0, 1)); 
+                ?>
+                <div style="width: 30px; height: 30px; border-radius: 50%;
+                            background: linear-gradient(135deg, #004F80, #0073b6);
+                            display: flex; align-items: center; justify-content: center;
+                            color: white; font-weight: 600; font-size: 0.8rem; margin-right: 8px;">
+                  <?= $initial ?>
+                </div>
+                <span><?= htmlspecialchars($doc['owner_name']) ?></span>
+              </div>
+            </td>
+          <?php endif; ?>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
   </form>
 <?php endif; ?>
   </div>
