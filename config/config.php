@@ -19,7 +19,7 @@ define('CSRF_TOKEN_NAME', 'csrf_token');
 
 define('ITEMS_PER_PAGE', 10);
 
-date_default_timezone_set('UTC');
+date_default_timezone_set('Asia/Manila');
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
