@@ -29,7 +29,7 @@ if (isLoggedIn()) {
 
   <!-- Preloader -->
   <div id="preloader">
-    <img src="assets/images/logo.png" alt="Logo" class="preloader-logo" style="height: 100px; width: 100px;">
+    <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Logo" class="preloader-logo" style="height: 100px; width: 100px;">
     <div class="progress-bar-container">
       <div class="progress-bar" id="progress-bar"></div>
     </div>
