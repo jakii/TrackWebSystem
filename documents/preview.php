@@ -22,9 +22,6 @@ require_once '../includes/preview_helpers.php';
                 </div>
 
             <div>
-               <a href="download.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;">
-                   <i class="fas fa-download me-2"></i>
-               </a>
                <a href="view.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;">
                    <i class="fas fa-info-circle me-2"></i>
                </a>

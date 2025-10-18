@@ -192,7 +192,6 @@ $backups = getBackupList();
             }, 5000);
         }
 
-        // Handle form submissions with AJAX
         document.getElementById('createBackupForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -206,8 +205,7 @@ $backups = getBackupList();
             .then(data => {
                 if (data.success) {
                     showAlert(data.message, 'success');
-                    // Reload page after 2 seconds to show new backup
-                    setTimeout(() => location.reload(), 2000);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     showAlert(data.error, 'danger');
                 }
@@ -236,8 +234,7 @@ $backups = getBackupList();
             .then(data => {
                 if (data.success) {
                     showAlert(data.message, 'success');
-                    // Reload page after 2 seconds
-                    setTimeout(() => location.reload(), 2000);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     showAlert(data.error, 'danger');
                 }
@@ -268,8 +265,7 @@ $backups = getBackupList();
                 .then(data => {
                     if (data.success) {
                         showAlert(data.message, 'success');
-                        // Reload page after 2 seconds
-                        setTimeout(() => location.reload(), 2000);
+                        setTimeout(() => location.reload(), 1000);
                     } else {
                         showAlert(data.error, 'danger');
                     }

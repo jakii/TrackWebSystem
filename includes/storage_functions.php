@@ -18,3 +18,18 @@ function formatBytes($bytes, $precision = 2) {
     $bytes /= pow(1024, $pow);
     return round($bytes, $precision) . ' ' . $units[$pow];
 }
+function getExternalStorageInfo($path = 'C:/') {
+    if (!is_dir($path)) return ['used' => 0, 'total' => 0, 'percent' => 0];
+
+    $total = disk_total_space($path); // Total capacity
+    $free  = disk_free_space($path);  // Free space
+    $used  = $total - $free;
+    $percent = ($total > 0) ? ($used / $total) * 100 : 0;
+
+    return [
+        'used' => $used,
+        'total' => $total,
+        'percent' => $percent
+    ];
+}
+

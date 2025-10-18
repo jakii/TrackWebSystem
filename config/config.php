@@ -1,11 +1,11 @@
 <?php
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'database');
-define('DB_USER', 'rey');
-define('DB_PASS', 'Rey123**');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 
 define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
-define('BASE_URL', '/');
+define('BASE_URL', '/TrackWeb/');
 
 define('UPLOAD_DIR', __DIR__ . '/../documents/uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024);

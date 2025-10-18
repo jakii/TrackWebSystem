@@ -1,6 +1,10 @@
 <?php
 include '../includes/header.php';
 include '../api/api_shared.php';
+
+$mark_read = $db->prepare("UPDATE document_shares SET is_read = 1 WHERE shared_with = ?");
+$mark_read->execute([$_SESSION['user_id']]);
+
 ?>
 <div class="container-fluid py-3">
   <div class="row">
@@ -124,12 +128,6 @@ include '../api/api_shared.php';
                           <?php endif; ?>
                           <li><a class="dropdown-item py-2" href="view.php?id=<?php echo $doc['id']; ?>"><i class="fas fa-info-circle me-2 text-info"></i> Details</a></li>
                           <li><hr class="dropdown-divider my-1"></li>
-                          <li>
-                            <a class="dropdown-item py-2 text-danger" href="#"
-                              onclick="removeAccess(<?= $doc['id']; ?>)">
-                              <i class="fas fa-ban me-2"></i> Remove Access
-                            </a>
-                          </li>
                         </ul>
                       </div>
                     </td>
@@ -312,23 +310,4 @@ document.getElementById('requestFileForm').addEventListener('submit', async func
     bootstrap.Modal.getInstance(document.getElementById('requestFileModal')).hide();
   }
 });
-
-async function removeAccess(documentId) {
-  if (!confirm("Are you sure you want to remove access to this document?")) return;
-
-  const formData = new FormData();
-  formData.append('id', documentId);
-
-  const res = await fetch('<?= BASE_URL; ?>api/api_remove_shared_access.php', {
-    method: 'POST',
-    body: formData
-  });
-
-  const data = await res.json();
-  alert(data.message);
-
-  if (data.status === 'success') {
-    location.reload();
-  }
-}
 </script>

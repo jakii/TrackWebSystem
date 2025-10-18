@@ -83,38 +83,63 @@ function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $
  * === RESTORE ===
  */
 function restoreBackup($db, $backup_folder) {
-    $backup_path = "../backups/{$backup_folder}/";
-    if (!is_dir($backup_path)) throw new Exception("Backup directory not found");
-    if (!file_exists($backup_path . 'backup_info.json')) throw new Exception("Invalid backup format");
+    $backup_path = __DIR__ . "/../backups/uploads/{$backup_folder}/";
+
+    if (!is_dir($backup_path)) {
+        throw new Exception("Backup directory not found: " . $backup_path);
+    }
+
+    if (!file_exists($backup_path . 'backup_info.json')) {
+        throw new Exception("Invalid backup format (missing backup_info.json)");
+    }
 
     $backup_info = json_decode(file_get_contents($backup_path . 'backup_info.json'), true);
 
-    // Restore DB
-    if (file_exists($backup_path . 'database_backup.sql')) {
-        $sql = file_get_contents($backup_path . 'database_backup.sql');
+    // === Restore Database ===
+    $db_backup_file = $backup_path . 'database_backup.sql';
+    if (file_exists($db_backup_file)) {
+        $sql = file_get_contents($db_backup_file);
         $statements = array_filter(array_map('trim', explode(';', $sql)));
+
+        $db->exec("SET FOREIGN_KEY_CHECKS=0;");
+
         foreach ($statements as $statement) {
-            if (!empty($statement)) $db->exec($statement);
+            if (!empty($statement)) {
+                try {
+                    $db->exec($statement);
+                } catch (PDOException $e) {
+                    error_log("SQL Error: " . $e->getMessage());
+                    error_log("Failed Statement: " . $statement);
+                }
+            }
         }
+
+        $db->exec("SET FOREIGN_KEY_CHECKS=1;");
     }
 
-    // Restore files
+    // === Restore Files ===
     $backup_files_dir = $backup_path . "uploads/";
-    if (is_dir($backup_files_dir)) {
-        $uploads_dir = "../documents/uploads/";
+    $uploads_dir = __DIR__ . "/../uploads/";
 
-        // Clear old uploads
+    if (is_dir($backup_files_dir)) {
+        if (!is_dir($uploads_dir)) {
+            mkdir($uploads_dir, 0755, true);
+        }
+
+        // --- Clear old uploads ---
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($uploads_dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST
         );
 
         foreach ($files as $file) {
-            if ($file->isDir()) rmdir($file->getPathname());
-            else unlink($file->getPathname());
+            if ($file->isDir()) {
+                rmdir($file->getPathname());
+            } else {
+                unlink($file->getPathname());
+            }
         }
-
-        // Copy backup files
+        
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($backup_files_dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST
@@ -125,12 +150,17 @@ function restoreBackup($db, $backup_folder) {
                 $relative_path = substr($file->getPathname(), strlen($backup_files_dir));
                 $dest_path = $uploads_dir . $relative_path;
                 $dest_dir = dirname($dest_path);
-                if (!is_dir($dest_dir)) mkdir($dest_dir, 0755, true);
+
+                if (!is_dir($dest_dir)) {
+                    mkdir($dest_dir, 0755, true);
+                }
+
                 copy($file->getPathname(), $dest_path);
             }
         }
     }
 }
+
 
 /**
  * === BACKUP LIST ===

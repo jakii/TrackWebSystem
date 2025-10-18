@@ -10,7 +10,6 @@ header('Content-Type: application/json');
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // ✅ Fetch backup list
         $backups = getBackupList();
         echo json_encode(['success' => true, 'data' => $backups]);
         exit;
@@ -40,7 +39,7 @@ try {
     echo json_encode(['error' => $e->getMessage()]);
 }
 
-// --- Helper handlers ---
+//--- Helper handlers ---
 function handleCreateBackup($db) {
     $backup_type = $_POST['backup_type'] ?? 'both';
     $include_files = isset($_POST['include_files']);
@@ -63,7 +62,6 @@ function handleCreateBackup($db) {
 
     createBackupInfo($backup_dir, $backup_type, $include_files, $_SESSION['user_id']);
 
-    // ✅ Zip the backup folder
     zipBackup($backup_dir);
 
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");

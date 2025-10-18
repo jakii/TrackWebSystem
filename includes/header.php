@@ -2,6 +2,32 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/auth_check.php';
 
+$last_visit = $_SESSION['last_browse_visit'] ?? date('Y-m-d H:i:s', strtotime('-1 day'));
+
+$new_documents_count = $db->prepare("
+    SELECT COUNT(*) FROM documents
+    WHERE created_at > ? AND uploaded_by != ?
+");
+$new_documents_count->execute([$last_visit, $_SESSION['user_id']]);
+$new_documents_count = (int)$new_documents_count->fetchColumn();
+
+$new_folders_count = $db->prepare("
+    SELECT COUNT(*) FROM folders
+    WHERE created_at > ? AND created_by != ?
+");
+$new_folders_count->execute([$last_visit, $_SESSION['user_id']]);
+$new_folders_count = (int)$new_folders_count->fetchColumn();
+
+$_SESSION['last_browse_visit'] = date('Y-m-d H:i:s');
+
+$unread_shared_count = $db->prepare("
+    SELECT COUNT(*) 
+    FROM document_shares 
+    WHERE shared_with = ? AND is_read = 0
+");
+$unread_shared_count->execute([$_SESSION['user_id']]);
+$unread_shared_count = (int)$unread_shared_count->fetchColumn();
+
 $user_full_name = $_SESSION['full_name'] ?? null;
 $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest';
 ?>
@@ -50,19 +76,30 @@ $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest
       </a>
     </li>
 
-    <li>
-      <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'browse.php' ? 'active' : ''; ?>" 
-         href="<?php echo BASE_URL; ?>documents/browse.php">
-        <i class="fas fa-folder-tree me-2"></i><span>Browse</span>
-      </a>
-    </li>
+  <li>
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'browse.php' ? 'active' : ''; ?>" 
+       href="<?php echo BASE_URL; ?>documents/browse.php">
+      <i class="fas fa-folder-tree me-2"></i>
+      <span>Browse</span>
+      <?php if($new_documents_count + $new_folders_count > 0): ?>
+          <span class="ms-auto bg-danger rounded-circle" style="width:10px; height:10px; display:inline-block;"></span>
+      <?php endif; ?>
+    </a>
+  </li>
+
 
     <li>
       <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'shared.php' ? 'active' : ''; ?>" 
          href="<?php echo BASE_URL; ?>documents/shared.php">
-        <i class="fas fa-users me-2"></i><span>Shared with Me</span>
+        <i class="fas fa-users me-2"></i>
+        <span>Shared with Me</span>
+        <?php if($unread_shared_count > 0): ?>
+            <span class="ms-auto bg-danger rounded-circle" 
+                  style="width:10px; height:10px; display:inline-block;"></span>
+        <?php endif; ?>
       </a>
     </li>
+
 
     <li>
       <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'storage.php' ? 'active' : ''; ?>" 

@@ -224,21 +224,64 @@ function filePathToUrl($filePath) {
     return $protocol . '://' . $host . '/' . $relativePath;
 }
 
-function previewPdf($filePath, $downloadUrl = '') {
-    if (!file_exists($filePath)) return '<div class="alert alert-warning">File not found.</div>';
+function previewPdf($filePath) {
+    if (!file_exists($filePath)) 
+        return '<div class="alert alert-warning">File not found.</div>';
     
     $url = filePathToUrl($filePath);
     if (!$url) {
-        return '<div class="alert alert-warning">Cannot generate secure preview URL. <a href="' . 
-               htmlspecialchars($downloadUrl) . '">Download instead</a>.</div>';
+        return '<div class="alert alert-warning">Cannot generate secure preview URL.</div>';
     }
 
-    return '<div class="embed-responsive" style="height: 600px;">
-                <iframe src="' . htmlspecialchars($url) . '" 
-                        class="w-100 h-100 border-0 rounded"
-                        title="PDF Preview"></iframe>
-            </div>';
+    $iframeSrc = htmlspecialchars($url . '#toolbar=1&navpanes=0&scrollbar=0');
+    $html = <<<HTML
+<style>
+.pdf-container {
+    position: relative;
+    width: 100%;
+    height: 700px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
+.pdf-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+}
+
+.pdf-overlay-download {
+    position: absolute;
+    top: 14px;
+    right: 96px;
+    width: 37px;
+    height: 37px;
+    background: rgba(60, 60, 60, 1);
+    border-radius: 50%;
+    z-index: 20;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: #000;
+    font-weight: bold;
+    user-select: none;
+}
+</style>
+
+<div class="pdf-container">
+    <div class="pdf-overlay-download" onclick="alert('Download is disabled');"></div>
+    <iframe src="{$iframeSrc}" title="PDF Preview"></iframe>
+</div>
+HTML;
+
+    return $html;
+}
+
 
 function previewText($filePath) {
     if (!file_exists($filePath)) return '<div class="alert alert-warning">File not found.</div>';

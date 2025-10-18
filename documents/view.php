@@ -10,11 +10,6 @@ include '../includes/header.php';
                     <i class="<?php echo getFileIcon(pathinfo($document['filename'], PATHINFO_EXTENSION)); ?> me-2"></i>
                     <?php echo htmlspecialchars($document['title']); ?>
                 </h4>
-                <div>
-                    <a href="download.php?id=<?php echo $document['id']; ?>" class="btn" style ="background-color: #004F80; color: white;">
-                        <i class="fas fa-download me-2"></i>Download
-                    </a>
-                </div>
             </div>
             <div class="card-body">
                 <?php if (isset($error)): ?>
@@ -111,18 +106,14 @@ include '../includes/header.php';
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="download.php?id=<?php echo $document['id']; ?>" class="btn" style="background-color: #004F80; color: white;">
-                        <i class="fas fa-download me-2"></i>Download
-                    </a>
                     <?php if ($document['uploaded_by'] == $_SESSION['user_id']): ?>
                       <a href="#" class="btn" style="background-color: #FFD166; color: #2F4858;" data-bs-toggle="modal" data-bs-target="#editDetailsModal">
                         <i class="fas fa-edit me-2"></i>Edit Details
                       </a>
                     <?php endif; ?>
-<a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-outline-secondary">
-    <i class="fas fa-arrow-left me-2"></i> Back
-</a>
-
+                      <a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-outline-secondary">
+                          <i class="fas fa-arrow-left me-2"></i> Back
+                      </a>
                 </div>
             </div>
         </div>

@@ -24,7 +24,7 @@ function getFolderPath($folderId, $foldersById) {
 
 if (isset($_POST['upload'])) {
     if (empty($error)) {
-        echo "<script>window.location.href='upload.php?status=success';</script>";
+        echo "<script>window.location.href='../dashboard.php?status=success';</script>";
         exit;
     } else {
         echo "<script>window.location.href='upload.php?status=error';</script>";
