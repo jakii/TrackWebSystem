@@ -3,9 +3,9 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/config.php';
 require_once '../includes/activity_logger.php';
 
-// Check if already logged in
 if (isLoggedIn()) {
-    redirect('../dashboard.php');
+    header('Location: ../dashboard.php');
+    exit();
 }
 
 $error = '';
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please enter both username and password.';
     } else {
         $user_query = $db->prepare("
-            SELECT id, username, email, password, full_name, role, status, is_logged_in
+            SELECT id, username, email, password, full_name, role, status
             FROM users 
             WHERE username = ? OR email = ?
             LIMIT 1
@@ -42,29 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['full_name'] = $user['full_name'];
                 $_SESSION['login_time'] = time();
-                $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
             
-                // Log activity with proper validation
-                if (!empty($user['id'])) {
-                    safeLogActivity($db, $user['id'], 'User logged in from ' . $_SERVER['REMOTE_ADDR']);
-                }
+                // Log activity
+                logActivity($db, $user['id'], 'User logged in.');
             
                 // Mark as logged in
-                $stmt = $db->prepare("UPDATE users SET is_logged_in = 1, last_login = NOW() WHERE id = ?");
+                $stmt = $db->prepare("UPDATE users SET is_logged_in = 1 WHERE id = ?");
                 $stmt->execute([$user['id']]);
             
-                // Successful login redirect
-                redirect('../dashboard.php');
+                header('Location: ../dashboard.php');
+                exit();
             }
         } else {
             $error = 'Invalid username or password.';
-            
-            // Log failed login attempt
-            error_log("Failed login attempt for username: " . $username . " from IP: " . $_SERVER['REMOTE_ADDR']);
         }
     }
 }
-
-// If we reach here, show login form with error
-// This part depends on your login.php form structure
 ?>
