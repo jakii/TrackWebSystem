@@ -43,7 +43,7 @@ if (isLoggedIn()) {
       <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="#">
           <img src="assets/images/logo.png" alt="Logo" style="height: 45px; width: 45px;" class="me-2">
-          <span></span>
+          <span>TRACK</span>
         </a>
         <a href="auth/login.php">
           <button class="btn btn-primary-custom">

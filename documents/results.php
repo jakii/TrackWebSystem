@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/header.php';
-include '../api/api_search.php';
+require_once '../config/config.php';
+include '../api/api_result.php';
 
 $search = trim($_GET['search'] ?? '');
 ?>
@@ -53,9 +54,9 @@ $search = trim($_GET['search'] ?? '');
                         <td>
                             <div class="d-flex align-items-center">
                                 <?php if ($item['type'] === 'folder'): ?>
-                                    <i class="fas fa-folder text-warning me-2"></i>
+                                    <i class="fas fa-folder text-warning fa-2x me-2"></i>
                                 <?php else: ?>
-                                    <i class="<?php echo getFileIcon(pathinfo($item['file_type'] ?? '', PATHINFO_EXTENSION)); ?> me-2"></i>
+                                    <i class="<?php echo getFileIcon(pathinfo($item['filename'] ?? '', PATHINFO_EXTENSION)); ?> me-2 fa-2x"></i>
                                 <?php endif; ?>
                                 <div>
                                     <div class="fw-bold">
@@ -82,14 +83,14 @@ $search = trim($_GET['search'] ?? '');
                                     <?php echo htmlspecialchars($item['category_name']); ?>
                                 </span>
                             <?php else: ?>
-                                <span class="badge bg-secondary">Uncategorized</span>
+                                <span class="text-muted">—</span>
                             <?php endif; ?>
                         </td>
 
                         <td>
                             <?php 
                             echo ($item['type'] === 'folder') 
-                                ? '-' 
+                                ? '—' 
                                 : formatFileSize($item['file_size'] ?? 0);
                             ?>
                         </td>

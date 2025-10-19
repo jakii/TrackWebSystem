@@ -82,6 +82,6 @@ function getFileIcon($extension) {
         'pptx' => 'fas fa-file-powerpoint text-danger'
     ];
     
-    return $icons[strtolower($extension)] ?? 'fas fa-file text-muted';
+    return $icons[strtolower($extension)] ?? 'fas fa-file text-primary';
 }
 ?>

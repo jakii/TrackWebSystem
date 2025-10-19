@@ -23,7 +23,7 @@ require_once '../includes/header.php';
                     <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
                     <!-- Documents Selection -->
                      <div class="mb-3">
-                        <label class="form-label">Select Document(s)</label>
+                        <label class="form-label">Select Documents</label>
                         <div class="border rounded overflow-auto" style="max-height:250px;">
                             <!-- Select All -->
                             <div class="form-check mb-2 ms-4 p-2 border-bottom">
@@ -67,9 +67,8 @@ require_once '../includes/header.php';
 
                     <!-- Users Input -->
                     <div class="mb-3">
-                        <label for="share_with" class="form-label">Username(s) or Email(s)</label>
+                        <label for="share_with" class="form-label">Username or Email</label>
                         <input type="text" class="form-control" id="share_with" name="share_with" placeholder="Enter usernames or emails, comma separated" required>
-                        <small class="text-muted">Separate multiple users with commas.</small>
                     </div>
 
                     <!-- Permission -->

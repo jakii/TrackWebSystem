@@ -4,13 +4,14 @@ require_once '../config/database.php';
 require_once '../includes/activity_logger.php';
 requireAuth();
 
+// Get search input and log activity
 $search = trim($_GET['search'] ?? '');
 $user_id = $_SESSION['user_id'] ?? null;
-
 if ($search && $user_id) {
     logActivity($db, $user_id, "Searched for: '{$search}'");
 }
 
+// Filters
 $category_id = !empty($_GET['category']) ? (int)$_GET['category'] : null;
 $file_type   = trim($_GET['file_type'] ?? '');
 $dateFilter  = $_GET['date'] ?? '';
@@ -18,135 +19,77 @@ $sort_by     = $_GET['sort'] ?? 'created_at';
 $sort_order  = ($_GET['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 $page        = max(1, (int)($_GET['page'] ?? 1));
 
+// Build WHERE conditions
 $where_conditions = [];
 $params = [];
-$where_conditions[] = '(d.is_deleted IS NULL OR d.is_deleted = 0)';
-$where_conditions[] = "(d.uploaded_by = ? OR d.is_public = 1)";
-$params[] = $user_id;
 
+// Exclude deleted documents
+$where_conditions[] = '(d.is_deleted IS NULL OR d.is_deleted = 0)';
+
+// User documents or public documents
+$where_conditions[] = "(d.uploaded_by = ? OR d.is_public = 1)";
+$params[] = $_SESSION['user_id'];
+
+// Search filter
 if ($search) {
     $where_conditions[] = "(d.title LIKE ? OR d.description LIKE ? OR d.tags LIKE ? OR d.original_filename LIKE ?)";
     $search_term = "%$search%";
     $params = array_merge($params, [$search_term, $search_term, $search_term, $search_term]);
 }
 
+// Category filter
 if ($category_id) {
     $where_conditions[] = "d.category_id = ?";
     $params[] = $category_id;
 }
 
+// File type filter
 if ($file_type) {
     $where_conditions[] = "d.file_type LIKE ?";
     $params[] = "%$file_type%";
 }
 
+// Date filter
 if (!empty($dateFilter)) {
+    // Filter by the date part only
     $where_conditions[] = "DATE(d.created_at) = ?";
     $params[] = $dateFilter;
 }
 
+// Combine WHERE clause
 $where_clause = implode(' AND ', $where_conditions);
+
+// Validate sort column
 $valid_sorts = ['title', 'created_at', 'file_size', 'download_count'];
-if (!in_array($sort_by, $valid_sorts)) $sort_by = 'created_at';
-
-# ----------------------------
-# Folder query
-# ----------------------------
-$folder_sql = "
-    SELECT 
-        f.id,
-        f.name AS title,
-        f.description,
-        NULL AS tags,
-        NULL AS file_type,
-        f.created_at,
-        NULL AS file_size,
-        NULL AS download_count,
-        'folder' AS type,
-        NULL AS category_name,
-        f.color AS category_color,
-        u.full_name AS uploader_name,
-        f.created_by AS uploaded_by
-    FROM folders f
-    LEFT JOIN users u ON f.created_by = u.id
-    WHERE 1 = 1
-";
-$folder_params = [];
-
-// ✅ Include search filter (works for all users)
-if ($search) {
-    $folder_sql .= " AND (f.name LIKE ? OR f.description LIKE ?)";
-    $folder_params[] = "%$search%";
-    $folder_params[] = "%$search%";
+if (!in_array($sort_by, $valid_sorts)) {
+    $sort_by = 'created_at';
 }
 
-// ✅ Optional: date filter
-if (!empty($dateFilter)) {
-    $folder_sql .= " AND DATE(f.created_at) = ?";
-    $folder_params[] = $dateFilter;
-}
+// Count total results
+$count_sql = "SELECT COUNT(*) as total FROM documents d WHERE $where_clause";
+$count_query = $db->prepare($count_sql);
+$count_query->execute($params);
+$total_results = $count_query->fetch()['total'] ?? 0;
 
-# ----------------------------
-# Document query
-# ----------------------------
+// Pagination
+$total_pages = ceil($total_results / ITEMS_PER_PAGE);
+$offset = ($page - 1) * ITEMS_PER_PAGE;
+
+// Fetch documents
 $document_sql = "
-    SELECT 
-        d.id,
-        d.title,
-        d.description,
-        d.tags,
-        d.file_type,
-        d.created_at,
-        d.file_size,
-        d.download_count,
-        'document' AS type,
-        c.name AS category_name,
-        c.color AS category_color,
-        u.full_name AS uploader_name,
-        d.uploaded_by
+    SELECT d.*, c.name as category_name, c.color as category_color, u.full_name as uploader_name
     FROM documents d
     LEFT JOIN categories c ON d.category_id = c.id
     LEFT JOIN users u ON d.uploaded_by = u.id
     WHERE $where_clause
+    ORDER BY d.$sort_by $sort_order
+    LIMIT " . ITEMS_PER_PAGE . " OFFSET $offset
 ";
+$document_query = $db->prepare($document_sql);
+$document_query->execute($params);
+$documents = $document_query->fetchAll();
 
-# ----------------------------
-# Combine both queries
-# ----------------------------
-$combined_sql = "
-    ($document_sql)
-    UNION ALL
-    ($folder_sql)
-    ORDER BY created_at $sort_order
-    LIMIT " . ITEMS_PER_PAGE . " OFFSET " . (($page - 1) * ITEMS_PER_PAGE);
-
-$combined_params = array_merge($params, $folder_params);
-
-$query = $db->prepare($combined_sql);
-$query->execute($combined_params);
-$results = $query->fetchAll();
-
-# ----------------------------
-# Count total results
-# ----------------------------
-$count_sql = "
-    SELECT SUM(total) AS total FROM (
-        SELECT COUNT(*) AS total FROM documents d WHERE $where_clause
-        UNION ALL
-        SELECT COUNT(*) AS total FROM folders f WHERE f.created_by = ?
-        " . ($search ? "AND (f.name LIKE ? OR f.description LIKE ?)" : "") . "
-    ) AS combined
-";
-
-$count_params = array_merge($params, [$user_id]);
-if ($search) {
-    $count_params[] = "%$search%";
-    $count_params[] = "%$search%";
-}
-
-$count_query = $db->prepare($count_sql);
-$count_query->execute($count_params);
-$total_results = $count_query->fetch()['total'] ?? 0;
-
-$total_pages = ceil($total_results / ITEMS_PER_PAGE);
-?>
+// Get all categories
+$category_query = $db->prepare("SELECT * FROM categories ORDER BY name");
+$category_query->execute();
+$categories = $category_query->fetchAll();

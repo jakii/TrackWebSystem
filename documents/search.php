@@ -72,7 +72,7 @@ include '../api/api_search.php';
         <button type="submit" class="btn me-2 rounded-pill" style="background-color: #004F80; color: white;">
           <i class="fas fa-search me-2"></i>Search
         </button>
-        <a href="browse.php" class="btn btn-outline-secondary rounded-pill">
+        <a href="search.php" class="btn btn-outline-secondary rounded-pill">
           <i class="fas fa-times me-2"></i>Clear
         </a>
       </div>

@@ -142,102 +142,196 @@ requireAuth();
                 </div>
             </div>
 
-            <!-- Recent Documents -->
-            <div class="documents-table">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h5 class="mb-1">
-                            <i class="fas fa-folder-open me-2" style="color: #FFD166;"></i>
-                            Recent Documents
-                        </h5>
-                        <small class="text-muted">Latest uploaded across the system</small>
-                    </div>
-                    <a href="documents/browse.php" class="btn btn-accent-custom btn-sm">
-                        <i class="fas fa-folder me-2"></i>Browse All
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <?php if (empty($recent_documents)): ?>
-                        <div class="empty-state">
-                            <i class="fas fa-file-circle-plus"></i>
-                            <p>No documents uploaded yet.</p>
-                            <a href="documents/upload.php" class="btn btn-accent-custom">
-                                <i class="fas fa-upload me-2"></i>Upload Document
-                            </a>
-                        </div>
-                    <?php else: ?>
-                            <table class="table align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Document</th>
-                                        <th>Category</th>
-                                        <th>Size</th>
-                                        <th>Date</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($recent_documents as $i => $doc): ?>
-                                        <tr class="doc-row <?= $i >= 5 ? 'd-none' : '' ?>">
-                                            <td>
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="file-icon">
-                                                        <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)); ?>" style="color: var(--primary-color);"></i>
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-semibold text-dark"><?= htmlspecialchars($doc['title']); ?></div>
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-user me-1"></i><?= htmlspecialchars($doc['uploader_name'] ?? $_SESSION['username']); ?>
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <?php if ($doc['category_name']): ?>
-                                                    <span class="badge badge-custom" style="background-color: <?= $doc['category_color'] ?>; color: white;">
-                                                        <?= htmlspecialchars($doc['category_name']); ?>
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-custom" style="background-color: #6B7280; color: white;">Uncategorized</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td class="text-muted"><?= formatFileSize($doc['file_size']); ?></td>
-                                            <td class="text-muted">
-                                                <i class="fas fa-calendar-alt me-1"></i>
-                                                <?= date('M j, Y', strtotime($doc['created_at'])); ?>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="dropdown">
-                                                    <button class="btn-action" data-bs-toggle="dropdown">
-                                                        <i class="fas fa-ellipsis-v text-muted"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li><a class="dropdown-item" href="documents/preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
-                                                        <li><a class="dropdown-item" href="documents/download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
-                                                        <li><a class="dropdown-item" href="documents/view.php?id=<?= $doc['id'] ?>"><i class="fas fa-info-circle me-2"></i>Details</a></li>
-                                                        <li><a class="dropdown-item" href="documents/share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
-                                                        <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                                            <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                        <?php endif; ?>
-                                                    </ul>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        <?php if (count($recent_documents) > 5): ?>
-                            <div class="text-center p-4">
-                                <button id="showMoreBtn" class="btn btn-show-more">
-                                    <i class="fas fa-chevron-down me-2"></i>Show More
-                                </button>
-                            </div>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </div>
+<!-- Recent Documents -->
+<div class="documents-table">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h5 class="mb-1">
+                <i class="fas fa-folder-open me-2" style="color: #FFD166;"></i>
+                Recent Documents
+            </h5>
+            <small class="text-muted">Latest uploaded across the system</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Bulk Actions Dropdown -->
+            <div class="dropdown bulk-actions-dropdown d-none">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-tasks me-2"></i>Actions
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item bulk-action" href="#" data-action="download"><i class="fas fa-download me-2"></i>Download</a></li>
+                    <li><a class="dropdown-item bulk-action" href="#" data-action="archive"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                    <li><a class="dropdown-item bulk-action text-danger" href="#" data-action="delete"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                </ul>
             </div>
+            <a href="documents/browse.php" class="btn btn-accent-custom btn-sm">
+                <i class="fas fa-folder me-2"></i>Browse All
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($recent_documents)): ?>
+            <div class="empty-state">
+                <i class="fas fa-file-circle-plus"></i>
+                <p>No documents uploaded yet.</p>
+                <a href="documents/upload.php" class="btn btn-accent-custom">
+                    <i class="fas fa-upload me-2"></i>Upload Document
+                </a>
+            </div>
+        <?php else: ?>
+            <form id="bulkActionsForm" method="POST" action="documents/bulk_actions.php">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th width="40">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
+                            <th>Document</th>
+                            <th>Category</th>
+                            <th>Size</th>
+                            <th>Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($recent_documents as $i => $doc): ?>
+                            <tr class="doc-row <?= $i >= 5 ? 'd-none' : '' ?>">
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-checkbox" type="checkbox" name="doc_ids[]" value="<?= $doc['id'] ?>">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="file-icon">
+                                            <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)); ?>" style="color: var(--primary-color);"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold text-dark"><?= htmlspecialchars($doc['title']); ?></div>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i><?= htmlspecialchars($doc['uploader_name'] ?? $_SESSION['username']); ?>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <?php if ($doc['category_name']): ?>
+                                        <span class="badge badge-custom" style="background-color: <?= $doc['category_color'] ?>; color: white;">
+                                            <?= htmlspecialchars($doc['category_name']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge badge-custom" style="background-color: #6B7280; color: white;">Uncategorized</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-muted"><?= formatFileSize($doc['file_size']); ?></td>
+                                <td class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    <?= date('M j, Y', strtotime($doc['created_at'])); ?>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="btn-action" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="documents/preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                            <li><a class="dropdown-item" href="documents/download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                            <li><a class="dropdown-item" href="documents/view.php?id=<?= $doc['id'] ?>"><i class="fas fa-info-circle me-2"></i>Details</a></li>
+                                            <li><a class="dropdown-item" href="documents/share.php?id=<?= $doc['id'] ?>"><i class="fas fa-share me-2"></i>Share</a></li>
+                                            <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                                <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <input type="hidden" name="action" id="bulkAction" value="">
+            </form>
+            <?php if (count($recent_documents) > 5): ?>
+                <div class="text-center p-4">
+                    <button id="showMoreBtn" class="btn btn-show-more">
+                        <i class="fas fa-chevron-down me-2"></i>Show More
+                    </button>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- JavaScript for Bulk Actions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const docCheckboxes = document.querySelectorAll('.doc-checkbox');
+    const bulkActionsDropdown = document.querySelector('.bulk-actions-dropdown');
+    const bulkActionsForm = document.getElementById('bulkActionsForm');
+    const bulkActionInput = document.getElementById('bulkAction');
+    const bulkActionButtons = document.querySelectorAll('.bulk-action');
+
+    // Select All functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        docCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        toggleBulkActions();
+    });
+
+    // Individual checkbox functionality
+    docCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', toggleBulkActions);
+    });
+
+    // Toggle bulk actions dropdown visibility
+    function toggleBulkActions() {
+        const checkedCount = document.querySelectorAll('.doc-checkbox:checked').length;
+        if (checkedCount > 0) {
+            bulkActionsDropdown.classList.remove('d-none');
+        } else {
+            bulkActionsDropdown.classList.add('d-none');
+        }
+        
+        // Update select all checkbox state
+        const allChecked = checkedCount === docCheckboxes.length;
+        const someChecked = checkedCount > 0 && checkedCount < docCheckboxes.length;
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = someChecked;
+    }
+
+    // Bulk action button handlers
+    bulkActionButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const action = this.getAttribute('data-action');
+            const checkedCount = document.querySelectorAll('.doc-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                alert('Please select at least one document.');
+                return;
+            }
+
+            if (action === 'delete') {
+                if (!confirm(`Are you sure you want to delete ${checkedCount} document(s)? This action cannot be undone.`)) {
+                    return;
+                }
+            } else if (action === 'archive') {
+                if (!confirm(`Are you sure you want to archive ${checkedCount} document(s)?`)) {
+                    return;
+                }
+            }
+
+            bulkActionInput.value = action;
+            bulkActionsForm.submit();
+        });
+    });
+});
+</script>
         <?php else: ?>
             <!-- ===================== USER DASHBOARD ===================== -->
             <?php include 'partials/user_dashboard_content.php'; ?>

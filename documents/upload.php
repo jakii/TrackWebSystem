@@ -44,7 +44,10 @@ if (isset($_POST['upload'])) {
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Upload Files</label>
+                        <label class="form-label fw-bold" for="documents">
+                            Upload Files 
+                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                        </label>
                         <div id="drop-zone" 
                              class="border border-2 border-dashed rounded-4 p-5 text-center bg-light"
                              style="cursor: pointer; transition: 0.3s;">
@@ -52,7 +55,7 @@ if (isset($_POST['upload'])) {
                             <p class="mb-1 fw-semibold">Drag & drop files here</p>
                             <small class="text-muted">or click to select files</small>
                         </div>
-                        <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple>
+                        <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
                         <div id="file-list" class="mt-3 small text-muted"></div>
                     </div>
                 
@@ -62,7 +65,10 @@ if (isset($_POST['upload'])) {
                     </div>
 
                     <div class="mb-3">
-                        <label for="folder_id" class="form-label fw-bold">Destination Folder</label>
+                        <label for="folder_id" class="form-label fw-bold">
+                            Destination Folder 
+                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                        </label>
                         <select class="form-select" id="folder_id" name="folder_id" required>
                             <option value="">Select a folder</option>
                             <?php foreach ($folders as $folder): ?>
@@ -75,8 +81,11 @@ if (isset($_POST['upload'])) {
                     </div>
                     
                     <div class="mb-3">
-                        <label for="category_id" class="form-label fw-bold">Category</label>
-                        <select class="form-select" id="category_id" name="category_id">
+                        <label for="category_id" class="form-label fw-bold">
+                            Category 
+                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                        </label>
+                        <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Select a category</option>
                             <?php foreach ($categories as $category): ?>
                             <option value="<?php echo $category['id']; ?>" 
@@ -116,6 +125,29 @@ if (isset($_POST['upload'])) {
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = ['documents', 'folder_id', 'category_id'];
+
+    fields.forEach(id => {
+        const input = document.getElementById(id);
+        // Find the span inside the label associated with the input
+        const label = document.querySelector(`label[for="${id}"]`);
+        const asterisk = label?.querySelector('span.text-danger');
+
+        input.addEventListener('change', () => {
+            if ((input.type === 'file' && input.files.length > 0) || 
+                (input.type !== 'file' && input.value.trim() !== '')) {
+                asterisk?.classList.add('d-none');
+            } else {
+                asterisk?.classList.remove('d-none');
+            }
+        });
+    });
+});
+</script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

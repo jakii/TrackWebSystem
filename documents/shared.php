@@ -260,19 +260,28 @@ $mark_read->execute([$_SESSION['user_id']]);
         <div class="modal-body">
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Recipient (Email or Username)</label>
-            <input type="text" name="recipient_identifier" class="form-control" placeholder="Enter email or username" required>
+            <label class="form-label fw-semibold" for="recipient_identifier">
+              Recipient (Email or Username) 
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <input type="text" id="recipient_identifier" name="recipient_identifier" class="form-control" placeholder="Enter email or username" required>
             <small class="text-muted">We'll find the user automatically.</small>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">File Description</label>
-            <input type="text" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required>
+            <label class="form-label fw-semibold" for="description">
+              File Description 
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <input type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Reason</label>
-            <textarea name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
+            <label class="form-label fw-semibold" for="reason">
+              Reason 
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
           </div>
         </div>
 
@@ -287,6 +296,26 @@ $mark_read->execute([$_SESSION['user_id']]);
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = ['recipient_identifier', 'description', 'reason'];
+
+    fields.forEach(id => {
+        const input = document.getElementById(id);
+        const asterisk = input.closest('.mb-3').querySelector('span.text-danger');
+
+        input.addEventListener('input', () => {
+            if (input.value.trim() !== '') {
+                asterisk?.classList.add('d-none');
+            } else {
+                asterisk?.classList.remove('d-none');
+            }
+        });
+    });
+});
+</script>
+
 <style>
 .document-row:hover { background-color: rgba(42, 183, 202, 0.05) !important; }
 .file-icon-wrapper { width: 40px; height: 40px; border-radius: 8px; background-color: rgba(42, 183, 202, 0.1); display: flex; align-items: center; justify-content: center; color: #2AB7CA; }

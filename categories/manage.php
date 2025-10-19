@@ -120,23 +120,53 @@ $view = $_GET['view'] ?? 'table';
               <td><span class="badge bg-warning text-dark"><?= number_format($category['document_count']); ?></span></td>
               <td><?= htmlspecialchars($category['creator_name'] ?: 'Unknown'); ?></td>
               <td>
-                <?php if ($category['document_count'] == 0): ?>
-                  <form method="POST" style="display:inline;" onsubmit="return confirm('Delete category “<?= htmlspecialchars($category['name']); ?>”?');">
-                    <input type="hidden" name="category_id" value="<?= $category['id']; ?>">
-                    <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
-                    <button type="submit" name="delete_category" class="btn btn-sm btn-outline-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </form>
-                <?php else: ?>
-                  <i class="fas fa-lock text-muted" title="Cannot delete category with documents"></i>
-                <?php endif; ?>
+              <button type="button" 
+                class="btn btn-sm btn-outline-primary me-1"
+                data-bs-toggle="modal" 
+                data-bs-target="#editCategoryModal"
+                data-id="<?= $category['id']; ?>"
+                data-name="<?= htmlspecialchars($category['name']); ?>"
+                data-description="<?= htmlspecialchars($category['description']); ?>"
+                data-color="<?= htmlspecialchars($category['color']); ?>">
+                  <i class="fas fa-edit"></i>
+                </button>
               </td>
             </tr>
           <?php endforeach; ?>
-          </tbody>
-        </table>
+        </tbody>
+      </table>
+    </div>
+      <!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
+      <div class="modal-body">
+        <input type="hidden" name="category_id" id="edit_category_id">
+        <div class="mb-3">
+          <label class="form-label">Category Name</label>
+          <input type="text" class="form-control" name="category_name" id="edit_category_name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" name="category_description" id="edit_category_description" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Color</label>
+          <input type="color" class="form-control form-control-color" name="category_color" id="edit_category_color" value="#004F80">
+        </div>
+        <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" name="edit_category" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 
       <?php else: ?>
       <!-- Grid View -->

@@ -80,10 +80,6 @@
     transition: transform 0.3s ease;
   }
 
-  .navbar-brand:hover img {
-    transform: rotate(360deg);
-  }
-
   /* Hero Section */
   .hero-container {
     position: relative;
@@ -262,11 +258,6 @@
     transition: all 0.4s ease;
     position: relative;
     z-index: 1;
-  }
-
-  .feature-card:hover .feature-icon {
-    transform: rotateY(360deg) scale(1.1);
-    box-shadow: 0 15px 40px rgba(0, 79, 128, 0.35);
   }
 
   .feature-title {

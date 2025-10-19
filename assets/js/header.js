@@ -71,7 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // --- Clean URL (remove ?success or ?error params) ---
   if (window.location.search.includes('success') || window.location.search.includes('error')) {
     const url = new URL(window.location);
     url.search = '';
@@ -133,15 +132,4 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.paddingRight = '';
   });
 
-  // Prevent sidebar links from closing mobile sidebar immediately
-  sidebar.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      if (window.innerWidth < 992) {
-        // Small delay to allow navigation before closing
-        setTimeout(() => {
-          sidebar.classList.remove('show');
-        }, 300);
-      }
-    });
-  });
 });

@@ -11,12 +11,16 @@ $is_admin = isAdmin();
 // === GLOBAL STORAGE INFO ===
 $total_used = getTotalStorageUsed($db);
 $limit = getStorageLimit($db) ?? 0;
+$available = getAvailableStorage($db);
 $percent_total = ($limit > 0) ? ($total_used / $limit) * 100 : 0;
+$percent_available = ($limit > 0) ? ($available / $limit) * 100 : 100;
 
 $external = getExternalStorageInfo('C:/');
 $external_used    = $external['used'];
 $external_total   = $external['total'];
+$external_available = $external_total - $external_used;
 $external_percent = $external['percent'];
+$external_percent_available = ($external_total > 0) ? ($external_available / $external_total) * 100 : 0;
 
 // === USER STORAGE INFO ===
 $stmt = $db->prepare("
@@ -26,7 +30,9 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$user_id]);
 $user_used = $stmt->fetchColumn();
+$user_available = getUserAvailableStorage($db, $user_id);
 $percent_user = ($limit > 0) ? ($user_used / $limit) * 100 : 0;
+$percent_user_available = ($limit > 0) ? ($user_available / $limit) * 100 : 100;
 
 // Handle storage limit update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_admin) {
@@ -44,21 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_ad
     Storage <?= $is_admin ? 'Overview' : 'Usage' ?>
   </h2>
 
-  <!-- STORAGE SUMMARY -->
+  <!-- EXTERNAL STORAGE (Admin only) -->
   <?php if ($is_admin): ?>
-<div class="card mb-4 shadow-sm">
-  <div class="card-body">
-    <h5>External Storage Used: <?= formatBytes($external_used) ?> / <?= formatBytes($external_total) ?></h5>
-    <div class="progress" style="height: 15px;">
-      <div class="progress-bar <?= $external_percent > 90 ? 'bg-danger' : ($external_percent > 70 ? 'bg-warning' : 'bg-info') ?>"
-           role="progressbar"
-           style="width: <?= min($external_percent, 100) ?>%">
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h5>External Storage: <?= formatBytes($external_used) ?> / <?= formatBytes($external_total) ?></h5>
+      <div class="progress" style="height: 15px;">
+        <div class="progress-bar <?= $external_percent > 90 ? 'bg-danger' : ($external_percent > 70 ? 'bg-warning' : 'bg-info') ?>"
+             role="progressbar"
+             style="width: <?= min($external_percent, 100) ?>%">
+        </div>
       </div>
+      <small><?= round($external_percent_available, 2) ?>% available</small>
     </div>
-    <small><?= round($external_percent, 2) ?>% of total external storage</small>
   </div>
-</div>
-<?php endif; ?>
+  <?php endif; ?>
+
+  <!-- SYSTEM/USER STORAGE -->
   <div class="card mb-4 shadow-sm">
     <div class="card-body">
       <h5><?= $is_admin ? "Total Used" : "Your Usage" ?>: 
@@ -71,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_ad
         </div>
       </div>
       <small>
-        <?= round($is_admin ? $percent_total : $percent_user, 2) ?>% <?= $is_admin ? 'used system-wide' : 'of total system storage' ?>
+        <?= round($is_admin ? $percent_available : $percent_user_available, 2) ?>% available
       </small>
     </div>
   </div>
@@ -109,9 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_ad
         ")->fetchAll(PDO::FETCH_ASSOC);
     }
   ?>
-
-  <!-- TOP USERS -->
-<!-- TOP USERS -->
 <!-- TOP USERS -->
 <div class="card shadow-sm mb-4">
   <div class="card-body">
