@@ -13,7 +13,6 @@ require_once '../vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-// PDF support (TCPDF)
 require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
 
 $recent_logs = [];
@@ -21,24 +20,20 @@ $userFilter = $_GET['user'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
 $exportType = $_GET['export'] ?? null;
 
-$sql = "SELECT a.id, u.username, a.action AS message, a.created_at AS timestamp 
+$sql = "SELECT a.id, u.username, a.action AS message, a.created_at AS timestamp
         FROM activity_logs a 
         LEFT JOIN users u ON a.user_id = u.id";
 
 $conditions = [];
-$params = [];
-$types = '';
 
 if (!empty($userFilter)) {
-    $conditions[] = "u.username LIKE ?";
-    $params[] = '%' . $userFilter . '%';
-    $types .= 's';
+    $userFilterEscaped = $db->real_escape_string($userFilter);
+    $conditions[] = "u.username LIKE '%$userFilterEscaped%'";
 }
 
 if (!empty($dateFilter)) {
-    $conditions[] = "DATE(a.timestamp) = ?";
-    $params[] = $dateFilter;
-    $types .= 's';
+    $dateFilterEscaped = $db->real_escape_string($dateFilter);
+    $conditions[] = "DATE(a.timestamp) = '$dateFilterEscaped'";
 }
 
 if ($conditions) {
@@ -46,6 +41,9 @@ if ($conditions) {
 }
 
 $sql .= " ORDER BY a.timestamp DESC";
+
+$result = $db->query($sql);
+$recent_logs = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 /* ========= EXPORT TO EXCEL ========= */
 if ($exportType === 'excel' && count($recent_logs) > 0) {
