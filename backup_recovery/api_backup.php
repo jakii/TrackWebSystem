@@ -42,29 +42,31 @@ function handleCreateBackup($db) {
     $backup_type = $_POST['backup_type'] ?? 'both';
     $include_files = isset($_POST['include_files']);
 
-    $baseDir = realpath(__DIR__ . '/../backups/uploads');
-    if (!$baseDir) {
-        $baseDir = __DIR__ . '/../backups/uploads';
-        if (!is_dir($baseDir)) {
-            if (!mkdir($baseDir, 0755, true)) {
-                throw new Exception("Failed to create base backups/uploads directory: " . htmlspecialchars($baseDir));
-            }
+    $projectRoot = realpath(__DIR__ . '/..');
+    if (!$projectRoot) {
+        throw new Exception("Cannot resolve project root path.");
+    }
+
+    $backupsBase = $projectRoot . '/backups/uploads';
+    if (!is_dir($backupsBase)) {
+        if (!mkdir($backupsBase, 0755, true)) {
+            throw new Exception("Failed to create directory: {$backupsBase}");
         }
     }
 
-    if (!is_writable($baseDir)) {
-        chmod($baseDir, 0755);
+    if (!is_writable($backupsBase)) {
+        chmod($backupsBase, 0775);
     }
 
     $timestamp = date('Y-m-d_H-i-s');
-    $backup_dir = rtrim($baseDir, '/') . "/backup_{$timestamp}/";
+    $backup_dir = rtrim($backupsBase, '/') . "/backup_{$timestamp}/";
 
     if (!mkdir($backup_dir, 0755, true)) {
-        throw new Exception("Failed to create backup directory: " . htmlspecialchars($backup_dir));
+        throw new Exception("Failed to create backup directory: {$backup_dir}");
     }
 
     if (!is_writable($backup_dir)) {
-        chmod($backup_dir, 0755);
+        chmod($backup_dir, 0775);
     }
 
     if ($backup_type === 'database' || $backup_type === 'both') {
@@ -77,7 +79,6 @@ function handleCreateBackup($db) {
 
     createBackupInfo($backup_dir, $backup_type, $include_files, $_SESSION['user_id']);
     zipBackup($backup_dir);
-
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");
     echo json_encode(['success' => true, 'message' => "Backup created successfully."]);
 }
