@@ -36,10 +36,12 @@ if (!empty($userFilter)) {
 }
 
 if (!empty($dateFilter)) {
-    $conditions[] = "DATE(a.timestamp) = ?";
+    $conditions[] = "DATE(a.created_at) = ?";
     $params[] = $dateFilter;
     $types .= 's';
 }
+
+$sql .= " ORDER BY a.created_at DESC";
 
 if ($conditions) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
