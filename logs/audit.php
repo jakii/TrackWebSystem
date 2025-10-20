@@ -43,7 +43,6 @@ if ($conditions) {
 $sql .= " ORDER BY a.created_at DESC";
 
 $result = $db->query($sql);
-$recent_logs = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 /* ========= EXPORT TO EXCEL ========= */
 if ($exportType === 'excel' && count($recent_logs) > 0) {
