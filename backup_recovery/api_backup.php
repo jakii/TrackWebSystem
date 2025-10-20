@@ -5,7 +5,6 @@ require_once '../includes/activity_logger.php';
 require_once 'backup_functions.php';
 
 requireAdmin();
-
 header('Content-Type: application/json');
 
 try {
@@ -39,11 +38,9 @@ try {
     echo json_encode(['error' => $e->getMessage()]);
 }
 
-//--- Helper handlers ---
 function handleCreateBackup($db) {
     $backup_type = $_POST['backup_type'] ?? 'both';
     $include_files = isset($_POST['include_files']);
-
     $timestamp = date('Y-m-d_H-i-s');
     $backup_dir = "../backups/uploads/backup_{$timestamp}/";
 
@@ -51,7 +48,6 @@ function handleCreateBackup($db) {
         mkdir($backup_dir, 0755, true);
     }
 
-    // Perform backup
     if ($backup_type === 'database' || $backup_type === 'both') {
         backupDatabase($db, $backup_dir);
     }
@@ -61,9 +57,7 @@ function handleCreateBackup($db) {
     }
 
     createBackupInfo($backup_dir, $backup_type, $include_files, $_SESSION['user_id']);
-
     zipBackup($backup_dir);
-
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");
     echo json_encode(['success' => true, 'message' => "Backup created and zipped successfully"]);
 }
@@ -76,7 +70,6 @@ function handleRestoreBackup($db) {
 
     restoreBackup($db, $backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup restored: {$backup_folder}");
-
     echo json_encode(['success' => true, 'message' => "Backup restored successfully"]);
 }
 
@@ -88,7 +81,6 @@ function handleDeleteBackup($db) {
 
     deleteBackup($backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup deleted: {$backup_folder}");
-
     echo json_encode(['success' => true, 'message' => "Backup deleted successfully"]);
 }
 ?>
