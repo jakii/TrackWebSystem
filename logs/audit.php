@@ -40,7 +40,7 @@ if ($conditions) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$sql .= " ORDER BY a.timestamp DESC";
+$sql .= " ORDER BY a.created_at DESC";
 
 $result = $db->query($sql);
 $recent_logs = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
