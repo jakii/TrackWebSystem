@@ -3,6 +3,10 @@ require_once '../includes/auth_check.php';
 require_once '../config/database.php';
 require_once '../includes/activity_logger.php';
 
+
+
+
+
 requireAuth();
 
 $current_folder_id = isset($_GET['folder']) ? (int)$_GET['folder'] : null;
@@ -38,8 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
             if (move_uploaded_file($tmp, $dest)) {
                 // Create backup with original filename
-                
-                
+                $backup = UPLOAD_DIR . "backup/" . $name;
+                copy($dest, $backup);
+
                 $title = pathinfo($name, PATHINFO_FILENAME);
                 $folder_id   = !empty($_POST['folder_id']) ? (int)$_POST['folder_id'] : null;
                 $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;

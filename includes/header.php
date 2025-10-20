@@ -115,7 +115,7 @@ $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest
   </button>
 
   <div class="d-flex align-items-center flex-shrink-0">
-    <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="TrackWeb Logo" class="img-fluid me-2" style="max-height: 40px;">
+    <img src="<?php echo BASE_URL; ?>assets/images/LOGO.png" alt="TrackWeb Logo" class="img-fluid me-2" style="max-height: 40px;">
   </div>
 
   <form class="d-flex align-items-center me-4 flex-grow-1 search-form"

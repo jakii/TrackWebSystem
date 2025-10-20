@@ -29,7 +29,7 @@ if (isLoggedIn()) {
 
   <!-- Preloader -->
   <div id="preloader">
-    <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Logo" class="preloader-logo" style="height: 100px; width: 100px;">
+    <img src="<?php echo BASE_URL; ?>assets/images/LOGO.png" alt="Logo" class="preloader-logo" style="height: 100px; width: 100px;">
     <div class="progress-bar-container">
       <div class="progress-bar" id="progress-bar"></div>
     </div>
@@ -42,7 +42,7 @@ if (isLoggedIn()) {
     <nav class="navbar navbar-expand-lg fixed-top fade-in delay-1">
       <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="#">
-          <img src="assets/images/logo.png" alt="Logo" style="height: 45px; width: 45px;" class="me-2">
+          <img src="assets/images/LOGO.png" alt="Logo" style="height: 45px; width: 45px;" class="me-2">
           <span>TRACK</span>
         </a>
         <a href="auth/login.php">

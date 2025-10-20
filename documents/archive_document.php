@@ -139,7 +139,7 @@ requireAuth();
       title: "Unarchive selected documents?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, unarchive them!",
+      confirmButtonText: "Yes, unarchive!",
       cancelButtonText: "Cancel"
     }).then(result => {
       if (result.isConfirmed) {

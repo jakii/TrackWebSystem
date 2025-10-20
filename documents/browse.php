@@ -348,7 +348,7 @@ $view = $_GET['view'] ?? 'list';
                         <?php foreach ($subfolders as $folder): ?>
                             <tr ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'" style="cursor:pointer;">
                                 <td><i class="fas fa-folder me-2" style="color:<?= $folder['color'] ?>"></i><?= htmlspecialchars($folder['name']) ?></td>
-                                <td><small class="text-muted"><?= ($folder['document_count'] ?? 0) ?> docs</small></td>
+                                <td></td>
                                 <td><?= htmlspecialchars($folder['owner'] ?? '—') ?></td>
                                 <td><?= date('M j, Y', strtotime($folder['created_at'])) ?></td>
                                 <td class="text-center">
@@ -407,8 +407,8 @@ $view = $_GET['view'] ?? 'list';
                                                         <i class='fas fa-arrows-alt me-2'></i>Move
                                                     </a>
                                                 </li>
-                                                <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                                <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                                <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                             <?php endif; ?>
                                         </ul>
                                     </div>
@@ -465,7 +465,7 @@ $view = $_GET['view'] ?? 'list';
                             </div>
                         <div class="mt-3">
                             <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($folder['name']) ?></h6>
-                            <small class="text-muted"><?= ($folder['document_count'] ?? 0) ?> docs</small>
+                            <small></small>
                         </div>
                     </div>
                 </div>

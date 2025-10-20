@@ -145,7 +145,7 @@ requireAuth();
     }
 
     let action = e.submitter.name === "bulk_restore" ? "restore" : "delete";
-    let confirmText = action === "restore" ? "Yes, restore them!" : "Yes, delete them!";
+    let confirmText = action === "restore" ? "Yes, restore!" : "Yes, delete!";
     let titleText = action === "restore" ? "Restore selected documents?" : "Delete selected documents permanently?";
 
     Swal.fire({

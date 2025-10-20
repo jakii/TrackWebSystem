@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $folder_fetch->execute([$current_folder_id]);
         $current_folder = $folder_fetch->fetch();
         if (!$current_folder) {
-            $current_folder_id = null; // invalid parent folder
+            $current_folder_id = null;
         }
     }
 
@@ -68,7 +68,6 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
 
-    // ✅ Check if folder exists
     if ($current_folder_id) {
         $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
         $folder_check->execute([$current_folder_id]);
@@ -77,15 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         }
     }
 
-    // ✅ Shared storage check (GLOBAL STORAGE LIMIT)
     $total_used = getTotalStorageUsed($db);
     $limit = getStorageLimit($db);
 
-    // Compute total upload size for this batch
     $batch_total = array_sum($_FILES['documents']['size']);
 
     if (($total_used + $batch_total) > $limit) {
-        echo "<script>alert('❌ Upload failed: Storage limit reached. Please delete old files or contact admin.'); window.history.back();</script>";
+        echo "<script>alert('Upload failed: Storage limit reached. Please delete old files or contact admin.'); window.history.back();</script>";
         exit();
     }
 
@@ -103,12 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
-            echo "<script>alert('❌ Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
+            echo "<script>alert('Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
             exit();
         }
 
         $unique_filename = uniqid() . "_" . time() . "." . $ext;
-        $destination    = UPLOAD_DIR . $unique_filename;
+        $destination = UPLOAD_DIR . $unique_filename;
         
         if (move_uploaded_file($tmp_file, $destination)) {
             $title       = pathinfo($name, PATHINFO_FILENAME);
@@ -147,13 +144,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $_SESSION['user_id'],
                 $destination
             ]);
+            
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         }
     }
 
-    $redirect = $current_folder_id ? "../documents/browse.php?folder=$current_folder_id" : "../documents/browse.php";
-    echo "<script>window.location.href='$redirect&success=uploaded';</script>";
+    $redirect = $current_folder_id 
+        ? "../documents/browse.php?folder=$current_folder_id&success=uploaded" 
+        : "../documents/browse.php?success=uploaded";
+    
+    echo "<script>window.location.href='$redirect';</script>";
+
     exit();
 }
 
