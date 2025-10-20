@@ -9,10 +9,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once '../vendor/autoload.php';
-
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
 require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
 
 $recent_logs = [];
@@ -20,20 +18,21 @@ $userFilter = $_GET['user'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
 $exportType = $_GET['export'] ?? null;
 
+// Base SQL
 $sql = "SELECT a.id, u.username, a.action AS message, a.created_at AS timestamp
-        FROM activity_logs a 
+        FROM activity_logs a
         LEFT JOIN users u ON a.user_id = u.id";
 
 $conditions = [];
 
 if (!empty($userFilter)) {
-    $userFilterEscaped = $db->real_escape_string($userFilter);
+    $userFilterEscaped = addslashes($userFilter);
     $conditions[] = "u.username LIKE '%$userFilterEscaped%'";
 }
 
 if (!empty($dateFilter)) {
-    $dateFilterEscaped = $db->real_escape_string($dateFilter);
-    $conditions[] = "DATE(a.timestamp) = '$dateFilterEscaped'";
+    $dateFilterEscaped = addslashes($dateFilter);
+    $conditions[] = "DATE(a.created_at) = '$dateFilterEscaped'";
 }
 
 if ($conditions) {
@@ -42,7 +41,13 @@ if ($conditions) {
 
 $sql .= " ORDER BY a.created_at DESC";
 
+// Execute query
 $result = $db->query($sql);
+if ($result) {
+    $recent_logs = $result->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    die("Query failed: " . $db->errorInfo()[2]);
+}
 
 /* ========= EXPORT TO EXCEL ========= */
 if ($exportType === 'excel' && count($recent_logs) > 0) {
@@ -50,7 +55,6 @@ if ($exportType === 'excel' && count($recent_logs) > 0) {
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Activity Logs');
 
-    // Header Row
     $headers = ['#', 'User', 'Message', 'Timestamp'];
     $col = 'A';
     foreach ($headers as $header) {
@@ -58,7 +62,6 @@ if ($exportType === 'excel' && count($recent_logs) > 0) {
         $col++;
     }
 
-    // Data Rows
     $row = 2;
     foreach ($recent_logs as $index => $log) {
         $sheet->setCellValue('A'.$row, $index + 1);
@@ -68,12 +71,10 @@ if ($exportType === 'excel' && count($recent_logs) > 0) {
         $row++;
     }
 
-    // Auto size columns
     foreach (range('A', 'D') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
-    // Output Excel file
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="activity_logs.xlsx"');
     $writer = new Xlsx($spreadsheet);
@@ -109,11 +110,11 @@ if ($exportType === 'pdf' && count($recent_logs) > 0) {
     }
 
     $html .= '</tbody></table>';
-
     $pdf->writeHTML($html);
     $pdf->Output('activity_logs.pdf', 'D');
     exit;
 }
+
 include '../includes/header.php';
 ?>
 
