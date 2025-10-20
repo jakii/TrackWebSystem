@@ -1,13 +1,13 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'database');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'trackweb_db');
+define('DB_USER', 'rey');
+define('DB_PASS', 'Rey123**');
 
 define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
 define('BASE_URL', '/TrackWeb/');
 
-define('UPLOAD_DIR', __DIR__ . '/../documents/uploads/');
+define('UPLOAD_DIR', __DIR__ . '/var/www/TrackWeb/documents/uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', [
     'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png',
