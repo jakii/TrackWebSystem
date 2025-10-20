@@ -45,21 +45,34 @@ function handleCreateBackup($db) {
     $backup_dir = "../backups/uploads/backup_{$timestamp}/";
 
     if (!is_dir($backup_dir)) {
-        mkdir($backup_dir, 0755, true);
+        if (!mkdir($backup_dir, 0755, true)) {
+            throw new Exception("Failed to create backup directory: {$backup_dir}");
+        }
     }
+
+    $files_created = false;
 
     if ($backup_type === 'database' || $backup_type === 'both') {
         backupDatabase($db, $backup_dir);
+        $files_created = true;
     }
 
     if (($backup_type === 'files' || $backup_type === 'both') && $include_files) {
         backupFiles($backup_dir);
+        $files_created = true;
     }
 
     createBackupInfo($backup_dir, $backup_type, $include_files, $_SESSION['user_id']);
-    zipBackup($backup_dir);
+
+    if ($files_created && count(glob("{$backup_dir}*")) > 0) {
+        zipBackup($backup_dir);
+        $message = "Backup created and zipped successfully";
+    } else {
+        $message = "Backup folder was empty — zip skipped.";
+    }
+
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");
-    echo json_encode(['success' => true, 'message' => "Backup created and zipped successfully"]);
+    echo json_encode(['success' => true, 'message' => $message]);
 }
 
 function handleRestoreBackup($db) {
