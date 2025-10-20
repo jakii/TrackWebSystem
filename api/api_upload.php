@@ -3,10 +3,6 @@ require_once '../includes/auth_check.php';
 require_once '../config/database.php';
 require_once '../includes/activity_logger.php';
 
-
-
-
-
 requireAuth();
 
 $current_folder_id = isset($_GET['folder']) ? (int)$_GET['folder'] : null;
@@ -36,12 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 continue;
             }
 
-            // Generate unique filename for internal storage
             $unique = uniqid() . "_" . time() . "." . $ext;
             $dest   = UPLOAD_DIR . $unique;
 
             if (move_uploaded_file($tmp, $dest)) {
-                // Create backup with original filename
                 $backup = UPLOAD_DIR . "backup/" . $name;
                 copy($dest, $backup);
 
@@ -52,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $tags        = $_POST['tags'] ?? '';
                 $is_public   = isset($_POST['is_public']) ? 1 : 0;
 
-                // Fixed INSERT query without backup_path column
                 $stmt = $db->prepare("
                     INSERT INTO documents 
                     (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
