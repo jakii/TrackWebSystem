@@ -1,160 +1,275 @@
 <?php
-function getBackupList() {
-    $backupBase = realpath(__DIR__ . '/../backups/uploads');
-    if (!$backupBase || !is_dir($backupBase)) return [];
+require_once '../config/database.php';
 
-    $backups = [];
-    foreach (scandir($backupBase) as $folder) {
-        if ($folder === '.' || $folder === '..') continue;
+/**
+ * === DATABASE BACKUP ===
+ */
+function backupDatabase($db, $backup_dir) {
+    $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+    $sql_dump = "";
 
-        $path = $backupBase . '/' . $folder;
-        if (is_dir($path)) {
-            $zipFile = $path . '.zip';
-            $infoFile = $path . '/backup_info.json';
-            $info = file_exists($infoFile) ? json_decode(file_get_contents($infoFile), true) : [];
-
-            $backups[] = [
-                'folder' => $folder,
-                'zip' => file_exists($zipFile),
-                'created_at' => $info['created_at'] ?? date('Y-m-d H:i:s', filemtime($path)),
-                'backup_type' => $info['backup_type'] ?? 'unknown',
-                'include_files' => $info['include_files'] ?? false,
-                'user_id' => $info['user_id'] ?? null
-            ];
-        }
-    }
-
-    return array_reverse($backups);
-}
-
-function backupDatabase($db, $backupDir) {
-    $file = $backupDir . 'database_backup.sql';
-    $tables = [];
-    $result = $db->query('SHOW TABLES');
-    while ($row = $result->fetch(PDO::FETCH_NUM)) {
-        $tables[] = $row[0];
-    }
-
-    $sqlScript = '';
     foreach ($tables as $table) {
-        $result = $db->query("SHOW CREATE TABLE `$table`");
-        $row = $result->fetch(PDO::FETCH_NUM);
-        $sqlScript .= "\n\n" . $row[1] . ";\n\n";
+        $sql_dump .= "DROP TABLE IF EXISTS `{$table}`;\n";
+        $create_table = $db->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_ASSOC);
+        $sql_dump .= $create_table['Create Table'] . ";\n\n";
 
-        $result = $db->query("SELECT * FROM `$table`");
-        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-            $columns = array_map(fn($v) => $v === null ? 'NULL' : $db->quote($v), array_values($row));
-            $sqlScript .= "INSERT INTO `$table` VALUES (" . implode(',', $columns) . ");\n";
+        $rows = $db->query("SELECT * FROM `{$table}`")->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($rows) > 0) {
+            $sql_dump .= "INSERT INTO `{$table}` VALUES ";
+            $insert_values = [];
+
+            foreach ($rows as $row) {
+                $values = array_map(function($value) use ($db) {
+                    if ($value === null) return 'NULL';
+                    return $db->quote($value);
+                }, $row);
+                $insert_values[] = "(" . implode(", ", $values) . ")";
+            }
+
+            $sql_dump .= implode(",\n", $insert_values) . ";\n\n";
         }
     }
 
-    file_put_contents($file, $sqlScript);
+    file_put_contents($backup_dir . 'database_backup.sql', $sql_dump);
 }
 
-function backupFiles($backupDir) {
-    $sourceDir = realpath(__DIR__ . '/../documents/uploads');
-    $targetDir = $backupDir . 'files/';
+/**
+ * === FILE BACKUP ===
+ */
+function backupFiles($backup_dir) {
+    $uploads_dir = "/var/www/TrackWeb/documents/uploads/";
+    $backup_files_dir = $backup_dir . "uploads/";
 
-    if (!is_dir($sourceDir)) return;
-    if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
-
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($sourceDir, FilesystemIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::SELF_FIRST
-    );
-
-    foreach ($iterator as $item) {
-        $targetPath = $targetDir . str_replace($sourceDir . '/', '', $item->getPathname());
-        if ($item->isDir()) {
-            if (!is_dir($targetPath)) mkdir($targetPath, 0755, true);
-        } else {
-            copy($item->getPathname(), $targetPath);
-        }
-    }
-}
-
-function createBackupInfo($backupDir, $type, $includeFiles, $userId) {
-    $info = [
-        'created_at' => date('Y-m-d H:i:s'),
-        'backup_type' => $type,
-        'include_files' => $includeFiles,
-        'user_id' => $userId
-    ];
-    file_put_contents($backupDir . '/backup_info.json', json_encode($info, JSON_PRETTY_PRINT));
-}
-
-function zipBackup($backupDir) {
-    $zipPath = rtrim($backupDir, '/') . '.zip';
-    if (!is_dir($backupDir) || count(glob($backupDir . '*')) === 0) {
-        return false;
-    }
-
-    $zip = new ZipArchive();
-    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-        throw new Exception("Failed to create ZIP file at $zipPath");
+    if (!is_dir($backup_files_dir)) {
+        mkdir($backup_files_dir, 0755, true);
     }
 
     $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($backupDir, FilesystemIterator::SKIP_DOTS)
+        new RecursiveDirectoryIterator($uploads_dir, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
     );
 
     foreach ($files as $file) {
-        $filePath = $file->getRealPath();
-        $relativePath = substr($filePath, strlen($backupDir) + 1);
-        $zip->addFile($filePath, $relativePath);
-    }
+        if ($file->isFile()) {
+            $relative_path = substr($file->getPathname(), strlen($uploads_dir));
+            $dest_path = $backup_files_dir . $relative_path;
 
-    $zip->close();
-    return true;
+            $dest_dir = dirname($dest_path);
+            if (!is_dir($dest_dir)) mkdir($dest_dir, 0755, true);
+
+            copy($file->getPathname(), $dest_path);
+        }
+    }
 }
 
-function restoreBackup($db, $backupFolder) {
-    $backupPath = realpath(__DIR__ . '/../backups/uploads/' . $backupFolder);
-    if (!$backupPath || !is_dir($backupPath)) {
-        throw new Exception("Backup folder not found: {$backupFolder}");
+/**
+ * === BACKUP INFO ===
+ */
+function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $schedule_type = null) {
+    $info = [
+        'created_at' => date('Y-m-d H:i:s'),
+        'backup_type' => $backup_type,
+        'include_files' => $include_files,
+        'created_by' => $user_id,
+        'schedule_type' => $schedule_type,
+        'app_version' => '1.0',
+        'database' => DB_NAME
+    ];
+    file_put_contents($backup_dir . 'backup_info.json', json_encode($info, JSON_PRETTY_PRINT));
+}
+
+/**
+ * === RESTORE ===
+ */
+function restoreBackup($db, $backup_folder) {
+    $backup_path = __DIR__ . "/../backups/uploads/{$backup_folder}/";
+
+    if (!is_dir($backup_path)) {
+        throw new Exception("Backup directory not found: " . $backup_path);
     }
 
-    $sqlFile = $backupPath . '/database_backup.sql';
-    if (file_exists($sqlFile)) {
-        $sql = file_get_contents($sqlFile);
-        $db->exec($sql);
+    if (!file_exists($backup_path . 'backup_info.json')) {
+        throw new Exception("Invalid backup format (missing backup_info.json)");
     }
 
-    $filesDir = $backupPath . '/files';
-    $targetDir = realpath(__DIR__ . '/../documents/uploads');
+    $backup_info = json_decode(file_get_contents($backup_path . 'backup_info.json'), true);
 
-    if (is_dir($filesDir) && $targetDir) {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($filesDir, FilesystemIterator::SKIP_DOTS),
+    // === Restore Database ===
+    $db_backup_file = $backup_path . 'database_backup.sql';
+    if (file_exists($db_backup_file)) {
+        $sql = file_get_contents($db_backup_file);
+        $statements = array_filter(array_map('trim', explode(';', $sql)));
+
+        $db->exec("SET FOREIGN_KEY_CHECKS=0;");
+
+        foreach ($statements as $statement) {
+            if (!empty($statement)) {
+                try {
+                    $db->exec($statement);
+                } catch (PDOException $e) {
+                    error_log("SQL Error: " . $e->getMessage());
+                    error_log("Failed Statement: " . $statement);
+                }
+            }
+        }
+
+        $db->exec("SET FOREIGN_KEY_CHECKS=1;");
+    }
+
+    // === Restore Files ===
+    $backup_files_dir = $backup_path . "uploads/";
+    $uploads_dir = __DIR__ . "/../uploads/";
+
+    if (is_dir($backup_files_dir)) {
+        if (!is_dir($uploads_dir)) {
+            mkdir($uploads_dir, 0755, true);
+        }
+
+        // --- Clear old uploads ---
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($uploads_dir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getPathname());
+            } else {
+                unlink($file->getPathname());
+            }
+        }
+        
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($backup_files_dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST
         );
 
-        foreach ($iterator as $item) {
-            $targetPath = $targetDir . '/' . str_replace($filesDir . '/', '', $item->getPathname());
-            if ($item->isDir()) {
-                if (!is_dir($targetPath)) mkdir($targetPath, 0755, true);
-            } else {
-                copy($item->getPathname(), $targetPath);
+        foreach ($files as $file) {
+            if ($file->isFile()) {
+                $relative_path = substr($file->getPathname(), strlen($backup_files_dir));
+                $dest_path = $uploads_dir . $relative_path;
+                $dest_dir = dirname($dest_path);
+
+                if (!is_dir($dest_dir)) {
+                    mkdir($dest_dir, 0755, true);
+                }
+
+                copy($file->getPathname(), $dest_path);
             }
         }
     }
 }
 
-function deleteBackup($backupFolder) {
-    $backupPath = realpath(__DIR__ . '/../backups/uploads/' . $backupFolder);
-    $zipFile = $backupPath . '.zip';
 
-    if ($backupPath && is_dir($backupPath)) {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($backupPath, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
-        );
-        foreach ($iterator as $file) {
-            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+/**
+ * === BACKUP LIST ===
+ */
+function getBackupList() {
+    $backups = [];
+    $backups_dir = "../backups/uploads/";
+
+    if (!is_dir($backups_dir)) mkdir($backups_dir, 0755, true);
+
+    $folders = glob($backups_dir . "*", GLOB_ONLYDIR);
+
+    foreach ($folders as $folder) {
+        $folder_name = basename($folder);
+        $info_file = $folder . '/backup_info.json';
+        $zip_file = $backups_dir . $folder_name . '.zip';
+
+        if (file_exists($info_file)) {
+            $info = json_decode(file_get_contents($info_file), true);
+            $backups[] = [
+                'folder' => $folder_name,
+                'created_at' => $info['created_at'] ?? '',
+                'type' => $info['backup_type'] ?? '',
+                'include_files' => $info['include_files'] ?? false,
+                'created_by' => $info['created_by'] ?? 'system',
+                'schedule_type' => $info['schedule_type'] ?? 'manual',
+                'size' => formatFolderSize($folder),
+                'zip_exists' => file_exists($zip_file),
+                'zip_file' => basename($zip_file)
+            ];
         }
-        rmdir($backupPath);
     }
 
-    if (file_exists($zipFile)) unlink($zipFile);
+    usort($backups, fn($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
+    return $backups;
+}
+
+function formatFolderSize($dir) {
+    $size = 0;
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)) as $file) {
+        $size += $file->getSize();
+    }
+    return formatSizeUnits($size);
+}
+
+function formatSizeUnits($bytes) {
+    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
+    elseif ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
+    elseif ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
+    elseif ($bytes > 1) return $bytes . ' bytes';
+    elseif ($bytes == 1) return '1 byte';
+    return '0 bytes';
+}
+
+/**
+ * Create a ZIP of the backup folder
+ */
+function zipBackup($backup_dir) {
+    $zip_path = rtrim($backup_dir, '/') . '.zip';
+    $zip = new ZipArchive();
+    
+    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($backup_dir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $file) {
+            $filePath = $file->getRealPath();
+            $relativePath = substr($filePath, strlen($backup_dir) + 1);
+            $zip->addFile($filePath, $relativePath);
+        }
+
+        $zip->close();
+        return $zip_path;
+    }
+
+    throw new Exception("Failed to create ZIP file for backup.");
+}
+
+/**
+ * Delete backup folder and its ZIP file
+ */
+function deleteBackup($backup_folder) {
+    $backup_dir = "../backups/uploads/" . basename($backup_folder);
+    $zip_path = $backup_dir . ".zip";
+
+    if (!is_dir($backup_dir)) {
+        throw new Exception("Backup folder not found: " . htmlspecialchars($backup_folder));
+    }
+
+    // Delete all files/subfolders
+    $it = new RecursiveDirectoryIterator($backup_dir, RecursiveDirectoryIterator::SKIP_DOTS);
+    $files = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
+
+    foreach ($files as $file) {
+        if ($file->isDir()) {
+            rmdir($file->getRealPath());
+        } else {
+            unlink($file->getRealPath());
+        }
+    }
+
+    // Remove folder and zip file
+    rmdir($backup_dir);
+    if (file_exists($zip_path)) {
+        unlink($zip_path);
+    }
+
+    return true;
 }
 ?>

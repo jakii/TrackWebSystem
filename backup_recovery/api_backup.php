@@ -5,6 +5,7 @@ require_once '../includes/activity_logger.php';
 require_once 'backup_functions.php';
 
 requireAdmin();
+
 header('Content-Type: application/json');
 
 try {
@@ -38,43 +39,19 @@ try {
     echo json_encode(['error' => $e->getMessage()]);
 }
 
+//--- Helper handlers ---
 function handleCreateBackup($db) {
     $backup_type = $_POST['backup_type'] ?? 'both';
     $include_files = isset($_POST['include_files']);
 
-    $projectRoot = realpath(str_replace('TrackWeb', 'Trackweb', __DIR__ . '/..'));
-    if (!$projectRoot) {
-        $projectRoot = realpath(__DIR__ . '/..');
-    }
-
-    $backupsBase = $projectRoot . '/backups/uploads';
-    if (!is_dir($backupsBase)) {
-        if (!mkdir($backupsBase, 0755, true)) {
-            $altBase = $_SERVER['DOCUMENT_ROOT'] . '/backups/uploads';
-            if (!is_dir($altBase)) {
-                if (!mkdir($altBase, 0755, true)) {
-                    throw new Exception("Failed to create backup base directory in both {$backupsBase} and {$altBase}");
-                }
-            }
-            $backupsBase = $altBase;
-        }
-    }
-
-    if (!is_writable($backupsBase)) {
-        chmod($backupsBase, 0775);
-    }
-
     $timestamp = date('Y-m-d_H-i-s');
-    $backup_dir = rtrim($backupsBase, '/') . "/backup_{$timestamp}/";
+    $backup_dir = "/var/www/TrackWeb/backups/uploads/backup_{$timestamp}/";
 
-    if (!mkdir($backup_dir, 0755, true)) {
-        throw new Exception("Failed to create backup directory: {$backup_dir}");
+    if (!is_dir($backup_dir)) {
+        mkdir($backup_dir, 0755, true);
     }
 
-    if (!is_writable($backup_dir)) {
-        chmod($backup_dir, 0775);
-    }
-
+    // Perform backup
     if ($backup_type === 'database' || $backup_type === 'both') {
         backupDatabase($db, $backup_dir);
     }
@@ -84,9 +61,11 @@ function handleCreateBackup($db) {
     }
 
     createBackupInfo($backup_dir, $backup_type, $include_files, $_SESSION['user_id']);
+
     zipBackup($backup_dir);
+
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");
-    echo json_encode(['success' => true, 'message' => "Backup created successfully."]);
+    echo json_encode(['success' => true, 'message' => "Backup created and zipped successfully"]);
 }
 
 function handleRestoreBackup($db) {
@@ -97,6 +76,7 @@ function handleRestoreBackup($db) {
 
     restoreBackup($db, $backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup restored: {$backup_folder}");
+
     echo json_encode(['success' => true, 'message' => "Backup restored successfully"]);
 }
 
@@ -108,6 +88,7 @@ function handleDeleteBackup($db) {
 
     deleteBackup($backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup deleted: {$backup_folder}");
+
     echo json_encode(['success' => true, 'message' => "Backup deleted successfully"]);
 }
 ?>
