@@ -42,9 +42,9 @@ function handleCreateBackup($db) {
     $backup_type = $_POST['backup_type'] ?? 'both';
     $include_files = isset($_POST['include_files']);
 
-    $projectRoot = realpath(__DIR__ . '/..');
+    $projectRoot = realpath(str_replace('TrackWeb', 'Trackweb', __DIR__ . '/..'));
     if (!$projectRoot) {
-        throw new Exception("Cannot resolve project root path.");
+        $projectRoot = realpath(__DIR__ . '/..');
     }
 
     $backupsBase = $projectRoot . '/backups/uploads';
