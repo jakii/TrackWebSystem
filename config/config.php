@@ -1,13 +1,26 @@
 <?php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'trackweb_db');
-define('DB_USER', 'rey');
-define('DB_PASS', 'Rey123**');
+$isLocalhost = in_array($_SERVER['SERVER_NAME'], ['localhost', '127.0.0.1']);
+
+if ($isLocalhost) {
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'database');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+} else {
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'trackweb_db');
+    define('DB_USER', 'rey');
+    define('DB_PASS', 'Rey123**');
+}
 
 define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
-define('BASE_URL', '/TrackWeb/');
 
-define('UPLOAD_DIR', __DIR__ . '/var/www/TrackWeb/documents/uploads/');
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$folder = $isLocalhost ? '/TrackWeb/' : '/';
+define('BASE_URL', $protocol . $host . $folder);
+
+define('UPLOAD_DIR', __DIR__ . '/../documents/uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', [
     'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png',
@@ -16,7 +29,6 @@ define('ALLOWED_EXTENSIONS', [
 
 define('SESSION_TIMEOUT', 3600);
 define('CSRF_TOKEN_NAME', 'csrf_token');
-
 define('ITEMS_PER_PAGE', 10);
 
 date_default_timezone_set('Asia/Manila');
@@ -81,7 +93,6 @@ function getFileIcon($extension) {
         'ppt' => 'fas fa-file-powerpoint text-danger',
         'pptx' => 'fas fa-file-powerpoint text-danger'
     ];
-    
     return $icons[strtolower($extension)] ?? 'fas fa-file text-primary';
 }
 ?>
