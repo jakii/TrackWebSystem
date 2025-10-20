@@ -1,6 +1,7 @@
 <?php
 require_once '../config/config.php';
 require_once '../includes/auth_check.php';
+require_once '../config/database.php';
 requireAuth();
 
 ini_set('display_errors', 1);
