@@ -50,7 +50,13 @@ function handleCreateBackup($db) {
     $backupsBase = $projectRoot . '/backups/uploads';
     if (!is_dir($backupsBase)) {
         if (!mkdir($backupsBase, 0755, true)) {
-            throw new Exception("Failed to create directory: {$backupsBase}");
+            $altBase = $_SERVER['DOCUMENT_ROOT'] . '/backups/uploads';
+            if (!is_dir($altBase)) {
+                if (!mkdir($altBase, 0755, true)) {
+                    throw new Exception("Failed to create backup base directory in both {$backupsBase} and {$altBase}");
+                }
+            }
+            $backupsBase = $altBase;
         }
     }
 
