@@ -15,11 +15,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 // PDF support (TCPDF)
 require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
 
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
 $recent_logs = [];
 $userFilter = $_GET['user'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
@@ -50,15 +45,6 @@ if ($conditions) {
 }
 
 $sql .= " ORDER BY a.timestamp DESC";
-
-$stmt = $conn->prepare($sql);
-if ($params) {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$result = $stmt->get_result();
-$recent_logs = $result->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
 
 /* ========= EXPORT TO EXCEL ========= */
 if ($exportType === 'excel' && count($recent_logs) > 0) {
