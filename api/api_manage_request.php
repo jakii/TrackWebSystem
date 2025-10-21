@@ -22,7 +22,8 @@ if (!$user_id) {
     exit;
 }
 
-if (!$request_id || !in_array($action, ['approve', 'deny'])) {
+$valid_actions = ['approve', 'deny'];
+if (!$request_id || !in_array($action, $valid_actions)) {
     header('Location: ../documents/shared.php?status=invalid');
     exit;
 }
@@ -36,8 +37,27 @@ if (!$request_exists) {
     exit;
 }
 
-$update_stmt = $db->prepare("UPDATE file_requests SET status = ? WHERE id = ?");
-$update_stmt->execute([$action === 'approve' ? 'approved' : 'denied', $request_id]);
+if ($action === 'delete') {
+    header('Location: ../documents/shared.php?status=nodelete');
+    exit;
+}
 
-header('Location: ../documents/shared.php?status=success');
-exit;
+if ($action === 'approve') {
+    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'approved', updated_at = NOW() WHERE id = ?");
+    $update_stmt->execute([$request_id]);
+    header('Location: ../documents/shared.php?status=approved');
+    exit;
+}
+
+if ($action === 'deny') {
+    $deny_reason = trim($_POST['deny_reason'] ?? '');
+    if (empty($deny_reason)) {
+        header('Location: ../documents/shared.php?status=missing_reason');
+        exit;
+    }
+    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'denied', deny_reason = ?, updated_at = NOW() WHERE id = ?");
+    $update_stmt->execute([$deny_reason, $request_id]);
+    header('Location: ../documents/shared.php?status=denied');
+    exit;
+}
+?>

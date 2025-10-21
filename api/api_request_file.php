@@ -10,6 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
+if ($_POST['recipient_id'] == $_SESSION['user_id']) {
+    echo json_encode(['status' => 'error', 'message' => 'You cannot request a file from yourself.']);
+    exit;
+}
+
 $sender_id = $_SESSION['user_id'];
 $recipient_identifier = trim($_POST['recipient_identifier'] ?? '');
 $description = trim($_POST['description'] ?? '');

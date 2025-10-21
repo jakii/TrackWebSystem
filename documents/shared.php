@@ -193,6 +193,7 @@ $mark_read->execute([$_SESSION['user_id']]);
             <th>To</th>
             <th>Description</th>
             <th>Reason</th>
+            <th>Denied Reason</th>
             <th>Status</th>
             <th>Date</th>
             <th class="text-center">Actions</th>
@@ -205,6 +206,7 @@ $mark_read->execute([$_SESSION['user_id']]);
               <td><?= htmlspecialchars($req['recipient_name']); ?></td>
               <td><?= htmlspecialchars($req['description']); ?></td>
               <td><?= htmlspecialchars($req['reason']); ?></td>
+              <td><?= htmlspecialchars($req['deny_reason'] ?? ''); ?></td>
               <td>
                 <span class="badge rounded-pill bg-<?= $req['status'] === 'approved' ? 'success' : ($req['status'] === 'denied' ? 'danger' : 'warning'); ?>">
                   <?= ucfirst($req['status']); ?>
@@ -215,14 +217,39 @@ $mark_read->execute([$_SESSION['user_id']]);
                 <?php if ($req['recipient_id'] == $user_id && $req['status'] === 'pending'): ?>
                   <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
                     <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                    <button name="action" value="approve" class="btn btn-sm btn-success me-1" title="Approve">
+                    <input type="hidden" name="action" value="approve">
+                    <button class="btn btn-sm btn-success me-1" title="Approve">
                       <i class="fas fa-check"></i>
                     </button>
-                    <button name="action" value="deny" class="btn btn-sm btn-danger" title="Deny">
-                      <i class="fas fa-times"></i>
-                    </button>
                   </form>
-                  <small class="text-muted">No actions</small>
+                
+                  <!-- Button that opens modal -->
+                  <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#denyReasonModal<?= $req['id']; ?>">
+                    <i class="fas fa-times"></i>
+                  </button>
+                
+                  <!-- Deny Reason Modal -->
+                  <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 rounded-3">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Reason for Denying</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                          <div class="modal-body">
+                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                            <input type="hidden" name="action" value="deny">
+                            <textarea name="deny_reason" class="form-control" rows="3" placeholder="Enter your reason..." required></textarea>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Submit</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
                 <?php endif; ?>
               </td>
             </tr>
@@ -252,8 +279,20 @@ $mark_read->execute([$_SESSION['user_id']]);
               Recipient (Email or Username) 
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
-            <input type="text" id="recipient_identifier" name="recipient_identifier" class="form-control" placeholder="Enter email or username" required>
-            <small class="text-muted">We'll find the user automatically.</small>
+              <?php
+              $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
+              $stmt->execute([$_SESSION['user_id']]);
+              $users = $stmt->fetchAll();
+              ?>
+              <select name="recipient_id" id="recipient_id" class="form-select" required>
+                <option value="">-- Select User --</option>
+                <?php foreach ($users as $u): ?>
+                  <option value="<?= $u['id']; ?>">
+                    <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <small class="text-muted">Select a user to request a file from.</small>
           </div>
 
           <div class="mb-3">
