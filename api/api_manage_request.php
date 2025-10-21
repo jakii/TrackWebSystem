@@ -43,7 +43,7 @@ if ($action === 'delete') {
 }
 
 if ($action === 'approve') {
-    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'approved', updated_at = NOW() WHERE id = ?");
+    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'approved' WHERE id = ?");
     $update_stmt->execute([$request_id]);
     header('Location: ../documents/shared.php?status=approved');
     exit;
@@ -55,7 +55,7 @@ if ($action === 'deny') {
         header('Location: ../documents/shared.php?status=missing_reason');
         exit;
     }
-    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'denied', deny_reason = ?, updated_at = NOW() WHERE id = ?");
+    $update_stmt = $db->prepare("UPDATE file_requests SET status = 'denied', deny_reason = ? WHERE id = ?");
     $update_stmt->execute([$deny_reason, $request_id]);
     header('Location: ../documents/shared.php?status=denied');
     exit;
