@@ -83,7 +83,7 @@ function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $
  * === RESTORE ===
  */
 function restoreBackup($db, $backup_folder) {
-    $backup_path = __DIR__ . "/../backups/uploads/{$backup_folder}/";
+    $backup_path = __DIR__ . "/../backups/{$backup_folder}/";
 
     if (!is_dir($backup_path)) {
         throw new Exception("Backup directory not found: " . $backup_path);
@@ -245,7 +245,7 @@ function zipBackup($backup_dir) {
  * Delete backup folder and its ZIP file
  */
 function deleteBackup($backup_folder) {
-    $backup_dir = "../backups/uploads/" . basename($backup_folder);
+    $backup_dir = "../backups/" . basename($backup_folder);
     $zip_path = $backup_dir . ".zip";
 
     if (!is_dir($backup_dir)) {
