@@ -117,7 +117,7 @@ function restoreBackup($db, $backup_folder) {
         $db->exec("SET FOREIGN_KEY_CHECKS=1;");
     }
 
-    // === Restore Files ===
+    //restore files
     $backup_files_dir = $backup_path . "uploads/";
     $uploads_dir = __DIR__ . "/../backups/uploads/";
 
