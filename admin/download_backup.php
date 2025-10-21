@@ -3,7 +3,7 @@ require_once '../includes/auth_check.php';
 requireAuth();
 
 $filename = basename($_GET['file']);
-$file_path = "/var/www/TrackWeb/backups/uploads/" . $filename;
+$file_path = "/var/www/TrackWeb/backups/" . $filename;
 
 if (!file_exists($file_path)) {
     http_response_code(404);
