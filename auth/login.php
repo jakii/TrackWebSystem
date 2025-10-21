@@ -4,23 +4,18 @@ require_once '../includes/header.php';
 ?>
 <link rel="icon" href="../assets/images/LOGO.png" type="image/x-icon">
 
-<!-- External CSS -->
 <link rel="stylesheet" href="../assets/css/login.css">
 
-<!-- Background Decorations -->
 <div class="bg-decoration circle-1"></div>
 <div class="bg-decoration circle-2"></div>
 
-<!-- Back to Home Link -->
 <a href="../index.php" class="back-home">
     <i class="fas fa-arrow-left"></i>
     <span>Back to Home</span>
 </a>
 
-<!-- Login Container -->
 <div class="login-container">
     <div class="login-card">
-        <!-- Logo/Icon -->
         <div class="logo-salogin">
             <div class="logo-icon">
                 <i class="fas fa-lock"></i>
@@ -82,6 +77,4 @@ require_once '../includes/header.php';
         </div>
     </div>
 </div>
-
-<!-- External JS -->
 <script src="../assets/js/login.js"></script>

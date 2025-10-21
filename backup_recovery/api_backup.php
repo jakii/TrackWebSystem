@@ -45,7 +45,7 @@ function handleCreateBackup($db) {
     $include_files = isset($_POST['include_files']);
 
     $timestamp = date('Y-m-d_H-i-s');
-    $backup_dir = "/var/www/TrackWeb/backups/uploads/backup_{$timestamp}/";
+    $backup_dir = "/var/www/TrackWeb/backups/backup_{$timestamp}/";
 
     if (!is_dir($backup_dir)) {
         mkdir($backup_dir, 0755, true);
@@ -65,7 +65,7 @@ function handleCreateBackup($db) {
     zipBackup($backup_dir);
 
     logActivity($db, $_SESSION['user_id'], "Backup created: {$backup_dir}");
-    echo json_encode(['success' => true, 'message' => "Backup created and zipped successfully"]);
+    echo json_encode(['success' => true, 'message' => "Backup created and zipped success"]);
 }
 
 function handleRestoreBackup($db) {
@@ -77,7 +77,7 @@ function handleRestoreBackup($db) {
     restoreBackup($db, $backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup restored: {$backup_folder}");
 
-    echo json_encode(['success' => true, 'message' => "Backup restored successfully"]);
+    echo json_encode(['success' => true, 'message' => "Backup restored success"]);
 }
 
 function handleDeleteBackup($db) {

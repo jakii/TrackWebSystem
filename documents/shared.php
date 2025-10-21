@@ -211,32 +211,28 @@ $mark_read->execute([$_SESSION['user_id']]);
                 </span>
               </td>
               <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
-                <td class="text-center">
-                  <?php if ($req['recipient_id'] == $user_id && $req['status'] === 'pending'): ?>
-                    <!-- Approve / Deny Buttons -->
-                    <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
-                      <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                      <button name="action" value="approve" class="btn btn-sm btn-success me-1" title="Approve">
-                        <i class="fas fa-check"></i>
-                      </button>
-                      <button name="action" value="deny" class="btn btn-sm btn-danger" title="Deny">
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </form>
-
-                  <?php elseif ($req['status'] === 'denied' || $req['status'] === 'approved' && ($req['sender_id'] == $user_id || isAdmin())): ?>
-                    
-                    <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_delete_request.php" onsubmit="return confirm('Delete this request?');">
-                      <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </form>
-                  
-                  <?php else: ?>
-                    <small class="text-muted">No actions</small>
-                  <?php endif; ?>
-                </td>
+              <td class="text-center">
+                <?php if ($req['recipient_id'] == $user_id && $req['status'] === 'pending'): ?>
+                  <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                    <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                    <button name="action" value="approve" class="btn btn-sm btn-success me-1" title="Approve">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button name="action" value="deny" class="btn btn-sm btn-danger" title="Deny">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </form>
+                <?php elseif (($req['status'] === 'approved' || $req['status'] === 'denied') && ($req['sender_id'] == $user_id || isAdmin())): ?>
+                  <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_delete_request.php" onsubmit="return confirm('Delete this request?');">
+                    <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                <?php else: ?>
+                  <small class="text-muted">No actions</small>
+                <?php endif; ?>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
