@@ -244,7 +244,6 @@ $backups = getBackupList();
             });
         });
 
-        // Handle backup deletion
         document.querySelectorAll('.delete-backup').forEach(button => {
             button.addEventListener('click', function() {
                 const backupFolder = this.getAttribute('data-backup-folder');

@@ -119,7 +119,7 @@ function restoreBackup($db, $backup_folder) {
 
     // === Restore Files ===
     $backup_files_dir = $backup_path . "uploads/";
-    $uploads_dir = __DIR__ . "/../uploads/";
+    $uploads_dir = __DIR__ . "/../backups/uploads/";
 
     if (is_dir($backup_files_dir)) {
         if (!is_dir($uploads_dir)) {
