@@ -167,7 +167,7 @@ function restoreBackup($db, $backup_folder) {
  */
 function getBackupList() {
     $backups = [];
-    $backups_dir = "../backups/uploads/";
+    $backups_dir = "../backups/";
 
     if (!is_dir($backups_dir)) mkdir($backups_dir, 0755, true);
 
