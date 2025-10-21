@@ -15,33 +15,26 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $sender_id = $_SESSION['user_id'] ?? null;
-if (!$sender_id) {
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
-    exit;
-}
-
-$recipient_identifier = trim($_POST['recipient_identifier'] ?? '');
+$recipient_id = intval($_POST['recipient_id'] ?? 0);
 $description = trim($_POST['description'] ?? '');
 $reason = trim($_POST['reason'] ?? '');
 
-if (empty($recipient_identifier) || empty($description) || empty($reason)) {
-    echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
+if (!$sender_id || !$recipient_id || empty($description) || empty($reason)) {
+    echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
     exit;
 }
-
-$stmt = $db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-$stmt->execute([$recipient_identifier, $recipient_identifier]);
-$recipient = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$recipient) {
-    echo json_encode(['status' => 'error', 'message' => 'User not found']);
-    exit;
-}
-
-$recipient_id = $recipient['id'];
 
 if ($recipient_id === $sender_id) {
     echo json_encode(['status' => 'error', 'message' => 'You cannot request a file from yourself.']);
+    exit;
+}
+
+$stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+$stmt->execute([$recipient_id]);
+$recipient = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$recipient) {
+    echo json_encode(['status' => 'error', 'message' => 'User not found.']);
     exit;
 }
 
@@ -58,6 +51,6 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$sender_id, $recipient_id, $description, $reason]);
 
-echo json_encode(['status' => 'success', 'message' => 'File request sent successfully']);
+echo json_encode(['status' => 'success', 'message' => 'File request sent successfully.']);
 exit;
 ?>
