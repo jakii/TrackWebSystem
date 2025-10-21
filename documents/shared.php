@@ -256,11 +256,7 @@ $mark_read->execute([$_SESSION['user_id']]);
           <?php endforeach; ?>
         </tbody>
       </table>
-    <?php endif; ?>
-  </div>
-</div>
-
-<!-- Request File Modal -->
+    <?php endif; ?><!-- Request File Modal -->
 <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 border-0">
@@ -275,29 +271,29 @@ $mark_read->execute([$_SESSION['user_id']]);
         <div class="modal-body">
 
           <div class="mb-3">
-            <label class="form-label fw-semibold" for="recipient_identifier">
-              Recipient (Email or Username) 
+            <label class="form-label fw-semibold" for="recipient_id">
+              Recipient (Email or Username)
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
-              <?php
-              $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
-              $stmt->execute([$_SESSION['user_id']]);
-              $users = $stmt->fetchAll();
-              ?>
-              <select name="recipient_id" id="recipient_id" class="form-select" required>
-                <option value="">-- Select User --</option>
-                <?php foreach ($users as $u): ?>
-                  <option value="<?= $u['id']; ?>">
-                    <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-              <small class="text-muted">Select a user to request a file from.</small>
+            <?php
+            $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $users = $stmt->fetchAll();
+            ?>
+            <select name="recipient_id" id="recipient_id" class="form-select" required>
+              <option value="">-- Select User --</option>
+              <?php foreach ($users as $u): ?>
+                <option value="<?= $u['id']; ?>">
+                  <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <small class="text-muted">Select a user to request a file from.</small>
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold" for="description">
-              File Description 
+              File Description
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
             <input type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required>
@@ -305,7 +301,7 @@ $mark_read->execute([$_SESSION['user_id']]);
 
           <div class="mb-3">
             <label class="form-label fw-semibold" for="reason">
-              Reason 
+              Reason
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
             <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
@@ -326,20 +322,18 @@ $mark_read->execute([$_SESSION['user_id']]);
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const fields = ['recipient_identifier', 'description', 'reason'];
-
-    fields.forEach(id => {
-        const input = document.getElementById(id);
-        const asterisk = input.closest('.mb-3').querySelector('span.text-danger');
-
-        input.addEventListener('input', () => {
-            if (input.value.trim() !== '') {
-                asterisk?.classList.add('d-none');
-            } else {
-                asterisk?.classList.remove('d-none');
-            }
-        });
+  const fields = ['recipient_id', 'description', 'reason'];
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    const asterisk = input.closest('.mb-3').querySelector('span.text-danger');
+    input.addEventListener('input', () => {
+      if (input.value.trim() !== '') {
+        asterisk?.classList.add('d-none');
+      } else {
+        asterisk?.classList.remove('d-none');
+      }
     });
+  });
 });
 </script>
 
