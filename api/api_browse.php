@@ -14,6 +14,7 @@ if (!is_dir(UPLOAD_DIR)) {
 }
 
 //CREATE FOLDER
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_folder') {
     $folder_name = trim($_POST['folder_name'] ?? '');
     $folder_description = trim($_POST['folder_description'] ?? '');
