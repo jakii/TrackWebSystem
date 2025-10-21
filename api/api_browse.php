@@ -122,22 +122,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         if ($file_error !== UPLOAD_ERR_OK) continue;
 
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $base_name = pathinfo($name, PATHINFO_FILENAME);
+
         if (!in_array($ext, ALLOWED_EXTENSIONS)) continue;
         if ($file_size > MAX_FILE_SIZE) continue;
 
-        $title = pathinfo($name, PATHINFO_FILENAME);
+        $title = $base_name;
 
-        $duplicate_check = $db->prepare("
-            SELECT COUNT(*) FROM documents 
-            WHERE original_filename = ? AND (folder_id = ? OR (? IS NULL AND folder_id IS NULL))
-        ");
-        $duplicate_check->execute([$name, $current_folder_id, $current_folder_id]);
-        $exists = $duplicate_check->fetchColumn();
+        // ✅ Check for duplicate filenames and auto-rename
+        $counter = 1;
+        $new_name = $name;
 
-        if ($exists > 0) {
-            echo "<script>alert('Upload failed: A file named \"$name\" already exists in this folder.'); window.history.back();</script>";
-            exit();
+        while (true) {
+            $duplicate_check = $db->prepare("
+                SELECT COUNT(*) FROM documents 
+                WHERE original_filename = ? AND (folder_id = ? OR (? IS NULL AND folder_id IS NULL))
+            ");
+            $duplicate_check->execute([$new_name, $current_folder_id, $current_folder_id]);
+            $exists = $duplicate_check->fetchColumn();
+
+            if ($exists == 0) break; // no duplicate found, stop loop
+
+            // Rename e.g., "report.pdf" → "report (1).pdf"
+            $new_name = $base_name . " ($counter)." . $ext;
+            $counter++;
         }
+
+        // Now we use $new_name for DB (as original_filename) and $title for title
+        $title = pathinfo($new_name, PATHINFO_FILENAME);
 
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
@@ -163,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $title,
                 $description,
                 $unique_filename,
-                $name,
+                $new_name,
                 $file_size,
                 $file_type,
                 $destination,
@@ -195,6 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     echo "<script>window.location.href='$redirect';</script>";
     exit();
 }
+
 
 $current_folder_id = $_GET['folder'] ?? null;
 $current_folder = null;
