@@ -8,16 +8,16 @@ require_once '../includes/storage_functions.php';
 
 requireAuth();
 
+// Ensure upload directory exists
 if (!is_dir(UPLOAD_DIR)) {
     mkdir(UPLOAD_DIR, 0777, true);
 }
 
+//CREATE FOLDER
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_folder') {
     $folder_name = trim($_POST['folder_name'] ?? '');
     $folder_description = trim($_POST['folder_description'] ?? '');
     $folder_color = $_POST['folder_color'] ?? '#007bff';
-
-    // kunin muna ang current folder id mula sa POST
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
     $current_folder = null;
 
@@ -43,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // calculate folder level
         $level = $current_folder ? $current_folder['level'] + 1 : 0;
 
+        // insert folder
         $insert_folder_query = $db->prepare("
             INSERT INTO folders (name, description, color, parent_id, level, sort_order, created_by) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -57,12 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_SESSION['user_id']
         ]);
 
+        //Log folder creation
+        logActivity($db, $_SESSION['user_id'], "Created folder: $folder_name" . ($current_folder_id ? " (inside folder ID: $current_folder_id)" : ""), 'create');
+
         header('Location: browse.php' . ($current_folder_id ? '?folder=' . $current_folder_id : ''));
         exit();
     }
 }
 
-
+//UPLOAD DOCUMENT
 $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
@@ -78,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
     $total_used = getTotalStorageUsed($db);
     $limit = getStorageLimit($db);
-
     $batch_total = array_sum($_FILES['documents']['size']);
 
     if (($total_used + $batch_total) > $limit) {
@@ -106,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
         $unique_filename = uniqid() . "_" . time() . "." . $ext;
         $destination = UPLOAD_DIR . $unique_filename;
-        
+
         if (move_uploaded_file($tmp_file, $destination)) {
             $title       = pathinfo($name, PATHINFO_FILENAME);
             $folder_id   = $current_folder_id;
@@ -139,14 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
                 VALUES (?, ?, ?, NOW())
             ");
-            $insert_report->execute([
-                $title,
-                $_SESSION['user_id'],
-                $destination
-            ]);
-            
+            $insert_report->execute([$title, $_SESSION['user_id'], $destination]);
 
-            logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
+            //Log document upload
+            logActivity($db, $_SESSION['user_id'], "Uploaded document: $title", 'create');
         }
     }
 
@@ -155,10 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         : "../documents/browse.php?success=uploaded";
     
     echo "<script>window.location.href='$redirect';</script>";
-
     exit();
 }
 
+//FOLDER / DOCUMENT DISPLAY
 $current_folder_id = $_GET['folder'] ?? null;
 $current_folder = null;
 
@@ -177,8 +176,7 @@ if ($current_folder && !isAdmin()) {
     $access_check = $db->prepare("
         SELECT COUNT(*) as count 
         FROM documents d
-        LEFT JOIN document_shares ds 
-            ON d.id = ds.document_id AND ds.shared_with = ?
+        LEFT JOIN document_shares ds ON d.id = ds.document_id AND ds.shared_with = ?
         WHERE d.folder_id = ? 
           AND (d.uploaded_by = ? OR d.is_public = 1 OR ds.id IS NOT NULL)
     ");
