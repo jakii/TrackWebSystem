@@ -222,14 +222,6 @@ $mark_read->execute([$_SESSION['user_id']]);
                       <i class="fas fa-times"></i>
                     </button>
                   </form>
-                <?php elseif (($req['status'] === 'approved' || $req['status'] === 'denied') && ($req['sender_id'] == $user_id || isAdmin())): ?>
-                  <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_delete_request.php" onsubmit="return confirm('Delete this request?');">
-                    <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </form>
-                <?php else: ?>
                   <small class="text-muted">No actions</small>
                 <?php endif; ?>
               </td>
