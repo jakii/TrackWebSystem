@@ -57,182 +57,180 @@ $view = $_GET['view'] ?? 'list';
         </div>
     </div>
     <!-- Move Document Modal -->
-<!-- Move Document Modal -->
-<!-- Move Document Modal -->
-<div class="modal fade" id="moveDocumentModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="POST" action="../api/api_move_document.php">
-                <input type="hidden" name="action" value="move_document">
-                <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
-                <input type="hidden" name="document_id" id="move_document_id">
-                
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-folder me-2" style="color:#004F80;"></i> Move Document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Document to Move</label>
-                        <div class="border rounded p-3 bg-light">
-                            <i class="fas fa-file me-2 text-muted"></i>
-                            <span id="move_document_name" class="fw-semibold"></span>
+        <div class="modal fade" id="moveDocumentModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form method="POST" action="../api/api_move_document.php">
+                        <input type="hidden" name="action" value="move_document">
+                        <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
+                        <input type="hidden" name="document_id" id="move_document_id">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-folder me-2" style="color:#004F80;"></i> Move Document</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Select Destination Folder</label>
-                        <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="target_folder_id" id="root_folder" value="" checked>
-                                <label class="form-check-label fw-semibold" for="root_folder">
-                                    <i class="fas fa-folder me-2" style="color:#004F80;"></i> Root Folder
-                                </label>
+
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Document to Move</label>
+                                <div class="border rounded p-3 bg-light">
+                                    <i class="fas fa-file me-2 text-muted"></i>
+                                    <span id="move_document_name" class="fw-semibold"></span>
+                                </div>
                             </div>
-                            
-                            <?php
-                            // Recursive function to display folder tree
-                            function displayFolderTree($db, $parent_id = null, $level = 0, $exclude_folder_id = null) {
-                                $html = '';
-                                $query = "SELECT id, name, color FROM folders WHERE parent_id " . 
-                                         ($parent_id ? "= ?" : "IS NULL") . 
-                                         " AND id != ? ORDER BY sort_order, name";
-                                $stmt = $db->prepare($query);
-                                
-                                if ($parent_id) {
-                                    $stmt->execute([$parent_id, $exclude_folder_id ?? 0]);
-                                } else {
-                                    $stmt->execute([$exclude_folder_id ?? 0]);
-                                }
-                                
-                                $folders = $stmt->fetchAll();
-                                
-                                foreach ($folders as $folder) {
-                                    $margin = $level * 25;
-                                    $folder_color = $folder['color'] ?: '#004F80';
-                                    $html .= '
-                                    <div class="form-check mb-2" style="margin-left: ' . $margin . 'px;">
-                                        <input class="form-check-input" type="radio" name="target_folder_id" id="folder_' . $folder['id'] . '" value="' . $folder['id'] . '">
-                                        <label class="form-check-label" for="folder_' . $folder['id'] . '">
-                                            <i class="fas fa-folder me-2" style="color: ' . $folder_color . '"></i>
-                                            ' . htmlspecialchars($folder['name']) . '
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select Destination Folder</label>
+                                <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="target_folder_id" id="root_folder" value="" checked>
+                                        <label class="form-check-label fw-semibold" for="root_folder">
+                                            <i class="fas fa-folder me-2" style="color:#004F80;"></i> Root Folder
                                         </label>
-                                    </div>';
-                                    
-                                    $html .= displayFolderTree($db, $folder['id'], $level + 1, $exclude_folder_id);
-                                }
+                                    </div>
+
+                                    <?php
+                                    // Recursive function to display folder tree
+                                    function displayFolderTree($db, $parent_id = null, $level = 0, $exclude_folder_id = null) {
+                                        $html = '';
+                                        $query = "SELECT id, name, color FROM folders WHERE parent_id " . 
+                                                 ($parent_id ? "= ?" : "IS NULL") . 
+                                                 " AND id != ? ORDER BY sort_order, name";
+                                        $stmt = $db->prepare($query);
+
+                                        if ($parent_id) {
+                                            $stmt->execute([$parent_id, $exclude_folder_id ?? 0]);
+                                        } else {
+                                            $stmt->execute([$exclude_folder_id ?? 0]);
+                                        }
+
+                                        $folders = $stmt->fetchAll();
+
+                                        foreach ($folders as $folder) {
+                                            $margin = $level * 25;
+                                            $folder_color = $folder['color'] ?: '#004F80';
+                                            $html .= '
+                                            <div class="form-check mb-2" style="margin-left: ' . $margin . 'px;">
+                                                <input class="form-check-input" type="radio" name="target_folder_id" id="folder_' . $folder['id'] . '" value="' . $folder['id'] . '">
+                                                <label class="form-check-label" for="folder_' . $folder['id'] . '">
+                                                    <i class="fas fa-folder me-2" style="color: ' . $folder_color . '"></i>
+                                                    ' . htmlspecialchars($folder['name']) . '
+                                                </label>
+                                            </div>';
+
+                                            $html .= displayFolderTree($db, $folder['id'], $level + 1, $exclude_folder_id);
+                                        }
+
+                                        return $html;
+                                    }
                                 
-                                return $html;
-                            }
-
-                            echo displayFolderTree($db, null, 0, $current_folder_id);
-                            ?>
+                                    echo displayFolderTree($db, null, 0, $current_folder_id);
+                                    ?>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn" style="background-color:#004F80;color:white;">
-                        <i class="fas fa-arrows-alt me-2"></i> Move Document
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
- <!-- ================== UPLOAD MODAL ================== -->
-<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <script src="../assets/js/upload.js"></script>
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content shadow-lg rounded-4 border-0">
-            <div class="modal-header" style="background-color:#004F80;color:white;">
-                <h5 class="modal-title" id="uploadModalLabel">
-                    <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="../api/api_browse.php" enctype="multipart/form-data">
-                    <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
-
-                    <div class="mb-4">
-                        <label for="documents" class="form-label fw-bold">
-                            Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
-                        </label>
-                        <div id="drop-zone" class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" style="cursor:pointer;">
-                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                            <p class="mb-1 fw-semibold">Drag & drop files here</p>
-                            <small class="text-muted">or click to select files</small>
+                                
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn" style="background-color:#004F80;color:white;">
+                                <i class="fas fa-arrows-alt me-2"></i> Move Document
+                            </button>
                         </div>
-                        <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
-                        <div id="file-list" class="mt-3 small text-muted"></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="description" class="form-label fw-bold">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="category_id" class="form-label fw-bold">
-                            Category <span class="text-danger me-4" style="font-size:1.5em;">*</span>
-                        </label>
-                        <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Select a category</option>
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="tags" class="form-label fw-bold">Tags</label>
-                        <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
-                        <label class="form-check-label" for="is_public">Make this document public</label>
-                    </div>
-
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="upload" class="btn" style="background-color:#004F80;color:white;">
-                            <i class="fas fa-upload me-2"></i> Upload
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-            <Script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const fileInput = document.getElementById('documents');
-                    const categorySelect = document.getElementById('category_id');
-
-                    const fileAsterisk = document.querySelector('label[for="documents"] span.text-danger');
-                    const categoryAsterisk = document.querySelector('label[for="category_id"] span.text-danger');
-
-                    fileInput.addEventListener('change', () => {
-                        if (fileInput.files.length > 0) {
-                            fileAsterisk?.classList.add('d-none');
-                        } else {
-                            fileAsterisk?.classList.remove('d-none');
-                        }
-                    });
-                
-                    categorySelect.addEventListener('change', () => {
-                        if (categorySelect.value) {
-                            categoryAsterisk?.classList.add('d-none');
-                        } else {
-                            categoryAsterisk?.classList.remove('d-none');
-                        }
-                    });
-                });
-            </Script>
         </div>
-    </div>
-</div>
+         <!-- ================== UPLOAD MODAL ================== -->
+        <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+            <script src="../assets/js/upload.js"></script>
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content shadow-lg rounded-4 border-0">
+                    <div class="modal-header" style="background-color:#004F80;color:white;">
+                        <h5 class="modal-title" id="uploadModalLabel">
+                            <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="../api/api_browse.php" enctype="multipart/form-data">
+                            <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
+                                        
+                            <div class="mb-4">
+                                <label for="documents" class="form-label fw-bold">
+                                    Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
+                                </label>
+                                <div id="drop-zone" class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" style="cursor:pointer;">
+                                    <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                                    <p class="mb-1 fw-semibold">Drag & drop files here</p>
+                                    <small class="text-muted">or click to select files</small>
+                                </div>
+                                <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
+                                <div id="file-list" class="mt-3 small text-muted"></div>
+                            </div>
+                                        
+                            <div class="mb-3">
+                                <label for="description" class="form-label fw-bold">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            </div>
+                                        
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label fw-bold">
+                                    Category <span class="text-danger me-4" style="font-size:1.5em;">*</span>
+                                </label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Select a category</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                                    
+                            <div class="mb-3">
+                                <label for="tags" class="form-label fw-bold">Tags</label>
+                                <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
+                            </div>
+                                    
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
+                                <label class="form-check-label" for="is_public">Make this document public</label>
+                            </div>
+                                    
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" name="upload" class="btn" style="background-color:#004F80;color:white;">
+                                    <i class="fas fa-upload me-2"></i> Upload
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <Script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const fileInput = document.getElementById('documents');
+                            const categorySelect = document.getElementById('category_id');
+                        
+                            const fileAsterisk = document.querySelector('label[for="documents"] span.text-danger');
+                            const categoryAsterisk = document.querySelector('label[for="category_id"] span.text-danger');
+                        
+                            fileInput.addEventListener('change', () => {
+                                if (fileInput.files.length > 0) {
+                                    fileAsterisk?.classList.add('d-none');
+                                } else {
+                                    fileAsterisk?.classList.remove('d-none');
+                                }
+                            });
+                        
+                            categorySelect.addEventListener('change', () => {
+                                if (categorySelect.value) {
+                                    categoryAsterisk?.classList.add('d-none');
+                                } else {
+                                    categoryAsterisk?.classList.remove('d-none');
+                                }
+                            });
+                        });
+                    </Script>
+                </div>
+            </div>
+        </div>
 
 
     <!-- ================== FOLDER MODALS ================== -->

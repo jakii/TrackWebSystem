@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parent = $parent_stmt->fetch();
         $parent_id = $parent ? $parent['parent_id'] : 0;
 
+        logActivity($db, $_SESSION['user_id'], "Folder edited: {$folder_name}");
+
         header("Location: ../documents/browse.php?folder=$parent_id");
         exit();
     }

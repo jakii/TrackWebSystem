@@ -27,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         exit();
     }
     
-    // If target folder is specified, validate it exists
     if ($target_folder_id) {
         $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
         $folder_check->execute([$target_folder_id]);
