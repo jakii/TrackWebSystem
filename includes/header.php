@@ -154,16 +154,4 @@ $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest
 <main class="main-content" id="mainContent">
 <?php endif; ?>
 
-<!-- Alerts -->
-<?php if (isset($_GET['success'])): ?>
-<script>
-Swal.fire({ title:'Success', text:<?php echo json_encode($_GET['success']); ?>, icon:'success', confirmButtonColor:'#004F80' });
-</script>
-<?php endif; ?>
-<?php if (isset($_GET['error'])): ?>
-<script>
-Swal.fire({ title:'Error', text:<?php echo json_encode($_GET['error']); ?>, icon:'error', confirmButtonColor:'#2F4858' });
-</script>
-<?php endif; ?>
-
 <script src="<?php echo BASE_URL; ?>assets/js/header.js"></script>

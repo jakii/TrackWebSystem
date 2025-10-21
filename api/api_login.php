@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     if (empty($username) || empty($password)) {
-        $_SESSION['flash_error'] = 'Please enter both username and password.';
+        $error = 'Please enter both username and password.';
     } else {
         $user_query = $db->prepare("
             SELECT id, username, email, password, full_name, role, status
@@ -25,12 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $user_query->execute([$username, $username]);
         $user = $user_query->fetch(PDO::FETCH_ASSOC);
-
+        
         if ($user && password_verify($password, $user['password'])) {
             if ($user['status'] === 'disabled') {
-                $_SESSION['flash_error'] = 'Your account has been disabled. Please contact the administrator.';
+                $error = 'Your account has been disabled. Please contact the administrator.';
             } elseif ($user['status'] !== 'active') {
-                $_SESSION['flash_error'] = 'Your account is awaiting approval by the administrator.';
+                $error = 'Your account is awaiting approval by the administrator.';
             } else {
                 session_regenerate_id(true);
 
@@ -39,21 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['full_name'] = $user['full_name'];
                 $_SESSION['login_time'] = time();
-
+            
                 logActivity($db, $user['id'], 'User logged in.');
-
+            
                 $stmt = $db->prepare("UPDATE users SET is_logged_in = 1 WHERE id = ?");
                 $stmt->execute([$user['id']]);
-
+            
                 header('Location: ../dashboard.php');
                 exit();
             }
         } else {
-            $_SESSION['flash_error'] = 'Invalid username or password.';
+            $error = 'Invalid username or password.';
         }
     }
-
-    header('Location: login.php');
-    exit();
 }
 ?>

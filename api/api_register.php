@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $username = $email = $full_name = '';
                 
                 header('Location: ../auth/login.php?success=Your account is pending admin approval.');
+                $success = 'Registration successful! Your account is pending admin approval.';
                 exit();
             } else {
                 $error = 'Registration failed. Please try again.';
