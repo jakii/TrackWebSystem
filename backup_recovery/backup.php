@@ -145,7 +145,7 @@ $backups = getBackupList();
                                                 </td>
                                                     <td>
                                                         <?php if (!empty($backup['zip_exists'])): ?>
-                                                            <a href="/var/www/TrackWeb/backups/uploads/<?php echo htmlspecialchars($backup['zip_file']); ?>" 
+                                                            <a href="/backups/<?php echo htmlspecialchars($backup['zip_file']); ?>" 
                                                                class="btn btn-sm btn-outline-success me-1" download>
                                                                 <i class="fas fa-download"></i>
                                                             </a>
