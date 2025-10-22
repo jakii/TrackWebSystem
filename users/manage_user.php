@@ -84,16 +84,14 @@ include '../includes/header.php';
                                     </button>
                                     <ul class="dropdown-menu">
                                         <?php if ($user['status'] === 'pending'): ?>
-                                        <li><a class="dropdown-item text-success" href="approve.php?id=<?= $user['id'] ?>"><i class="fas fa-check me-2"></i>Approve</a></li>
+                                            <li><a class="dropdown-item text-success" href="approve.php?id=<?= $user['id'] ?>"><i class="fas fa-check me-2"></i>Approve</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteUserModal<?= $user['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                         <?php endif; ?>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $user['id'] ?>"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                                        <?php if ($user['role'] !== 'admin'): ?>
-                                        <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteUserModal<?= $user['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                        <?php endif; ?>
                                         <?php if ($user['status'] === 'active'): ?>
-                                        <li><a class="dropdown-item text-warning" href="change_status.php?id=<?= $user['id'] ?>&action=disable" onclick="return confirm('Disable this account?');"><i class="fas fa-user-slash me-2"></i>Disable</a></li>
+                                            <li><a class="dropdown-item text-warning" href="change_status.php?id=<?= $user['id'] ?>&action=disable" onclick="return confirm('Disable this account?');"><i class="fas fa-user-slash me-2"></i>Disable</a></li>
                                         <?php elseif ($user['status'] === 'disabled'): ?>
-                                        <li><a class="dropdown-item text-success" href="change_status.php?id=<?= $user['id'] ?>&action=enable" onclick="return confirm('Enable this account?');"><i class="fas fa-user-check me-2"></i>Enable</a></li>
+                                            <li><a class="dropdown-item text-success" href="change_status.php?id=<?= $user['id'] ?>&action=enable" onclick="return confirm('Enable this account?');"><i class="fas fa-user-check me-2"></i>Enable</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
