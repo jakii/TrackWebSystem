@@ -116,9 +116,15 @@ if (isset($_POST['upload'])) {
                            class="btn btn-outline-secondary me-2">
                             Cancel
                         </a>
-                        <button type="submit" name="upload" class="btn" style="background-color: #004F80; color: white;">
+                        <button type="button" id="uploadBtn" class="btn" style="background-color: #004F80; color: white;">
                             <i class="fas fa-upload me-2"></i> Upload Document
                         </button>
+               
+                        <div class="progress mt-3 d-none" id="uploadProgress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%;" id="progressBar">0%</div>
+                        </div>
+                        <div id="uploadStatus" class="mt-2 small fw-semibold"></div>
                     </div>
                 </form>
             </div>
@@ -132,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fields.forEach(id => {
         const input = document.getElementById(id);
-        // Find the span inside the label associated with the input
         const label = document.querySelector(`label[for="${id}"]`);
         const asterisk = label?.querySelector('span.text-danger');
 

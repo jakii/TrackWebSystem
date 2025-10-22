@@ -72,7 +72,8 @@ require_once '../includes/header.php';
         <div class="register-link-container">
             <p class="register-text">
                 Don't have an account? 
-                <a href="register.php" class="register-link">Create one now</a>
+                <a href="register.php" class="register-link">Create one now</a> <br>or<br>
+                <a href="forgot_password.php" class="register-link">Forgot your password?</a>
             </p>
         </div>
     </div>

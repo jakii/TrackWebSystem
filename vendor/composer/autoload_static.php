@@ -24,6 +24,7 @@ class ComposerStaticInit175f515b2811e085f3258b59792b25af
             'PhpOffice\\PhpWord\\' => 18,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
             'PhpOffice\\Math\\' => 15,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' => 
         array (
@@ -82,6 +83,10 @@ class ComposerStaticInit175f515b2811e085f3258b59792b25af
         'PhpOffice\\Math\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/math/src/Math',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Matrix\\' => 
         array (

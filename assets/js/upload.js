@@ -42,3 +42,59 @@ document.addEventListener("DOMContentLoaded", function () {
         updateFileList(fileInput.files);
     });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const uploadBtn = document.getElementById("uploadBtn");
+  const form = document.querySelector("form");
+  const progressContainer = document.getElementById("uploadProgress");
+  const progressBar = document.getElementById("progressBar");
+  const uploadStatus = document.getElementById("uploadStatus");
+
+  uploadBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const xhr = new XMLHttpRequest();
+
+    xhr.open("POST", "../api/api_upload.php", true);
+
+    // Progress handler
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressContainer.classList.remove("d-none");
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = percent + "%";
+
+        if (percent === 100) {
+          uploadStatus.textContent = "Processing...";
+        }
+      }
+    });
+
+    // On success
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        uploadStatus.textContent = "Upload complete!";
+        progressBar.classList.remove("progress-bar-animated");
+        progressBar.classList.add("bg-success");
+
+        // Optional redirect
+        setTimeout(() => {
+          window.location.href = "../dashboard.php?status=success";
+        }, 1500);
+      } else {
+        uploadStatus.textContent = "Upload failed. Please try again.";
+        progressBar.classList.add("bg-danger");
+      }
+    };
+
+    // On error
+    xhr.onerror = () => {
+      uploadStatus.textContent = "Upload error occurred.";
+      progressBar.classList.add("bg-danger");
+    };
+
+    xhr.send(formData);
+  });
+});
