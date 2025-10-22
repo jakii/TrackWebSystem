@@ -145,13 +145,21 @@ requireAuth();
     }
 
     let action = e.submitter.name === "bulk_restore" ? "restore" : "delete";
-    let confirmText = action === "restore" ? "Yes, restore!" : "Yes, delete!";
-    let titleText = action === "restore" ? "Restore selected documents?" : "This will permanently delete the selected documents, including those in the archive and any shared copies. Are you sure you want to continue?";
+    let confirmText = action === "restore" ? "Yes, restore!" : "Yes, delete permanently!";
+    let titleText = action === "restore"
+      ? "Restore selected documents?"
+      : "Delete selected documents permanently?";
+    let textMsg = action === "restore"
+      ? "This will restore the selected documents."
+      : "This will permanently delete the selected documents, including those in the archive and any shared copies. This action cannot be undone.";
 
     Swal.fire({
       title: titleText,
-      icon: action === "restore" ? "question" : "warning",
+      text: textMsg,
+      icon: action === "restore" ? "question" : "error",
       showCancelButton: true,
+      confirmButtonColor: action === "restore" ? "#3085d6" : "#d33",
+      cancelButtonColor: "#6c757d",
       confirmButtonText: confirmText,
       cancelButtonText: "Cancel"
     }).then(result => {
