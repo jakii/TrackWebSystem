@@ -33,8 +33,8 @@ if (isset($_POST['upload'])) {
 }
 ?>
 <div class="row mb-4 mt-3 justify-content-center">
-    <script src="../assets/js/upload.js"></script>
     <div class="col-md-8">
+         <script src="../assets/js/upload.js"></script>
         <div class="card shadow-lg rounded-4 border-0">
             <div class="card-header" style="background-color: #004F80; color: white;">
                 <h4 class="mb-0">
