@@ -90,7 +90,7 @@ $view = $_GET['view'] ?? 'list';
                                     </div>
 
                                     <?php
-                                    // Recursive function to display folder tree
+                                    //Recursive function to display folder tree
                                     function displayFolderTree($db, $parent_id = null, $level = 0, $exclude_folder_id = null) {
                                         $html = '';
                                         $query = "SELECT id, name, color FROM folders WHERE parent_id " . 
@@ -140,10 +140,10 @@ $view = $_GET['view'] ?? 'list';
                 </div>
             </div>
         </div>
-         <!-- ================== UPLOAD MODAL ================== -->
+        <!-- ================== UPLOAD MODAL ================== -->
         <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-            <script src="../assets/js/upload.js"></script>
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <script src="../assets/js/upload.js"></script>
                 <div class="modal-content shadow-lg rounded-4 border-0">
                     <div class="modal-header" style="background-color:#004F80;color:white;">
                         <h5 class="modal-title" id="uploadModalLabel">

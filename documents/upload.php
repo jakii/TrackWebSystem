@@ -32,105 +32,94 @@ if (isset($_POST['upload'])) {
     }
 }
 ?>
-<div class="row mb-4 mt-3 justify-content-center">
-    <div class="col-md-8">
-         <script src="../assets/js/upload.js"></script>
-        <div class="card shadow-lg rounded-4 border-0">
-            <div class="card-header" style="background-color: #004F80; color: white;">
-                <h4 class="mb-0">
-                    <i class="fas fa-upload me-2"></i> Upload Document
-                </h4>
+<div class="row mb-5 mt-4 justify-content-center">
+  <div class="col-lg-8">
+    <script src="../assets/js/upload.js"></script>
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header text-white py-3" style="background: linear-gradient(90deg, #004F80, #0078AA);">
+        <h4 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Document</h4>
+      </div>
+      <div class="card-body p-4 bg-light">
+        <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+          <!-- Drag and Drop Upload -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold" for="documents">Upload Files <span class="text-danger">*</span></label>
+            <div id="drop-zone"
+              class="rounded-4 p-5 text-center bg-white border border-2 border-dashed shadow-sm hover-shadow"
+              style="cursor:pointer; transition: all 0.3s;">
+              <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+              <p class="fw-semibold mb-1">Drag & drop your files here</p>
+              <small class="text-muted">or click to browse</small>
             </div>
-            <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label class="form-label fw-bold" for="documents">
-                            Upload Files 
-                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                        </label>
-                        <div id="drop-zone" 
-                             class="border border-2 border-dashed rounded-4 p-5 text-center bg-light"
-                             style="cursor: pointer; transition: 0.3s;">
-                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                            <p class="mb-1 fw-semibold">Drag & drop files here</p>
-                            <small class="text-muted">or click to select files</small>
-                        </div>
-                        <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
-                        <div id="file-list" class="mt-3 small text-muted"></div>
-                    </div>
-                
-                    <div class="mb-3">
-                        <label for="description" class="form-label fw-bold">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"><?php echo htmlspecialchars($description ?? ''); ?></textarea>
-                    </div>
+            <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
+            <div id="file-list" class="mt-2 small text-muted"></div>
+          </div>
 
-                    <div class="mb-3">
-                        <label for="folder_id" class="form-label fw-bold">
-                            Destination Folder 
-                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                        </label>
-                        <select class="form-select" id="folder_id" name="folder_id" required>
-                            <option value="">Select a folder</option>
-                            <?php foreach ($folders as $folder): ?>
-                            <option value="<?php echo $folder['id']; ?>" 
-                                <?php echo (isset($folder_id) && $folder_id == $folder['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars(getFolderPath($folder['id'], $foldersById)); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="category_id" class="form-label fw-bold">
-                            Category 
-                            <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                        </label>
-                        <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Select a category</option>
-                            <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>" 
-                                    <?php echo (isset($category_id) && $category_id == $category['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label fw-semibold">Description</label>
+            <textarea class="form-control rounded-3" id="description" name="description" rows="3"
+              placeholder="Enter a short description..."></textarea>
+          </div>
 
-                    <div class="mb-3">
-                        <label for="tags" class="form-label fw-bold">Tags</label>
-                        <input type="text" class="form-control" id="tags" name="tags" 
-                               value="<?php echo htmlspecialchars($tags ?? ''); ?>" 
-                               placeholder="Enter tags separated by commas">
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public" 
-                               <?php echo (isset($is_public) && $is_public) ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="is_public">
-                            Make this document public (visible to all users)
-                        </label>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end">
-                        <a href="<?php echo $current_folder_id ? 'browse.php?folder=' . $current_folder_id : '../dashboard.php'; ?>" 
-                           class="btn btn-outline-secondary me-2">
-                            Cancel
-                        </a>
-                        <button type="button" id="uploadBtn" class="btn" style="background-color: #004F80; color: white;">
-                            <i class="fas fa-upload me-2"></i> Upload Document
-                        </button>
-               
-                        <div class="progress mt-3 d-none" id="uploadProgress">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" style="width: 0%;" id="progressBar">0%</div>
-                        </div>
-                        <div id="uploadStatus" class="mt-2 small fw-semibold"></div>
-                    </div>
-                </form>
+          <!-- Folder -->
+          <div class="mb-3">
+            <label for="folder_id" class="form-label fw-semibold">Destination Folder <span class="text-danger">*</span></label>
+            <select class="form-select rounded-3" id="folder_id" name="folder_id" required>
+              <option value="">Select a folder</option>
+              <?php foreach ($folders as $folder): ?>
+                <option value="<?= $folder['id'] ?>"><?= htmlspecialchars(getFolderPath($folder['id'], $foldersById)) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-3">
+            <label for="category_id" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+            <select class="form-select rounded-3" id="category_id" name="category_id" required>
+              <option value="">Select a category</option>
+              <?php foreach ($categories as $category): ?>
+                <option value="<?= $category['id'] ?>"><?= htmlspecialchars($category['name']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Tags -->
+          <div class="mb-3">
+            <label for="tags" class="form-label fw-semibold">Tags</label>
+            <input type="text" class="form-control rounded-3" id="tags" name="tags"
+              placeholder="Enter tags separated by commas">
+          </div>
+
+          <!-- Public Option -->
+          <div class="form-check mb-4">
+            <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
+            <label class="form-check-label" for="is_public">Make this document public</label>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex justify-content-end align-items-center gap-2">
+            <a href="../dashboard.php" class="btn btn-outline-secondary rounded-3 px-4">Cancel</a>
+            <button type="button" id="uploadBtn" class="btn rounded-3 px-4 text-white"
+              style="background: linear-gradient(90deg, #004F80, #0078AA);">
+              <i class="fas fa-upload me-2"></i> Upload
+            </button>
+          </div>
+
+          <!-- Modern Progress Bar -->
+          <div class="mt-4 d-none" id="uploadProgress">
+            <div class="progress rounded-pill" style="height: 12px;">
+              <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                role="progressbar" style="width: 0%">0%</div>
             </div>
-        </div>
+            <div id="uploadStatus" class="mt-2 text-center small fw-semibold text-muted"></div>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
