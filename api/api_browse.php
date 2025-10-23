@@ -94,101 +94,120 @@ if ($folder_name) {
 $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
-    header('Content-Type: application/json');
+    $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
 
-    try {
-        $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
-
-        if ($current_folder_id) {
-            $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
-            $folder_check->execute([$current_folder_id]);
-            if (!$folder_check->fetch()) {
-                $current_folder_id = null;
-            }
+    if ($current_folder_id) {
+        $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
+        $folder_check->execute([$current_folder_id]);
+        if (!$folder_check->fetch()) {
+            $current_folder_id = null;
         }
+    }
+
+    $total_used = getTotalStorageUsed($db);
+    $limit = getStorageLimit($db);
+    $batch_total = array_sum($_FILES['documents']['size']);
+
+    if (($total_used + $batch_total) > $limit) {
+        echo "<script>alert('Upload failed: Storage limit reached. Please delete old files or contact admin.'); window.history.back();</script>";
+        exit();
+    }
+
+    foreach ($_FILES['documents']['name'] as $i => $name) {
+        $tmp_file  = $_FILES['documents']['tmp_name'][$i];
+        $file_size = $_FILES['documents']['size'][$i];
+        $file_type = $_FILES['documents']['type'][$i];
+        $file_error  = $_FILES['documents']['error'][$i];
+
+        if ($file_error !== UPLOAD_ERR_OK) continue;
+
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $base_name = pathinfo($name, PATHINFO_FILENAME);
+
+        if (!in_array($ext, ALLOWED_EXTENSIONS)) continue;
+        if ($file_size > MAX_FILE_SIZE) continue;
+
+        $title = $base_name;
+
+        // ✅ Check for duplicate filenames and auto-rename
+        $counter = 1;
+        $new_name = $name;
+
+        while (true) {
+            $duplicate_check = $db->prepare("
+                SELECT COUNT(*) FROM documents 
+                WHERE original_filename = ? AND (folder_id = ? OR (? IS NULL AND folder_id IS NULL))
+            ");
+            $duplicate_check->execute([$new_name, $current_folder_id, $current_folder_id]);
+            $exists = $duplicate_check->fetchColumn();
+
+            if ($exists == 0) break; // no duplicate found, stop loop
+
+            // Rename e.g., "report.pdf" → "report (1).pdf"
+            $new_name = $base_name . " ($counter)." . $ext;
+            $counter++;
+        }
+
+        // Now we use $new_name for DB (as original_filename) and $title for title
+        $title = pathinfo($new_name, PATHINFO_FILENAME);
 
         $total_used = getTotalStorageUsed($db);
-        $limit = getStorageLimit($db);
-        $batch_total = array_sum($_FILES['documents']['size']);
-
-        if (($total_used + $batch_total) > $limit) {
-            echo json_encode(["status" => "error", "message" => "Storage limit reached."]);
-            exit;
+        if (($total_used + $file_size) > $limit) {
+            echo "<script>alert('Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
+            exit();
         }
 
-        $uploaded = [];
+        $unique_filename = uniqid() . "_" . time() . "." . $ext;
+        $destination = UPLOAD_DIR . $unique_filename;
 
-        foreach ($_FILES['documents']['name'] as $i => $name) {
-            $tmp_file  = $_FILES['documents']['tmp_name'][$i];
-            $file_size = $_FILES['documents']['size'][$i];
-            $file_type = $_FILES['documents']['type'][$i];
-            $file_error = $_FILES['documents']['error'][$i];
+        if (move_uploaded_file($tmp_file, $destination)) {
+            $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;
+            $description = $_POST['description'] ?? '';
+            $tags        = $_POST['tags'] ?? '';
+            $is_public   = isset($_POST['is_public']) ? 1 : 0;
 
-            if ($file_error !== UPLOAD_ERR_OK) continue;
+            $insert_document = $db->prepare("
+                INSERT INTO documents 
+                (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $insert_document->execute([
+                $title,
+                $description,
+                $unique_filename,
+                $new_name,
+                $file_size,
+                $file_type,
+                $destination,
+                $current_folder_id,
+                $category_id,
+                $_SESSION['user_id'],
+                $is_public,
+                $tags
+            ]);
 
-            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-            $base_name = pathinfo($name, PATHINFO_FILENAME);
+            $insert_report = $db->prepare("
+                INSERT INTO reports (title, uploaded_by, file_path, created_at) 
+                VALUES (?, ?, ?, NOW())
+            ");
+            $insert_report->execute([
+                $title,
+                $_SESSION['user_id'],
+                $destination
+            ]);
 
-            if (!in_array($ext, ALLOWED_EXTENSIONS)) continue;
-            if ($file_size > MAX_FILE_SIZE) continue;
-
-            $new_name = $name;
-            $counter = 1;
-            while (true) {
-                $duplicate_check = $db->prepare("
-                    SELECT COUNT(*) FROM documents 
-                    WHERE original_filename = ? AND (folder_id = ? OR (? IS NULL AND folder_id IS NULL))
-                ");
-                $duplicate_check->execute([$new_name, $current_folder_id, $current_folder_id]);
-                $exists = $duplicate_check->fetchColumn();
-
-                if ($exists == 0) break;
-                $new_name = $base_name . " ($counter)." . $ext;
-                $counter++;
-            }
-
-            $unique_filename = uniqid() . "_" . time() . "." . $ext;
-            $destination = UPLOAD_DIR . $unique_filename;
-
-            if (move_uploaded_file($tmp_file, $destination)) {
-                $category_id = (int)($_POST['category_id'] ?? 0);
-                $description = $_POST['description'] ?? '';
-                $tags = $_POST['tags'] ?? '';
-                $is_public = isset($_POST['is_public']) ? 1 : 0;
-
-                $stmt = $db->prepare("
-                    INSERT INTO documents (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([
-                    pathinfo($new_name, PATHINFO_FILENAME),
-                    $description,
-                    $unique_filename,
-                    $new_name,
-                    $file_size,
-                    $file_type,
-                    $destination,
-                    $current_folder_id,
-                    $category_id,
-                    $_SESSION['user_id'],
-                    $is_public,
-                    $tags
-                ]);
-
-                $uploaded[] = $new_name;
-            }
+            logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         }
-
-        echo json_encode([
-            "status" => "success",
-            "uploaded" => $uploaded,
-            "message" => count($uploaded) . " file(s) uploaded successfully."
-        ]);
-    } catch (Exception $e) {
-        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
     }
-    exit;
+
+    $redirect = $current_folder_id 
+        ? "../documents/browse.php?folder=$current_folder_id&success=uploaded" 
+        : "../documents/browse.php?success=uploaded";
+
+    echo "<script>window.location.href='$redirect';</script>";
+    exit();
 }
+
 
 $current_folder_id = $_GET['folder'] ?? null;
 $current_folder = null;

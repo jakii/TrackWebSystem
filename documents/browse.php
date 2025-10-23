@@ -393,8 +393,6 @@ $view = $_GET['view'] ?? 'list';
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i> Preview</a></li>
-                                            <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i> Download</a></li>
-
                                             <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
