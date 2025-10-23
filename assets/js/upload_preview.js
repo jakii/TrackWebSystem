@@ -69,3 +69,26 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('documents');
+    const categorySelect = document.getElementById('category_id');
+
+    const fileAsterisk = document.querySelector('label[for="documents"] span.text-danger');
+    const categoryAsterisk = document.querySelector('label[for="category_id"] span.text-danger');
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileAsterisk?.classList.add('d-none');
+        } else {
+            fileAsterisk?.classList.remove('d-none');
+        }
+    });
+
+    categorySelect.addEventListener('change', () => {
+        if (categorySelect.value) {
+            categoryAsterisk?.classList.add('d-none');
+        } else {
+            categoryAsterisk?.classList.remove('d-none');
+        }
+    });
+});
