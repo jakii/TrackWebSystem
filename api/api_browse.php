@@ -96,6 +96,7 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
 
+    // Validate folder
     if ($current_folder_id) {
         $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
         $folder_check->execute([$current_folder_id]);
@@ -104,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         }
     }
 
+    // Storage limit check
     $total_used = getTotalStorageUsed($db);
     $limit = getStorageLimit($db);
     $batch_total = array_sum($_FILES['documents']['size']);
@@ -115,6 +117,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
     $skipped_files = [];
 
+    // Define allowed extensions and MIME types
+    $allowed_mimes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv', 'video/mpeg',
+        'text/plain', 'text/csv',
+        'application/zip', 'application/x-rar-compressed'
+    ];
+
+    // Iterate through all uploaded files
     foreach ($_FILES['documents']['name'] as $i => $name) {
         $tmp_file   = $_FILES['documents']['tmp_name'][$i];
         $file_size  = $_FILES['documents']['size'][$i];
@@ -129,30 +147,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $base_name = pathinfo($name, PATHINFO_FILENAME);
 
-        // Allow only whitelisted extensions (includes common videos)
-        if (!in_array($ext, ALLOWED_EXTENSIONS)) {
-            $skipped_files[] = "$name (invalid file type)";
-            continue;
-        }
-
-        // Check real MIME type
+        // Check real MIME type using fileinfo
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $tmp_file);
         finfo_close($finfo);
 
-        $allowed_mime_prefixes = ['application/', 'image/', 'video/'];
-        if (!preg_match('/^(' . implode('|', $allowed_mime_prefixes) . ')/', $mime)) {
-            $skipped_files[] = "$name (invalid MIME type)";
+        // Validate MIME type and extension
+        if (!in_array($mime, $allowed_mimes)) {
+            $skipped_files[] = "$name (invalid MIME type: $mime)";
             continue;
         }
 
-        // Check file size
+        // Check file size (max size constant)
         if ($file_size > MAX_FILE_SIZE) {
             $skipped_files[] = "$name (too large)";
             continue;
         }
 
-        // Handle duplicates
+        // Handle duplicates within same folder
         $counter = 1;
         $new_name = $name;
         while (true) {
@@ -169,15 +181,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
         $title = pathinfo($new_name, PATHINFO_FILENAME);
 
-        // Check storage again before each file
+        // Check remaining storage before each file
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
             echo "<script>alert('Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
             exit();
         }
 
-        // Generate unique filename and move file
-        $unique_filename = uniqid() . "_" . time() . "." . $ext;
+        // Save file with a unique filename
+        $unique_filename = uniqid('doc_', true) . '.' . $ext;
         $destination = UPLOAD_DIR . $unique_filename;
 
         if (move_uploaded_file($tmp_file, $destination)) {
@@ -186,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             $tags        = $_POST['tags'] ?? '';
             $is_public   = isset($_POST['is_public']) ? 1 : 0;
 
+            // Insert document record
             $insert_document = $db->prepare("
                 INSERT INTO documents 
                 (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
@@ -197,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $unique_filename,
                 $new_name,
                 $file_size,
-                $file_type,
+                $mime, // use real MIME type
                 $destination,
                 $current_folder_id,
                 $category_id,
@@ -206,15 +219,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $tags
             ]);
 
+            // Insert report
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
                 VALUES (?, ?, ?, NOW())
             ");
-            $insert_report->execute([
-                $title,
-                $_SESSION['user_id'],
-                $destination
-            ]);
+            $insert_report->execute([$title, $_SESSION['user_id'], $destination]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         } else {
@@ -222,12 +232,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         }
     }
 
-    // Optional: Show skipped file summary
+    // Show skipped files summary if any
     if (!empty($skipped_files)) {
         $msg = implode("\\n", $skipped_files);
         echo "<script>alert('Some files were skipped:\\n$msg');</script>";
     }
 
+    // Redirect after successful upload
     $redirect = $current_folder_id 
         ? "../documents/browse.php?folder=$current_folder_id&success=uploaded" 
         : "../documents/browse.php?success=uploaded";

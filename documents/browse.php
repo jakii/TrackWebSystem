@@ -142,90 +142,81 @@ $view = $_GET['view'] ?? 'list';
         </div>
         <!-- ================== UPLOAD MODAL ================== -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content shadow-lg rounded-4 border-0">
-            <div class="modal-header" style="background-color:#004F80;color:white;">
-                <h5 class="modal-title" id="uploadModalLabel">
-                    <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header" style="background-color:#004F80;color:white;">
+        <h5 class="modal-title" id="uploadModalLabel">
+          <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+          <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
+
+          <!-- Upload Files -->
+          <div class="mb-4">
+            <label for="documents" class="form-label fw-bold">
+              Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
+            </label>
+            <div id="drop-zone"
+                 class="border border-2 border-dashed rounded-4 p-5 text-center bg-light"
+                 style="cursor:pointer;">
+              <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+              <p class="mb-1 fw-semibold">Drag & drop files here</p>
+              <small class="text-muted">or click to select files</small>
             </div>
 
-            <div class="modal-body">
-                <form method="POST" enctype="multipart/form-data" id="uploadForm">
-                    <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
+            <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip,.rar,.mp4">
+            <div id="file-list" class="mt-3 small text-muted"></div>
+          </div>
 
-                    <!-- Upload Files -->
-                    <div class="mb-4">
-                        <label for="documents" class="form-label fw-bold">
-                            Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
-                        </label>
-                        <div id="drop-zone" 
-                             class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" 
-                             style="cursor:pointer;">
-                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                            <p class="mb-1 fw-semibold">Drag & drop files here</p>
-                            <small class="text-muted">or click to select files</small>
-                        </div>
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label fw-bold">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+          </div>
 
-                        <!-- Hidden File Input -->
-                        <input 
-                            type="file" 
-                            class="form-control d-none" 
-                            id="documents" 
-                            name="documents[]" 
-                            multiple 
-                            required
-                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip,.rar,.mp4">
+          <!-- Category -->
+          <div class="mb-3">
+            <label for="category_id" class="form-label fw-bold">
+              Category <span class="text-danger me-4" style="font-size:1.5em;">*</span>
+            </label>
+            <select class="form-select" id="category_id" name="category_id" required>
+              <option value="">Select a category</option>
+              <?php foreach ($categories as $category): ?>
+                <option value="<?php echo $category['id']; ?>">
+                  <?php echo htmlspecialchars($category['name']); ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
 
-                        <!-- File list / Validation output -->
-                        <div id="file-list" class="mt-3 small text-muted"></div>
-                    </div>
+          <!-- Tags -->
+          <div class="mb-3">
+            <label for="tags" class="form-label fw-bold">Tags</label>
+            <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
+          </div>
 
-                    <!-- Description -->
-                    <div class="mb-3">
-                        <label for="description" class="form-label fw-bold">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    </div>
+          <!-- Public Option -->
+          <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
+            <label class="form-check-label" for="is_public">Make this document public</label>
+          </div>
 
-                    <!-- Category -->
-                    <div class="mb-3">
-                        <label for="category_id" class="form-label fw-bold">
-                            Category <span class="text-danger me-4" style="font-size:1.5em;">*</span>
-                        </label>
-                        <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Select a category</option>
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id']; ?>">
-                                    <?php echo htmlspecialchars($category['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Tags -->
-                    <div class="mb-3">
-                        <label for="tags" class="form-label fw-bold">Tags</label>
-                        <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
-                    </div>
-
-                    <!-- Public Option -->
-                    <div class="form-check mb-3">
-                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
-                        <label class="form-check-label" for="is_public">Make this document public</label>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="upload" class="btn" style="background-color:#004F80;color:white;">
-                            <i class="fas fa-upload me-2"></i> Upload
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+          <!-- Buttons -->
+          <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" name="upload" class="btn" style="background-color:#004F80;color:white;">
+              <i class="fas fa-upload me-2"></i> Upload
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- External JS -->
