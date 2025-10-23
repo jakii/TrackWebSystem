@@ -201,6 +201,7 @@ $view = $_GET['view'] ?? 'list';
                                     <i class="fas fa-upload me-2"></i> Upload
                                 </button>
                             </div>
+                            <script src="../assets/js/upload_preview.js"></script>
                         </form>
                     </div>
                     <Script>
