@@ -40,7 +40,7 @@ if (isset($_POST['upload'])) {
         <h4 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Document</h4>
       </div>
       <div class="card-body p-4 bg-light">
-        <form method="POST" action="../api/api_upload.php" class="needs-validation" novalidate>
+        <form method="POST" action="../api/api_upload.php" enctype="multipart/form-data" class="needs-validation" novalidate>
           <!-- Drag and Drop Upload -->
           <div class="mb-4">
             <label class="form-label fw-semibold" for="documents">Upload Files <span class="text-danger">*</span></label>
