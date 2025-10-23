@@ -152,7 +152,7 @@ $view = $_GET['view'] ?? 'list';
             </div>
 
             <div class="modal-body">
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
                     <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
 
                     <!-- Upload Files -->
@@ -160,13 +160,25 @@ $view = $_GET['view'] ?? 'list';
                         <label for="documents" class="form-label fw-bold">
                             Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
                         </label>
-                        <div id="drop-zone" class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" style="cursor:pointer;">
+                        <div id="drop-zone" 
+                             class="border border-2 border-dashed rounded-4 p-5 text-center bg-light" 
+                             style="cursor:pointer;">
                             <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
                             <p class="mb-1 fw-semibold">Drag & drop files here</p>
                             <small class="text-muted">or click to select files</small>
                         </div>
 
-                        <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required>
+                        <!-- Hidden File Input -->
+                        <input 
+                            type="file" 
+                            class="form-control d-none" 
+                            id="documents" 
+                            name="documents[]" 
+                            multiple 
+                            required
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip,.rar,.mp4">
+
+                        <!-- File list / Validation output -->
                         <div id="file-list" class="mt-3 small text-muted"></div>
                     </div>
 

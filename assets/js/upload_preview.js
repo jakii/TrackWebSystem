@@ -53,47 +53,69 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Display selected files with validation ---
-    function displayFiles() {
-        fileList.innerHTML = '';
-        let hasError = false;
+function displayFiles() {
+    fileList.innerHTML = '';
+    let hasError = false;
 
-        Array.from(fileInput.files).forEach(file => {
-            const fileName = file.name;
-            const ext = fileName.split('.').pop().toLowerCase();
-            const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-            let error = '';
+    const allowedExtensions = [
+        'pdf','doc','docx','xls','xlsx','ppt','pptx','txt',
+        'jpg','jpeg','png','zip','rar','mp4'
+    ];
 
-            if (!allowedExtensions.includes(ext)) {
-                error = 'Invalid file type';
-                hasError = true;
-            } else if (file.size > maxFileSize) {
-                error = 'File too large (max 50MB)';
-                hasError = true;
-            }
+    const allowedMIMEs = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'application/zip',
+        'application/x-rar-compressed',
+        'video/mp4'
+    ];
 
-            const fileItem = document.createElement('div');
-            fileItem.className = 'border rounded-3 p-2 mb-2 bg-white shadow-sm';
+    const maxFileSize = 50 * 1024 * 1024; // 50MB
 
-            fileItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-file me-2 text-secondary"></i>${fileName}</span>
-                    <small class="text-muted">${fileSize}</small>
-                </div>
-                ${error ? `<div class="text-danger small mt-1">${error}</div>` : ''}
-            `;
+    Array.from(fileInput.files).forEach(file => {
+        const fileName = file.name;
+        const ext = fileName.split('.').pop().toLowerCase();
+        const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        let error = '';
 
-            fileList.appendChild(fileItem);
-        });
-
-        // Disable upload button if invalid or empty
-        uploadBtn.disabled = hasError || fileInput.files.length === 0;
-        uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
-
-        // Hide/show file asterisk
-        if (fileInput.files.length > 0) {
-            fileAsterisk?.classList.add('d-none');
-        } else {
-            fileAsterisk?.classList.remove('d-none');
+        if (!allowedExtensions.includes(ext) || !allowedMIMEs.includes(file.type)) {
+            error = 'Invalid MIME type or file extension';
+            hasError = true;
+        } else if (file.size > maxFileSize) {
+            error = 'File too large (max 50MB)';
+            hasError = true;
         }
+
+        const fileItem = document.createElement('div');
+        fileItem.className = 'border rounded-3 p-2 mb-2 bg-white shadow-sm';
+
+        fileItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-file me-2 text-secondary"></i>${fileName}</span>
+                <small class="text-muted">${fileSize}</small>
+            </div>
+            ${error ? `<div class="text-danger small mt-1">${error}</div>` : ''}
+        `;
+
+        fileList.appendChild(fileItem);
+    });
+
+    uploadBtn.disabled = hasError || fileInput.files.length === 0;
+    uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
+
+    if (fileInput.files.length > 0) {
+        fileAsterisk?.classList.add('d-none');
+    } else {
+        fileAsterisk?.classList.remove('d-none');
     }
+}
+
 });
