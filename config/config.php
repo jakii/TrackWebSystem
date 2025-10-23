@@ -13,7 +13,7 @@ if ($isLocalhost) {
     define('DB_PASS', 'Rey123**');
 }
 
-define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
+define('APP_NAME', 'Track|Tvet Record and Archival Control Kiosk');
 
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -27,16 +27,19 @@ define('ALLOWED_EXTENSIONS', [
     'gif', 'zip', 'rar', 'xlsx', 'xls', 'ppt', 'pptx'
 ]);
 
+// Session timeout: 1 hour
 define('SESSION_TIMEOUT', 3600);
 define('CSRF_TOKEN_NAME', 'csrf_token');
 define('ITEMS_PER_PAGE', 10);
 
 date_default_timezone_set('Asia/Manila');
 
+// Start session globally
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// CSRF token helpers
 function generateCSRFToken() {
     if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
         $_SESSION[CSRF_TOKEN_NAME] = bin2hex(random_bytes(32));
@@ -48,17 +51,24 @@ function validateCSRFToken($token) {
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
 }
 
+// User authentication helpers
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
 function logout() {
+    require_once __DIR__ . '/database.php';
+    if (isset($_SESSION['user_id'])) {
+        $stmt = $db->prepare("UPDATE users SET is_logged_in = 0 WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+    }
     session_unset();
     session_destroy();
-    header('Location: ' . BASE_URL . 'auth/login.php');
+    header('Location: ' . BASE_URL . 'auth/login.php?session=expired');
     exit();
 }
 
+// Check session timeout
 function checkSessionTimeout() {
     if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time']) > SESSION_TIMEOUT) {
         logout();
@@ -67,6 +77,7 @@ function checkSessionTimeout() {
     }
 }
 
+// File formatting helpers
 function formatFileSize($bytes) {
     $units = ['B', 'KB', 'MB', 'GB'];
     $bytes = max($bytes, 0);

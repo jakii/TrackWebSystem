@@ -1,59 +1,66 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
+// Ensure database connection
 if (!isset($db) || $db === null) {
-    $configPath = __DIR__ . '/../config/config.php';
-    $dbPath = __DIR__ . '/../config/database.php';
-
-    if (file_exists($configPath)) {
-        require_once $configPath;
-    }
-    if (file_exists($dbPath)) {
-        require_once $dbPath;
-    }
+    require_once __DIR__ . '/../config/database.php';
 }
-//Start the session if not already started
+
+// Start session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-//Check if isLoggedIn() is already declared
+// Check if user is logged in
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn() {
         return isset($_SESSION['user_id']) && is_numeric($_SESSION['user_id']);
     }
 }
 
-//Check if user is admin
+// Check admin roles
 function isAdmin() {
     return isset($_SESSION['user_role']) && 
            in_array($_SESSION['user_role'], ['admin', 'superadmin'], true);
 }
 
-//Redirect to login if not authenticated
+// Auth required check
 function requireAuth() {
+    global $db;
+
     if (!isLoggedIn()) {
         header('Location: auth/login.php');
         exit();
     }
 
-    require_once __DIR__ . '/../config/database.php';
-    global $db;
-
+    // Validate user existence
     $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch();
 
     if (!$user) {
-        // Deleted na ang user — destroy session at redirect sa login
         session_unset();
         session_destroy();
         header('Location: auth/login.php');
         exit();
     }
+
+    // Check for session timeout
+    $timeout = defined('SESSION_TIMEOUT') ? SESSION_TIMEOUT : 3600;
+    if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time'] > $timeout)) {
+        $update = $db->prepare("UPDATE users SET is_logged_in = 0 WHERE id = ?");
+        $update->execute([$_SESSION['user_id']]);
+
+        session_unset();
+        session_destroy();
+        header("Location: auth/login.php?session=expired");
+        exit();
+    } else {
+        $_SESSION['login_time'] = time(); // refresh session
+    }
 }
 
-//Redirect to dashboard if not admin
+// Admin-only pages
 function requireAdmin() {
     requireAuth();
     if (!isAdmin()) {
@@ -62,17 +69,14 @@ function requireAdmin() {
     }
 }
 
-//Get current logged-in user info
+// Fetch current user info
 function getCurrentUser() {
-    if (!isLoggedIn()) {
-        return null;
-    }
-    
-    require_once __DIR__ . '/../config/database.php';
     global $db;
-    
-    $user_query = $db->prepare("SELECT * FROM users WHERE id = ?");
-    $user_query->execute([$_SESSION['user_id']]);
-    return $user_query->fetch();
+
+    if (!isLoggedIn()) return null;
+
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    return $stmt->fetch();
 }
 ?>
