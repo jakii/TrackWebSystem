@@ -24,7 +24,7 @@ define('UPLOAD_DIR', __DIR__ . '/../documents/uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', [
     'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png',
-    'gif', 'zip', 'rar', 'xlsx', 'xls', 'ppt', 'pptx'
+    'gif', 'zip', 'rar', 'xlsx', 'xls', 'ppt', 'pptx','mp4'
 ]);
 
 // Session timeout: 1 hour
@@ -102,7 +102,8 @@ function getFileIcon($extension) {
         'xlsx' => 'fas fa-file-excel text-success',
         'xls' => 'fas fa-file-excel text-success',
         'ppt' => 'fas fa-file-powerpoint text-danger',
-        'pptx' => 'fas fa-file-powerpoint text-danger'
+        'pptx' => 'fas fa-file-powerpoint text-danger',
+        'mp4' => 'fas fa-file-video text-purple'
     ];
     return $icons[strtolower($extension)] ?? 'fas fa-file text-primary';
 }

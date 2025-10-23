@@ -113,26 +113,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         exit();
     }
 
-    foreach ($_FILES['documents']['name'] as $i => $name) {
-        $tmp_file  = $_FILES['documents']['tmp_name'][$i];
-        $file_size = $_FILES['documents']['size'][$i];
-        $file_type = $_FILES['documents']['type'][$i];
-        $file_error  = $_FILES['documents']['error'][$i];
+    $skipped_files = [];
 
-        if ($file_error !== UPLOAD_ERR_OK) continue;
+    foreach ($_FILES['documents']['name'] as $i => $name) {
+        $tmp_file   = $_FILES['documents']['tmp_name'][$i];
+        $file_size  = $_FILES['documents']['size'][$i];
+        $file_type  = $_FILES['documents']['type'][$i];
+        $file_error = $_FILES['documents']['error'][$i];
+
+        if ($file_error !== UPLOAD_ERR_OK) {
+            $skipped_files[] = "$name (upload error)";
+            continue;
+        }
 
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $base_name = pathinfo($name, PATHINFO_FILENAME);
 
-        if (!in_array($ext, ALLOWED_EXTENSIONS)) continue;
-        if ($file_size > MAX_FILE_SIZE) continue;
+        // Allow only whitelisted extensions (includes common videos)
+        if (!in_array($ext, ALLOWED_EXTENSIONS)) {
+            $skipped_files[] = "$name (invalid file type)";
+            continue;
+        }
 
-        $title = $base_name;
+        // Check real MIME type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime  = finfo_file($finfo, $tmp_file);
+        finfo_close($finfo);
 
-        // ✅ Check for duplicate filenames and auto-rename
+        $allowed_mime_prefixes = ['application/', 'image/', 'video/'];
+        if (!preg_match('/^(' . implode('|', $allowed_mime_prefixes) . ')/', $mime)) {
+            $skipped_files[] = "$name (invalid MIME type)";
+            continue;
+        }
+
+        // Check file size
+        if ($file_size > MAX_FILE_SIZE) {
+            $skipped_files[] = "$name (too large)";
+            continue;
+        }
+
+        // Handle duplicates
         $counter = 1;
         $new_name = $name;
-
         while (true) {
             $duplicate_check = $db->prepare("
                 SELECT COUNT(*) FROM documents 
@@ -140,23 +162,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             ");
             $duplicate_check->execute([$new_name, $current_folder_id, $current_folder_id]);
             $exists = $duplicate_check->fetchColumn();
-
-            if ($exists == 0) break; // no duplicate found, stop loop
-
-            // Rename e.g., "report.pdf" → "report (1).pdf"
+            if ($exists == 0) break;
             $new_name = $base_name . " ($counter)." . $ext;
             $counter++;
         }
 
-        // Now we use $new_name for DB (as original_filename) and $title for title
         $title = pathinfo($new_name, PATHINFO_FILENAME);
 
+        // Check storage again before each file
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
             echo "<script>alert('Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
             exit();
         }
 
+        // Generate unique filename and move file
         $unique_filename = uniqid() . "_" . time() . "." . $ext;
         $destination = UPLOAD_DIR . $unique_filename;
 
@@ -197,7 +217,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             ]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
+        } else {
+            $skipped_files[] = "$name (failed to move)";
         }
+    }
+
+    // Optional: Show skipped file summary
+    if (!empty($skipped_files)) {
+        $msg = implode("\\n", $skipped_files);
+        echo "<script>alert('Some files were skipped:\\n$msg');</script>";
     }
 
     $redirect = $current_folder_id 
@@ -207,7 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     echo "<script>window.location.href='$redirect';</script>";
     exit();
 }
-
 
 $current_folder_id = $_GET['folder'] ?? null;
 $current_folder = null;
