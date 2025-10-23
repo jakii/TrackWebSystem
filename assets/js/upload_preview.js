@@ -3,16 +3,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('documents');
     const fileList = document.getElementById('file-list');
     const uploadBtn = document.querySelector('button[name="upload"]');
+    const categorySelect = document.getElementById('category_id');
 
-    if (!dropZone || !fileInput || !fileList || !uploadBtn) return;
+    if (!dropZone || !fileInput || !fileList || !uploadBtn || !categorySelect) return;
 
     const allowedExtensions = [
         'pdf','doc','docx','xls','xlsx','ppt','pptx','txt',
-        'jpg','jpeg','png','gif',
-        'mp4','mov','avi','mkv','wmv'
+        'jpg','jpeg','png','zip','rar',
+        'mp4'
     ];
     const maxFileSize = 50 * 1024 * 1024; // 50MB
 
+    // Required field indicators
+    const fileAsterisk = document.querySelector('label[for="documents"] span.text-danger');
+    const categoryAsterisk = document.querySelector('label[for="category_id"] span.text-danger');
+
+    // --- Drop zone events ---
     dropZone.addEventListener('click', () => fileInput.click());
 
     dropZone.addEventListener('dragover', (e) => {
@@ -27,12 +33,26 @@ document.addEventListener('DOMContentLoaded', () => {
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('bg-primary-subtle');
-        fileInput.files = e.dataTransfer.files;
-        displayFiles();
+        const droppedFiles = e.dataTransfer.files;
+        if (droppedFiles.length > 0) {
+            fileInput.files = droppedFiles;
+            displayFiles();
+        }
     });
 
+    // --- File input change ---
     fileInput.addEventListener('change', displayFiles);
 
+    // --- Category change ---
+    categorySelect.addEventListener('change', () => {
+        if (categorySelect.value) {
+            categoryAsterisk?.classList.add('d-none');
+        } else {
+            categoryAsterisk?.classList.remove('d-none');
+        }
+    });
+
+    // --- Display selected files with validation ---
     function displayFiles() {
         fileList.innerHTML = '';
         let hasError = false;
@@ -65,30 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.appendChild(fileItem);
         });
 
+        // Disable upload button if invalid or empty
         uploadBtn.disabled = hasError || fileInput.files.length === 0;
         uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('documents');
-    const categorySelect = document.getElementById('category_id');
 
-    const fileAsterisk = document.querySelector('label[for="documents"] span.text-danger');
-    const categoryAsterisk = document.querySelector('label[for="category_id"] span.text-danger');
-
-    fileInput.addEventListener('change', () => {
+        // Hide/show file asterisk
         if (fileInput.files.length > 0) {
             fileAsterisk?.classList.add('d-none');
         } else {
             fileAsterisk?.classList.remove('d-none');
         }
-    });
-
-    categorySelect.addEventListener('change', () => {
-        if (categorySelect.value) {
-            categoryAsterisk?.classList.add('d-none');
-        } else {
-            categoryAsterisk?.classList.remove('d-none');
-        }
-    });
+    }
 });

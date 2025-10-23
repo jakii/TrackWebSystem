@@ -152,7 +152,7 @@ $view = $_GET['view'] ?? 'list';
             </div>
 
             <div class="modal-body">
-                <form method="POST" action="../api/api_browse.php" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
 
                     <!-- Upload Files -->
