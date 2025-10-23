@@ -10,7 +10,7 @@ $category_query = $db->prepare("SELECT * FROM categories ORDER BY name");
 $category_query->execute();
 $categories = $category_query->fetchAll();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     if (!isset($_FILES['documents']) || empty($_FILES['documents']['name'][0])) {
         $error = "Please select at least one file.";
     } else {
@@ -79,12 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
             }
         }
-        if ($uploadSuccess) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error']);
-        }
-
     }
 }
 ?>

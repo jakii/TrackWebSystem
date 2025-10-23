@@ -33,8 +33,8 @@ if (isset($_POST['upload'])) {
 }
 ?>
 <div class="row mb-5 mt-4 justify-content-center">
+  <script src="../assets/js/upload.js"></script>
   <div class="col-lg-8">
-    <script src="../assets/js/upload.js"></script>
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
       <div class="card-header text-white py-3" style="background: linear-gradient(90deg, #004F80, #0078AA);">
         <h4 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Document</h4>
