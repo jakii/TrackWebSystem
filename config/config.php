@@ -13,7 +13,7 @@ if ($isLocalhost) {
     define('DB_PASS', 'Rey123**');
 }
 
-define('APP_NAME', 'Track|Tvet Record and Archival Control Kiosk');
+define('APP_NAME', 'Tvet Record and Archival Control Kiosk');
 
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
