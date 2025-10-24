@@ -52,9 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   fileInput.addEventListener('change', displayFiles);
-  // set initial state
-  displayFiles();
 
+  // Hide/show asterisk for category
   categorySelect.addEventListener('change', () => {
     if (categorySelect.value) {
       categorySelect.classList.remove('is-invalid');
@@ -63,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (categoryAsterisk) categoryAsterisk.classList.remove('d-none');
     }
   });
+
+  // Initialize both asterisks on page load
+  updateAsterisks();
 
   function displayFiles() {
     fileList.innerHTML = '';
@@ -98,12 +100,23 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadBtn.disabled = hasError || fileInput.files.length === 0;
     uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
 
-    // toggle file asterisk
+    updateAsterisks();
+  }
+
+  function updateAsterisks() {
     if (fileAsterisk) {
       if (fileInput.files && fileInput.files.length > 0) {
         fileAsterisk.classList.add('d-none');
       } else {
         fileAsterisk.classList.remove('d-none');
+      }
+    }
+
+    if (categoryAsterisk) {
+      if (categorySelect.value) {
+        categoryAsterisk.classList.add('d-none');
+      } else {
+        categoryAsterisk.classList.remove('d-none');
       }
     }
   }
