@@ -158,7 +158,7 @@ $view = $_GET['view'] ?? 'list';
                   <!-- Upload Files -->
                   <div class="mb-4">
                     <label for="documents" class="form-label fw-bold">
-                      Upload Files <span class="text-danger" style="font-size:1.5em;">*</span>
+                      Upload Files <span id="file-asterisk" class="text-danger" style="font-size:1.5em;">*</span>
                     </label>
                     <div id="drop-zone"
                          class="border border-2 border-dashed rounded-4 p-5 text-center bg-light"
