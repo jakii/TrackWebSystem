@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('file-list');
   const uploadBtn = document.querySelector('button[name="upload"]');
   const categorySelect = document.getElementById('category_id');
+  const fileAsterisk = document.getElementById('file-asterisk');
+  const categoryAsterisk = document.getElementById('category-asterisk');
 
   if (!dropZone || !fileInput || !fileList || !uploadBtn || !categorySelect) return;
 
@@ -28,10 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     'application/x-zip-compressed',
     'application/x-rar-compressed',
     'video/mp4',
-    'application/octet-stream' // fallback
+    'application/octet-stream'
   ];
 
-  const maxFileSize = 50 * 1024 * 1024; // 50MB
+  const maxFileSize = 50 * 1024 * 1024;
 
   // Drop Zone
   dropZone.addEventListener('click', () => fileInput.click());
@@ -50,9 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   fileInput.addEventListener('change', displayFiles);
+  // set initial state
+  displayFiles();
+
   categorySelect.addEventListener('change', () => {
     if (categorySelect.value) {
       categorySelect.classList.remove('is-invalid');
+      if (categoryAsterisk) categoryAsterisk.classList.add('d-none');
+    } else {
+      if (categoryAsterisk) categoryAsterisk.classList.remove('d-none');
     }
   });
 
@@ -68,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!allowedExtensions.includes(ext) ||
          (!allowedMIMEs.includes(file.type) && file.type !== '')) {
-        error = 'Invalid MIME type or file extension';
+        error = 'Invalid file type';
         hasError = true;
       } else if (file.size > maxFileSize) {
         error = 'File too large (max 50MB)';
@@ -89,5 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     uploadBtn.disabled = hasError || fileInput.files.length === 0;
     uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
+
+    // toggle file asterisk
+    if (fileAsterisk) {
+      if (fileInput.files && fileInput.files.length > 0) {
+        fileAsterisk.classList.add('d-none');
+      } else {
+        fileAsterisk.classList.remove('d-none');
+      }
+    }
   }
 });

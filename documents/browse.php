@@ -217,13 +217,9 @@ $view = $_GET['view'] ?? 'list';
       </div>
     </div>
   </div>
-</div>
-
-<!-- External JS -->
+  <!-- External JS -->
 <script src="../assets/js/upload_preview.js"></script>
-
-
-
+</div>
     <!-- ================== FOLDER MODALS ================== -->
     <!-- Create Folder -->
     <div class="modal fade" id="createFolderModal" tabindex="-1">
@@ -482,8 +478,8 @@ $view = $_GET['view'] ?? 'list';
                                                 <i class='fas fa-arrows-alt me-2'></i>Move
                                             </a>
                                         </li>
-                                        <li><a class="dropdown-item" href="documents/archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                        <li><a class="dropdown-item text-danger" href="documents/delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                        <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                        <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                     <?php endif; ?>
                                 </ul>
                             </div>
