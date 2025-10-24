@@ -54,9 +54,9 @@ require_once '../includes/header.php';
 ?>
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0 text-danger">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
                     <i class="fas fa-trash me-2"></i>Delete Document
                 </h4>
             </div>
@@ -65,16 +65,17 @@ require_once '../includes/header.php';
                 <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
                 
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Warning:</strong> This action cannot be undone!
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Important:</strong> Deleting this document will also remove it from anyone you’ve shared it with, 
+                    and it will be moved to the Recycle Bin.
                 </div>
                 
                 <p>Are you sure you want to delete the following document?</p>
                 
-                <div class="card bg-light">
+                <div class="card bg-light border-0">
                     <div class="card-body">
-                        <h6 class="card-title">
+                        <h6 class="card-title mb-1">
                             <i class="<?php echo getFileIcon(pathinfo($document['filename'], PATHINFO_EXTENSION)); ?> me-2"></i>
                             <?php echo htmlspecialchars($document['title']); ?>
                         </h6>
@@ -92,9 +93,11 @@ require_once '../includes/header.php';
                     <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php'); ?>">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="<?php echo htmlspecialchars($_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php'); ?>" 
-                           class="btn btn-secondary me-md-2">Cancel</a>
+                           class="btn btn-secondary me-md-2">
+                           <i class="fas fa-times me-1"></i>Cancel
+                        </a>
                         <button type="submit" name="confirm_delete" class="btn btn-danger">
-                            <i class="fas fa-trash me-2"></i>Delete Document
+                            <i class="fas fa-trash me-2"></i>Delete
                         </button>
                     </div>
                 </form>               

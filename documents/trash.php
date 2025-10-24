@@ -151,7 +151,7 @@ requireAuth();
       : "Delete selected documents permanently?";
     let textMsg = action === "restore"
       ? "This will restore the selected documents."
-      : "This will permanently delete the selected documents, including those in the archive and any shared copies. This action cannot be undone.";
+      : "This will permanently delete the selected documents, including those any shared copies. This action cannot be undone.";
 
     Swal.fire({
       title: titleText,

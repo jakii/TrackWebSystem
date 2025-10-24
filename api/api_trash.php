@@ -7,6 +7,51 @@ requireAuth();
 $user_id  = $_SESSION['user_id'] ?? null;
 $is_admin = isAdmin();
 
+// === PERMANENT DELETE ALL ===
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_all'])) {
+
+    if ($is_admin) {
+        // Admin: lahat ng trash documents
+        $stmt = $db->query("SELECT file_path FROM documents WHERE is_deleted = 1");
+        $docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($docs as $doc) {
+            if (!empty($doc['file_path'])) {
+                $file_path = __DIR__ . '/../uploads/' . basename($doc['file_path']);
+                if (file_exists($file_path)) {
+                    unlink($file_path);
+                }
+            }
+        }
+
+        // Delete records sa database
+        $db->exec("DELETE FROM documents WHERE is_deleted = 1");
+
+    } else {
+        // Regular user: sarili lang niyang trash documents
+        $stmt = $db->prepare("SELECT file_path FROM documents WHERE is_deleted = 1 AND uploaded_by = ?");
+        $stmt->execute([$user_id]);
+        $docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($docs as $doc) {
+            if (!empty($doc['file_path'])) {
+                $file_path = __DIR__ . '/../uploads/' . basename($doc['file_path']);
+                if (file_exists($file_path)) {
+                    unlink($file_path);
+                }
+            }
+        }
+
+        $delete_stmt = $db->prepare("DELETE FROM documents WHERE is_deleted = 1 AND uploaded_by = ?");
+        $delete_stmt->execute([$user_id]);
+    }
+
+    // Redirect after delete
+    header("Location: trash.php?deleted_all=1");
+    exit;
+}
+
+// === FETCH TRASH DOCUMENTS ===
 if ($is_admin) {
     $stmt = $db->query("
         SELECT d.*, 
@@ -37,3 +82,4 @@ if ($is_admin) {
 }
 
 $trash_documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
