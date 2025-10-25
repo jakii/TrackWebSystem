@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../config/database.php';
+require_once '../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $folder_id = (int)$_POST['folder_id'];

@@ -70,9 +70,9 @@ require_once '../includes/header.php';
                     <strong>Important:</strong> Deleting this document will also remove it from anyone you’ve shared it with, 
                     and it will be moved to the Recycle Bin.
                 </div>
-                
-                <p>Are you sure you want to delete the following document?</p>
-                
+
+                <p>Do you want to Proceed?</p>
+
                 <div class="card bg-light border-0">
                     <div class="card-body">
                         <h6 class="card-title mb-1">
@@ -94,10 +94,10 @@ require_once '../includes/header.php';
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="<?php echo htmlspecialchars($_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php'); ?>" 
                            class="btn btn-secondary me-md-2">
-                           <i class="fas fa-times me-1"></i>Cancel
+                           <i class="fas fa-times me-1"></i>No
                         </a>
                         <button type="submit" name="confirm_delete" class="btn btn-danger">
-                            <i class="fas fa-trash me-2"></i>Delete
+                            <i class="fas fa-trash me-2"></i>Yes
                         </button>
                     </div>
                 </form>               

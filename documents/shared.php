@@ -296,12 +296,12 @@ $mark_read->execute([$_SESSION['user_id']]);
               File Description
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
-            <input type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required>
+            <textarea type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required></textarea>
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold" for="reason">
-              Reason
+              Purpose
               <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
             </label>
             <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>

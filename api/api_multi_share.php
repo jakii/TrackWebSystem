@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
             $document = $db->query("SELECT * FROM documents WHERE id=$doc_id")->fetch();
             
             if (!$document || ($document['uploaded_by'] != $_SESSION['user_id'] && !isAdmin() && $document['visibility'] != 'public')) {
-                $failed_msgs[] = "Document ID $doc_id not found or access denied.";
+                $failed_msgs[] = "Document '{$document['title']}' not found or access denied.";
                 continue;
             }
 
@@ -45,17 +45,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
 
                 $exists = $db->query("SELECT id FROM document_shares WHERE document_id=$doc_id AND shared_with={$share_user['id']}")->fetch();
                 if ($exists) {
-                    $failed_msgs[] = "Already shared Document ID $doc_id with {$share_user['username']}";
+                    $failed_msgs[] = "Already shared '{$document['title']}' with {$share_user['username']}";
                     continue;
                 }
 
                 $insert = $db->query("INSERT INTO document_shares (document_id, shared_with, shared_by, permission) 
                                       VALUES ($doc_id, {$share_user['id']}, {$_SESSION['user_id']}, '$permission')");
                 if ($insert) {
-                    $success_msgs[] = "Document ID $doc_id shared with {$share_user['username']} ({$permission})";
+                    $success_msgs[] = "Document '{$document['title']}' shared with {$share_user['username']} ({$permission})";
                     logActivity($db, $_SESSION['user_id'], "Shared document '{$document['title']}' (ID: $doc_id) with {$share_user['username']} permission: $permission");
                 } else {
-                    $failed_msgs[] = "Failed to share Document ID $doc_id with {$share_user['username']}";
+                    $failed_msgs[] = "Failed to share '{$document['title']}' with {$share_user['username']}";
                 }
             }
         }
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unshare_document'])) 
         $delete = $db->query("DELETE FROM document_shares WHERE id=$share_id AND shared_by={$_SESSION['user_id']}");
         if ($delete) {
             logActivity($db, $_SESSION['user_id'], "Removed sharing (ID: $share_id)");
-            $success = 'Sharing removed successfully.';
+            $success = 'Sharing removed.';
         } else {
             $error = 'Failed to remove sharing.';
         }
