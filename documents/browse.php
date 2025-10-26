@@ -42,7 +42,6 @@ $view = $_GET['view'] ?? 'list';
         <?php if (isset($_SESSION['alert_message'])): ?>
             <div id="autoAlert" class="alert alert-<?php echo $_SESSION['alert_type'] ?? 'info'; ?> alert-success fade show mt-3 mx-auto text-center shadow-sm" style="max-width:500px;">
                 <?php echo $_SESSION['alert_message']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             <?php 
             unset($_SESSION['alert_message']);
