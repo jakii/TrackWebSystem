@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
             // Log activity
             $user_id = $_SESSION['user_id'];
             $doc_title = $document['title'] ?? 'Unknown';
-            logActivity($db, $user_id, "Deleted document: {$doc_title} (ID: {$document_id})");
+            logActivity($db, $user_id, "Deleted document: {$doc_title}");
             $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? '../dashboard.php';
             header("Location: $redirect?success=Document moved to trash.");
             exit();

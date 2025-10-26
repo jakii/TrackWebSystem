@@ -3,7 +3,7 @@ require_once 'includes/auth_check.php';
 require_once 'config/database.php';
 requireAuth();
 
-require_once 'vendor/autoload.php'; // For Excel/PDF export (PhpSpreadsheet & TCPDF if installed)
+require_once 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -16,7 +16,7 @@ $exportType = $_GET['export'] ?? null;
 
 // Base query
 $query = "
-    SELECT r.id, r.title, r.created_at, u.username AS uploaded_by
+    SELECT r.id, r.title, r.created_at, u.full_name AS uploaded_by
     FROM reports r
     JOIN users u ON r.uploaded_by = u.id
     WHERE 1=1
@@ -47,7 +47,7 @@ if ($exportType === 'excel' && count($reports) > 0) {
     $sheet->setTitle('Reports');
 
     // Headers
-    $headers = ['#', 'Title', 'Uploaded By', 'Date Uploaded'];
+    $headers = ['ID', 'Title', 'Uploaded By', 'Date Uploaded'];
     $col = 'A';
     foreach ($headers as $header) {
         $sheet->setCellValue($col.'1', $header);

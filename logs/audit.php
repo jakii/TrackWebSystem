@@ -19,7 +19,7 @@ $dateFilter = $_GET['date'] ?? '';
 $exportType = $_GET['export'] ?? null;
 
 // Base SQL
-$sql = "SELECT a.id, u.username, a.action AS message, a.created_at AS timestamp
+$sql = "SELECT a.id, u.full_name AS user, a.action AS message, a.created_at AS timestamp
         FROM activity_logs a
         LEFT JOIN users u ON a.user_id = u.id";
 
@@ -27,7 +27,7 @@ $conditions = [];
 
 if (!empty($userFilter)) {
     $userFilterEscaped = addslashes($userFilter);
-    $conditions[] = "u.username LIKE '%$userFilterEscaped%'";
+    $conditions[] = "u.full_name LIKE '%$userFilterEscaped%'";
 }
 
 if (!empty($dateFilter)) {
@@ -65,7 +65,7 @@ if ($exportType === 'excel' && count($recent_logs) > 0) {
     $row = 2;
     foreach ($recent_logs as $index => $log) {
         $sheet->setCellValue('A'.$row, $index + 1);
-        $sheet->setCellValue('B'.$row, $log['username'] ?? 'Unknown');
+        $sheet->setCellValue('B'.$row, $log['full_name'] ?? 'Unknown');
         $sheet->setCellValue('C'.$row, $log['message']);
         $sheet->setCellValue('D'.$row, date('M d, Y g:i A', strtotime($log['timestamp'])));
         $row++;
@@ -103,7 +103,7 @@ if ($exportType === 'pdf' && count($recent_logs) > 0) {
     foreach ($recent_logs as $index => $log) {
         $html .= "<tr>
             <td>" . ($index + 1) . "</td>
-            <td>" . htmlspecialchars($log['username'] ?? 'Unknown') . "</td>
+            <td>" . htmlspecialchars($log['full_name'] ?? 'Unknown') . "</td>
             <td>" . htmlspecialchars($log['message']) . "</td>
             <td>" . date('M d, Y g:i A', strtotime($log['timestamp'])) . "</td>
         </tr>";
@@ -184,7 +184,7 @@ include '../includes/header.php';
                             <?php foreach ($recent_logs as $index => $log): ?>
                                 <tr>
                                     <td><?= $index + 1 ?></td>
-                                    <td><?= htmlspecialchars($log['username'] ?? 'Unknown') ?></td>
+                                    <td><?= htmlspecialchars($log['full_name'] ?? 'Unknown') ?></td>
                                     <td><?= htmlspecialchars($log['message']) ?></td>
                                     <td><?= date('M d, Y g:i A', strtotime($log['timestamp'])) ?></td>
                                 </tr>

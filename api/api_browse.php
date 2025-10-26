@@ -252,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     }
 
     // Set success message and redirect
-    $_SESSION['alert_message'] = "Upload completed successfully!";
+    $_SESSION['alert_message'] = "Upload completed!";
     $_SESSION['alert_type'] = 'success';
     
     $redirect = $current_folder_id 
