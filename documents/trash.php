@@ -69,14 +69,6 @@ requireAuth();
   <div class="trash-card">
     <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Trash Bin</h4>
 
-    <!-- 🔔 Warning message -->
-    <div class="alert alert-warning d-flex align-items-center" style="font-size:0.95rem;">
-      <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
-      <div>
-        <strong>Note:</strong> Documents in the Trash will be <strong>automatically deleted after 30 days</strong> from the date they were deleted.
-      </div>
-    </div>
-
     <p class="text-muted mb-2">You can restore or permanently delete them before they expire.</p>
     <hr>
 
@@ -97,7 +89,7 @@ requireAuth();
             <th>Document Name</th>
             <th>Category</th>
             <th>Deleted At</th>
-            <th>Expires In</th> <!-- 🕒 Added column -->
+            <th>Expires In</th>
             <?php if ($is_admin): ?><th>Owner</th><?php endif; ?>
           </tr>
         </thead>
@@ -122,7 +114,7 @@ requireAuth();
             </td>
             <td><?= htmlspecialchars($doc['category_name']) ?></td>
             <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
-            <td class="<?= $expires_class ?>"><?= $expires_text ?></td> <!-- 🕒 Expiration info -->
+            <td class="<?= $expires_class ?>"><?= $expires_text ?></td>
             <?php if ($is_admin): ?>
               <td>
                 <div class="d-flex align-items-center">
