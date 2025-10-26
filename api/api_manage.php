@@ -9,15 +9,14 @@ $csrf_token = generateCSRFToken();
 
 // --- CREATE CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
-    $name = strtoupper(trim($_POST['category_name'] ?? ''));
-    $name = trim($_POST['category_name'] ?? '');
+    $name = strtoupper(trim($_POST['category_name'] ?? '')); // 🔹 force uppercase
     $description = trim($_POST['category_description'] ?? '');
     $color = trim($_POST['category_color'] ?? '#007bff');
 
     if (empty($name)) {
         $error = 'Category name is required.';
     } else {
-        $check_query = $db->prepare("SELECT id FROM categories WHERE name = ?");
+        $check_query = $db->prepare("SELECT id FROM categories WHERE UPPER(name) = ?");
         $check_query->execute([$name]);
 
         if ($check_query->fetch()) {
@@ -40,17 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
 
 // --- EDIT CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
-    $name = strtoupper(trim($_POST['category_name'] ?? ''));
     $id = (int)($_POST['category_id'] ?? 0);
-    $name = trim($_POST['category_name'] ?? '');
+    $name = strtoupper(trim($_POST['category_name'] ?? '')); // 🔹 force uppercase
     $description = trim($_POST['category_description'] ?? '');
     $color = trim($_POST['category_color'] ?? '#007bff');
 
     if ($id <= 0 || empty($name)) {
         $error = 'Invalid category data.';
     } else {
-        // Optional: Prevent duplicate name (excluding current ID)
-        $check_query = $db->prepare("SELECT id FROM categories WHERE name = ? AND id != ?");
+        // Prevent duplicate name (excluding current ID)
+        $check_query = $db->prepare("SELECT id FROM categories WHERE UPPER(name) = ? AND id != ?");
         $check_query->execute([$name, $id]);
 
         if ($check_query->fetch()) {
@@ -77,7 +75,7 @@ $category_list_query = $db->prepare("
     SELECT c.*, 
            COUNT(d.id) AS document_count,
            u.full_name AS creator_name,
-           UPPER(c.name) AS name
+           UPPER(c.name) AS name  -- 🔹 display uppercase always
     FROM categories c 
     LEFT JOIN documents d ON c.id = d.category_id 
     LEFT JOIN users u ON c.created_by = u.id
