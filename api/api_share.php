@@ -65,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $mail->addAddress($share_user['email'], $share_user['full_name'] ?? '');
 
                             $mail->isHTML(true);
-                            $mail->Subject = "📄 A Document Has Been Shared With You";
+                            $mail->Subject = "A Document Has Been Shared With You";
                             $mail->Body = "
                                 <p>Hello <strong>{$share_user['full_name']}</strong>,</p>
                                 <p>{$current_user_name} has shared the document <strong>{$doc_title}</strong> with you.</p>
                                 <p>Permission: <b>{$permission}</b></p>
-                                <p><a href='localhost/TrackWeb/documents/shared.php'>
+                                <p><a href='https://csutrack.site/documents/shared.php'>
                                     Click here to view the document
                                 </a></p>
                                 <p style='font-size:12px;color:#777'>TVET Record and Archival Control Kiosk</p>

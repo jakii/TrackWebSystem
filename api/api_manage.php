@@ -9,6 +9,7 @@ $csrf_token = generateCSRFToken();
 
 // --- CREATE CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
+    $name = strtoupper(trim($_POST['category_name'] ?? ''));
     $name = trim($_POST['category_name'] ?? '');
     $description = trim($_POST['category_description'] ?? '');
     $color = trim($_POST['category_color'] ?? '#007bff');
@@ -39,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
 
 // --- EDIT CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
+    $name = strtoupper(trim($_POST['category_name'] ?? ''));
     $id = (int)($_POST['category_id'] ?? 0);
     $name = trim($_POST['category_name'] ?? '');
     $description = trim($_POST['category_description'] ?? '');
