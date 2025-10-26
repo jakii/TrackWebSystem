@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $user_id = $_SESSION['user_id'];
             $doc_title = $document['title'] ?? 'Unknown';
-            logActivity($db, $user_id, "Unshared document: {$doc_title} (ID: {$document_id})");
+            logActivity($db, $user_id, "Unshared document: {$doc_title}");
         }
         header("Location: share.php?id=$document_id");
         exit();

@@ -22,23 +22,24 @@ require_once '../includes/preview_helpers.php';
                 </div>
 
             <div>
-               <a href="view.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;">
+               <a href="view.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;" title="View Document Details">
                    <i class="fas fa-info-circle me-2"></i>
                </a>
                <?php if ($document['uploaded_by'] == $_SESSION['user_id']): ?>
-                   <a href="share.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;">
+                   <a href="share.php?id=<?php echo $document['id']; ?>" class="btn" style="border:none;" title="Share Document">
                        <i class="fas fa-share me-2"></i>
                    </a>
                <?php endif; ?>
 
-    <!-- Print Button -->
-    <?php if (!$is_pdf): ?>
-    <button id="printBtn" 
-            class="btn" 
-            style="border:none;">
-        <i class="fas fa-print me-2"></i>
-    </button>
-    <?php endif; ?>
+        <!-- Print Button -->
+        <?php if (!$is_pdf): ?>
+        <button id="printBtn" 
+                class="btn" 
+                style="border:none;"
+                title="Print Document">
+            <i class="fas fa-print me-2"></i>
+        </button>
+        <?php endif; ?>
 </div>
 <script>
 document.getElementById('printBtn').addEventListener('click', function() {
