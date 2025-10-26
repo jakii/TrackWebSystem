@@ -130,7 +130,7 @@ if ($exportType === 'pdf' && count($reports) > 0) {
   <div class="card shadow rounded-4 border-0">
     <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom rounded-top-4">
       <h4 class="mb-0">
-        <i class="fas fa-file-alt me-2" style="color:#004F80;"></i> Reports
+        <i class="fas fa-file-alt me-2" style="color:#004F80;"></i> Weekly Uploaded Reports
       </h4>
       <a href="dashboard.php" class="btn btn-sm rounded-pill px-3" style="background-color: #2AB7CA; color: white; font-weight: 500;">Back</a>
     </div>
@@ -141,7 +141,7 @@ if ($exportType === 'pdf' && count($reports) > 0) {
           <table class="table table-striped align-middle">
             <thead>
               <tr>
-                <th>#</th>
+                <th>ID</th>
                 <th>Title</th>
                 <th>Uploaded By</th>
                 <th>Date Uploaded</th>

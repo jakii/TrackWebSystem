@@ -195,7 +195,7 @@ $mark_read->execute([$_SESSION['user_id']]);
             <th>Reason</th>
             <th>Denied Reason</th>
             <th>Status</th>
-            <th>Date</th>
+            <th>Date Requested</th>
             <th class="text-center">Actions</th>
           </tr>
         </thead>
