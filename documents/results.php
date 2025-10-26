@@ -110,12 +110,8 @@ $search = trim($_GET['search'] ?? '');
                                         <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actions<?= $item['id'] ?>">
-                                        <li>
-                                            <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $doc['id'] ?>">
-                                                <i class="fas fa-key me-2"></i>Request File
-                                            </a>
-                                        </li>
-                                        <li><a class="dropdown-item text-warning" href="view.php?id=<?= $item['id'] ?>"><i class="fas fa-info-circle me-2"></i> View Details</a></li>
+                                        <li><a class="dropdown-item" href="preview.php?id=<?= $item['id'] ?>"><i class="fas fa-eye me-2"></i> Preview</a></li>
+                                        <li><a class="dropdown-item" href="view.php?id=<?= $item['id'] ?>"><i class="fas fa-info-circle me-2"></i> View Details</a></li>
                                         <?php if ($item['uploaded_by'] == $_SESSION['user_id']): ?>
                                             <li><a class="dropdown-item" href="share.php?id=<?= $item['id'] ?>"><i class="fas fa-share me-2"></i> Share</a></li>
                                         <?php endif; ?>
