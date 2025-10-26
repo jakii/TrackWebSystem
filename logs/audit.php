@@ -19,7 +19,7 @@ $dateFilter = $_GET['date'] ?? '';
 $exportType = $_GET['export'] ?? null;
 
 // Base SQL
-$sql = "SELECT a.id, u.full_name AS user, a.action AS message, a.created_at AS timestamp
+$sql = "SELECT a.id, u.full_name AS full_name, a.action AS message, a.created_at AS timestamp
         FROM activity_logs a
         LEFT JOIN users u ON a.user_id = u.id";
 
