@@ -171,8 +171,8 @@ $mark_read->execute([$_SESSION['user_id']]);
     $user_id = $_SESSION['user_id'];
     $stmt = $db->prepare("
       SELECT fr.*, 
-             s.username AS sender_name, 
-             r.username AS recipient_name
+             s.full_name AS sender_name, 
+             r.full_name AS recipient_name
       FROM file_requests fr
       JOIN users s ON fr.sender_id = s.id
       JOIN users r ON fr.recipient_id = r.id
@@ -256,69 +256,70 @@ $mark_read->execute([$_SESSION['user_id']]);
           <?php endforeach; ?>
         </tbody>
       </table>
-    <?php endif; ?><!-- Request File Modal -->
-<div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-semibold text-dark">
-          <i class="fas fa-file-import me-2 text-primary"></i>Request a File
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <?php endif; ?>
+    <!-- Request File Modal -->
+    <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+          <div class="modal-header border-0">
+            <h5 class="modal-title fw-semibold text-dark">
+              <i class="fas fa-file-import me-2 text-primary"></i>Request a File
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
+            <div class="modal-body">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="recipient_id">
+                  Recipient (Email or Username)
+                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                </label>
+                <?php
+                $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $users = $stmt->fetchAll();
+                ?>
+                <select name="recipient_id" id="recipient_id" class="form-select" required>
+                  <option value="">-- Select User --</option>
+                  <?php foreach ($users as $u): ?>
+                    <option value="<?= $u['id']; ?>">
+                      <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+                <small class="text-muted">Select a user to request a file from.</small>
+              </div>
+                  
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="description">
+                  File Description
+                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                </label>
+                <textarea type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required></textarea>
+              </div>
+                  
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="reason">
+                  Purpose
+                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+                </label>
+                <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
+              </div>
+            </div>
+                  
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary"
+                style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
+                <i class="fas fa-paper-plane me-2"></i>Send Request
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
-        <div class="modal-body">
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="recipient_id">
-              Recipient (Email or Username)
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <?php
-            $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $users = $stmt->fetchAll();
-            ?>
-            <select name="recipient_id" id="recipient_id" class="form-select" required>
-              <option value="">-- Select User --</option>
-              <?php foreach ($users as $u): ?>
-                <option value="<?= $u['id']; ?>">
-                  <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <small class="text-muted">Select a user to request a file from.</small>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="description">
-              File Description
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <textarea type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="reason">
-              Purpose
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
-          </div>
-        </div>
-
-        <div class="modal-footer border-0">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary"
-            style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
-            <i class="fas fa-paper-plane me-2"></i>Send Request
-          </button>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
