@@ -68,8 +68,18 @@ requireAuth();
 <div class="container">
   <div class="trash-card">
     <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Trash Bin</h4>
-    <p class="text-muted">Documents you deleted will appear here. You can restore or permanently delete them.</p>
+
+    <!-- 🔔 Warning message -->
+    <div class="alert alert-warning d-flex align-items-center" style="font-size:0.95rem;">
+      <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+      <div>
+        <strong>Note:</strong> Documents in the Trash will be <strong>automatically deleted after 30 days</strong> from the date they were deleted.
+      </div>
+    </div>
+
+    <p class="text-muted mb-2">You can restore or permanently delete them before they expire.</p>
     <hr>
+
 <?php if (empty($trash_documents)): ?>
   <div class="alert alert-info">Trash is empty.</div>
 <?php else: ?>
@@ -78,55 +88,60 @@ requireAuth();
       <button type="submit" name="bulk_restore" class="btn btn-restore me-2">Restore</button>
       <button type="submit" name="bulk_delete" class="btn btn-delete">Delete</button>
     </div>
-<div class="table-responsive fade-in delay-2">
-  <table class="table trash-table align-middle mb-0">
-    <thead>
-      <tr>
-        <th><input type="checkbox" id="selectAll"></th>
-        <th>Document Name</th>
-        <th>Category</th>
-        <th>Deleted At</th>
-        <?php if ($is_admin): ?>
-          <th>Owner</th>
-        <?php endif; ?>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($trash_documents as $doc): ?>
-        <tr>
-          <td>
-            <input type="checkbox" name="selected_docs[]" value="<?= $doc['id'] ?>" class="doc-checkbox">
-          </td>
-          <td>
-            <div class="d-flex align-items-center">
-              <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2 text-secondary"></i>
-              <span><?= htmlspecialchars($doc['title']) ?></span>
-            </div>
-          </td>
-          <td><?= htmlspecialchars($doc['category_name']) ?></td>
-          <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
-          <?php if ($is_admin): ?>
+
+    <div class="table-responsive fade-in delay-2">
+      <table class="table trash-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>Document Name</th>
+            <th>Category</th>
+            <th>Deleted At</th>
+            <th>Expires In</th> <!-- 🕒 Added column -->
+            <?php if ($is_admin): ?><th>Owner</th><?php endif; ?>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+            $today = new DateTime();
+            foreach ($trash_documents as $doc):
+              $deleted_at = new DateTime($doc['deleted_at']);
+              $diff_days = 30 - $deleted_at->diff($today)->days;
+              $expires_text = $diff_days > 0
+                  ? "{$diff_days} day" . ($diff_days > 1 ? 's' : '') . " left"
+                  : "Expired";
+              $expires_class = $diff_days <= 5 ? 'text-danger fw-bold' : 'text-secondary';
+          ?>
+          <tr>
+            <td><input type="checkbox" name="selected_docs[]" value="<?= $doc['id'] ?>" class="doc-checkbox"></td>
             <td>
               <div class="d-flex align-items-center">
-                <?php 
-                  $initial = strtoupper(substr($doc['owner_name'], 0, 1)); 
-                ?>
-                <div style="width: 30px; height: 30px; border-radius: 50%;
-                            background: linear-gradient(135deg, #004F80, #0073b6);
-                            display: flex; align-items: center; justify-content: center;
-                            color: white; font-weight: 600; font-size: 0.8rem; margin-right: 8px;">
-                  <?= $initial ?>
-                </div>
-                <span><?= htmlspecialchars($doc['owner_name']) ?></span>
+                <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2 text-secondary"></i>
+                <span><?= htmlspecialchars($doc['title']) ?></span>
               </div>
             </td>
-          <?php endif; ?>
-        </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
-</div>
-
+            <td><?= htmlspecialchars($doc['category_name']) ?></td>
+            <td><?= date('M d, Y h:i A', strtotime($doc['deleted_at'])) ?></td>
+            <td class="<?= $expires_class ?>"><?= $expires_text ?></td> <!-- 🕒 Expiration info -->
+            <?php if ($is_admin): ?>
+              <td>
+                <div class="d-flex align-items-center">
+                  <?php $initial = strtoupper(substr($doc['owner_name'], 0, 1)); ?>
+                  <div style="width:30px;height:30px;border-radius:50%;
+                              background:linear-gradient(135deg,#004F80,#0073b6);
+                              display:flex;align-items:center;justify-content:center;
+                              color:white;font-weight:600;font-size:0.8rem;margin-right:8px;">
+                    <?= $initial ?>
+                  </div>
+                  <span><?= htmlspecialchars($doc['owner_name']) ?></span>
+                </div>
+              </td>
+            <?php endif; ?>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
   </form>
 <?php endif; ?>
 <script>
