@@ -93,9 +93,9 @@ require_once '../includes/header.php';
           <tbody>
           <?php foreach ($categories as $category): ?>
             <tr>
-              <td>
+              <td class="text-uppercase-display">
                 <a href="view_category.php?id=<?= $category['id']; ?>" 
-                   class="badge rounded-pill px-3 py-2 text-decoration-none" 
+                   class="badge rounded-pill px-3 py-2 text-decoration-none text-uppercase-display"
                    style="background-color:<?= htmlspecialchars($category['color']); ?>; color:white;">
                   <?= htmlspecialchars($category['name']); ?>
                 </a>
@@ -136,7 +136,7 @@ require_once '../includes/header.php';
         <input type="hidden" name="category_id" id="edit_category_id">
         <div class="mb-3">
           <label class="form-label">Category Name</label>
-          <input type="text" class="form-control" name="category_name" id="edit_category_name" required>
+          <input type="text" class="form-control text-uppercase" style="text-transform: uppercase;" name="category_name" id="edit_category_name" required>
         </div>
         <div class="mb-3">
           <label class="form-label">Description</label>
@@ -164,30 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = event.relatedTarget;
     if (!button) return;
 
-    // Get data attributes
     const id = button.getAttribute('data-id');
-    const name = button.getAttribute('data-name') || '';
+    const name = (button.getAttribute('data-name') || '').toUpperCase();
     const description = button.getAttribute('data-description') || '';
     const color = button.getAttribute('data-color') || '#004F80';
 
-    // Populate modal inputs
     editModal.querySelector('#edit_category_id').value = id;
     editModal.querySelector('#edit_category_name').value = name;
     editModal.querySelector('#edit_category_description').value = description;
     editModal.querySelector('#edit_category_color').value = color;
   });
 
-  // Optional: clear fields when modal is hidden
   editModal.addEventListener('hidden.bs.modal', () => {
     editModal.querySelector('form').reset();
   });
 });
 </script>
 
-
 <style>
 .fade-in { animation: fadeIn 0.3s ease-in-out; }
 .slide-in-up { animation: slideInUp 0.3s ease; }
+.text-uppercase-display { text-transform: uppercase !important; }
 
 @keyframes fadeIn {
   from { opacity: 0; }
