@@ -80,7 +80,7 @@ require_once '../includes/header.php';
       </div>
     <?php else: ?>
       <div class="table-responsive slide-in-up">
-        <table class="table table-hover align-middle text-center">
+        <table class="table table-hover align-middle text-start">
           <thead class="table-light">
             <tr>
               <th>Category</th>
@@ -101,7 +101,7 @@ require_once '../includes/header.php';
                 </a>
               </td>
               <td><?= htmlspecialchars($category['description'] ?: 'No description'); ?></td>
-              <td><span class="badge bg-warning text-dark"><?= number_format($category['document_count']); ?></span></td>
+              <td><span class="badge bg-warning text-dark text-center"><?= number_format($category['document_count']); ?></span></td>
               <td><?= htmlspecialchars($category['creator_name'] ?: 'Unknown'); ?></td>
               <td>
                 <button type="button" 

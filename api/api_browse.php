@@ -29,64 +29,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 
-if ($folder_name) {
-    // check for duplicate folder names in the same parent
-    $duplicate_check = $db->prepare("
-        SELECT name FROM folders 
-        WHERE name LIKE ? AND 
-        " . ($current_folder_id ? "parent_id = ?" : "parent_id IS NULL")
-    );
+    if ($folder_name) {
+        // check for duplicate folder names in the same parent
+        $duplicate_check = $db->prepare("
+            SELECT name FROM folders 
+            WHERE name LIKE ? AND 
+            " . ($current_folder_id ? "parent_id = ?" : "parent_id IS NULL")
+        );
 
-    $like_pattern = $folder_name . '%';
-    if ($current_folder_id) {
-        $duplicate_check->execute([$like_pattern, $current_folder_id]);
-    } else {
-        $duplicate_check->execute([$like_pattern]);
-    }
-
-    $existing_names = $duplicate_check->fetchAll(PDO::FETCH_COLUMN);
-
-    if (in_array($folder_name, $existing_names)) {
-        $counter = 1;
-        $new_name = $folder_name . "($counter)";
-        while (in_array($new_name, $existing_names)) {
-            $counter++;
-            $new_name = $folder_name . "($counter)";
+        $like_pattern = $folder_name . '%';
+        if ($current_folder_id) {
+            $duplicate_check->execute([$like_pattern, $current_folder_id]);
+        } else {
+            $duplicate_check->execute([$like_pattern]);
         }
-        $folder_name = $new_name;
-    }
 
-    // calculate next sort order
-    $sort_order_query = $db->prepare("SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM folders WHERE parent_id " . ($current_folder_id ? "= ?" : "IS NULL"));
-    if ($current_folder_id) {
-        $sort_order_query->execute([$current_folder_id]);
-    } else {
-        $sort_order_query->execute();
-    }
-    $next_order = $sort_order_query->fetch()['next_order'];
+        $existing_names = $duplicate_check->fetchAll(PDO::FETCH_COLUMN);
 
-    // calculate folder level
-    $level = $current_folder ? $current_folder['level'] + 1 : 0;
+        if (in_array($folder_name, $existing_names)) {
+            $counter = 1;
+            $new_name = $folder_name . "($counter)";
+            while (in_array($new_name, $existing_names)) {
+                $counter++;
+                $new_name = $folder_name . "($counter)";
+            }
+            $folder_name = $new_name;
+        }
 
-    // insert folder
-    $insert_folder_query = $db->prepare("
-        INSERT INTO folders (name, description, color, parent_id, level, sort_order, created_by) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
-    $insert_folder_query->execute([
-        $folder_name,
-        $folder_description,
-        $folder_color,
-        $current_folder_id,
-        $level,
-        $next_order,
-        $_SESSION['user_id']
-    ]);
+        // calculate next sort order
+        $sort_order_query = $db->prepare("SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM folders WHERE parent_id " . ($current_folder_id ? "= ?" : "IS NULL"));
+        if ($current_folder_id) {
+            $sort_order_query->execute([$current_folder_id]);
+        } else {
+            $sort_order_query->execute();
+        }
+        $next_order = $sort_order_query->fetch()['next_order'];
 
-    logActivity($db, $_SESSION['user_id'], "Folder created: $folder_name");
+        // calculate folder level
+        $level = $current_folder ? $current_folder['level'] + 1 : 0;
 
-    header('Location: browse.php' . ($current_folder_id ? '?folder=' . $current_folder_id : ''));
-    exit();
+        // insert folder
+        $insert_folder_query = $db->prepare("
+            INSERT INTO folders (name, description, color, parent_id, level, sort_order, created_by) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $insert_folder_query->execute([
+            $folder_name,
+            $folder_description,
+            $folder_color,
+            $current_folder_id,
+            $level,
+            $next_order,
+            $_SESSION['user_id']
+        ]);
+
+        logActivity($db, $_SESSION['user_id'], "Folder created: $folder_name");
+
+        // Set session alert instead of echoing HTML
+        $_SESSION['alert_message'] = "Folder <strong>" . htmlspecialchars($folder_name) . "</strong> created successfully.";
+        $_SESSION['alert_type'] = 'success';
+        
+        // Redirect back to browse page
+        header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
+        exit();
     }
 }
 
@@ -111,7 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $batch_total = array_sum($_FILES['documents']['size']);
 
     if (($total_used + $batch_total) > $limit) {
-        echo "<script>alert('Upload failed: Storage limit reached. Please delete old files or contact admin.'); window.history.back();</script>";
+        $_SESSION['alert_message'] = "Upload failed: Storage limit reached. Please delete old files or contact admin.";
+        $_SESSION['alert_type'] = 'danger';
+        header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
         exit();
     }
 
@@ -184,9 +191,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         // Check remaining storage before each file
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
-            echo "<script>alert('Upload blocked: Not enough remaining storage.'); window.history.back();</script>";
+            $_SESSION['alert_message'] = "Upload blocked: Not enough remaining storage.";
+            $_SESSION['alert_type'] = 'warning';
+            header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
             exit();
         }
+
 
         // Save file with a unique filename
         $unique_filename = uniqid('doc_', true) . '.' . $ext;
@@ -234,16 +244,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
     // Show skipped files summary if any
     if (!empty($skipped_files)) {
-        $msg = implode("\\n", $skipped_files);
-        echo "<script>alert('Some files were skipped:\\n$msg');</script>";
+        $msg = implode("<br>", array_map('htmlspecialchars', $skipped_files));
+        $_SESSION['alert_message'] = "Some files were skipped:<br>$msg";
+        $_SESSION['alert_type'] = 'warning';
+        header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
+        exit();
     }
 
-    // Redirect after successful upload
+    // Set success message and redirect
+    $_SESSION['alert_message'] = "Upload completed successfully!";
+    $_SESSION['alert_type'] = 'success';
+    
     $redirect = $current_folder_id 
-        ? "../documents/browse.php?folder=$current_folder_id&success=uploaded" 
-        : "../documents/browse.php?success=uploaded";
+        ? "../documents/browse.php?folder=$current_folder_id" 
+        : "../documents/browse.php";
 
-    echo "<script>window.location.href='$redirect';</script>";
+    header('Location: ' . $redirect);
     exit();
 }
 

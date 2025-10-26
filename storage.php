@@ -8,34 +8,58 @@ require_once __DIR__ . '/includes/header.php';
 $user_id = $_SESSION['user_id'];
 $is_admin = isAdmin();
 
-$total_used = getTotalStorageUsed($db);
-$limit = getStorageLimit($db) ?? 0;
-$available = getAvailableStorage($db);
-$percent_total = ($limit > 0) ? ($total_used / $limit) * 100 : 0;
-$percent_available = ($limit > 0) ? ($available / $limit) * 100 : 100;
-
+// --- External storage info ---
 $external = getExternalStorageInfo();
 $external_used = $external['used'];
 $external_total = $external['total'];
+
+//60% threshold
+$threshold_percent = 60;
+$auto_limit = ($external_total * $threshold_percent) / 100;
+
+// Get admin-defined limit
+$db_limit = getStorageLimit($db);
+
+// Use whichever is smaller — respects admin limit but not exceed threshold
+$limit = ($db_limit && $db_limit < $auto_limit) ? $db_limit : $auto_limit;
+
+// --- Compute other values ---
+$total_used = getTotalStorageUsed($db);
+$available = $limit - $total_used;
+$percent_total = ($limit > 0) ? ($total_used / $limit) * 100 : 0;
+$percent_available = ($limit > 0) ? ($available / $limit) * 100 : 100;
+
+// --- External stats ---
 $external_available = $external_total - $external_used;
-$external_percent = $external['percent'];
+$external_percent = ($external_total > 0) ? ($external_used / $external_total) * 100 : 0;
 $external_percent_available = ($external_total > 0) ? ($external_available / $external_total) * 100 : 0;
 
+// --- User-specific usage ---
 $user_used = $db->query("
     SELECT COALESCE(SUM(file_size), 0) AS used
     FROM documents
     WHERE uploaded_by = $user_id AND (is_deleted = 0 OR is_deleted IS NULL)
 ")->fetch(PDO::FETCH_ASSOC)['used'] ?? 0;
 
-$user_available = getUserAvailableStorage($db, $user_id);
+$user_available = $limit - $user_used;
 $percent_user = ($limit > 0) ? ($user_used / $limit) * 100 : 0;
 $percent_user_available = ($limit > 0) ? ($user_available / $limit) * 100 : 100;
 
+// --- Handle admin update for manual limit ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_admin) {
     $new_limit = (float)$_POST['limit_gb'] * 1024 * 1024 * 1024;
-    $db->query("UPDATE settings SET setting_value = $new_limit WHERE setting_key = 'storage_limit'");
-    echo "<div class='alert alert-success mt-3'>Storage limit updated successfully!</div>";
-    echo "<meta http-equiv='refresh' content='1'>";
+
+    if ($new_limit > $external_total) {
+        echo "<div class='alert alert-danger mt-3 w-50 text-start'>
+        The storage limit cannot exceed the total system storage.
+        </div>";
+        echo "<meta http-equiv='refresh' content='2'>";
+    } else {
+        $stmt = $db->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'storage_limit'");
+        $stmt->execute([$new_limit]);
+        echo "<div class='alert alert-success mt-3 w-50 text-start'>Storage limit updated!</div>";
+        echo "<meta http-equiv='refresh' content='2'>";
+    }
 }
 ?>
 <link rel="stylesheet" href="assets/css/storage.css">
