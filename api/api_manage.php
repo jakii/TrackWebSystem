@@ -76,7 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
 $category_list_query = $db->prepare("
     SELECT c.*, 
            COUNT(d.id) AS document_count,
-           u.full_name AS creator_name
+           u.full_name AS creator_name,
+           UPPER(c.name) AS name
     FROM categories c 
     LEFT JOIN documents d ON c.id = d.category_id 
     LEFT JOIN users u ON c.created_by = u.id
