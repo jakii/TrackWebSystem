@@ -16,8 +16,8 @@ require_once '../includes/header.php';
                 <h4 class="mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>Share Documents</h4>
             </div>
             <div class="card-body">
-                <?php if (!empty($error)): ?><div class="alert alert-danger w-50 fade show mt-3 mx-auto text-center shadow-sm" id="autoAlert"><?= $error ?></div><?php endif; ?>
-                <?php if (!empty($success)): ?><div class="alert alert-success w-50 fade show mt-3 mx-auto text-center shadow-sm" id="autoAlert"><?= $success ?></div><?php endif; ?>
+                <?php if (!empty($error)): ?><div class="alert alert-danger w-50 fade show mt-3 text-start shadow-sm" id="autoAlert"><?= $error ?></div><?php endif; ?>
+                <?php if (!empty($success)): ?><div class="alert alert-success w-50 fade show mt-3 text-start shadow-sm" id="autoAlert"><?= $success ?></div><?php endif; ?>
             <script>
                 setTimeout(() => {
                     const alert = document.getElementById('autoAlert');
