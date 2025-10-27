@@ -97,7 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 
 $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+
 date_default_timezone_set('Asia/Manila');
+$db->exec("SET time_zone = '+08:00'");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
@@ -125,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
     $skipped_files = [];
 
-    // Define allowed extensions and MIME types
+    // Allowed MIME types
     $allowed_mimes = [
         'application/pdf',
         'application/msword',
@@ -140,11 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         'application/zip', 'application/x-rar-compressed'
     ];
 
-    // Iterate through all uploaded files
+    // Iterate uploaded files
     foreach ($_FILES['documents']['name'] as $i => $name) {
         $tmp_file   = $_FILES['documents']['tmp_name'][$i];
         $file_size  = $_FILES['documents']['size'][$i];
-        $file_type  = $_FILES['documents']['type'][$i];
         $file_error = $_FILES['documents']['error'][$i];
 
         if ($file_error !== UPLOAD_ERR_OK) {
@@ -155,24 +156,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $base_name = pathinfo($name, PATHINFO_FILENAME);
 
-        // Check real MIME type using fileinfo
+        // Verify real MIME type
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $tmp_file);
         finfo_close($finfo);
 
-        // Validate MIME type and extension
         if (!in_array($mime, $allowed_mimes)) {
             $skipped_files[] = "$name (invalid MIME type: $mime)";
             continue;
         }
 
-        // Check file size (max size constant)
         if ($file_size > MAX_FILE_SIZE) {
             $skipped_files[] = "$name (too large)";
             continue;
         }
 
-        // Handle duplicates within same folder
+        // Handle duplicate filenames
         $counter = 1;
         $new_name = $name;
         while (true) {
@@ -189,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
         $title = pathinfo($new_name, PATHINFO_FILENAME);
 
-        // Check remaining storage before each file
+        // Recheck storage before upload
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
             $_SESSION['alert_message'] = "Upload blocked: Not enough remaining storage.";
@@ -198,8 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             exit();
         }
 
-
-        // Save file with a unique filename
+        // Save unique filename
         $unique_filename = uniqid('doc_', true) . '.' . $ext;
         $destination = UPLOAD_DIR . $unique_filename;
 
@@ -209,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             $tags        = $_POST['tags'] ?? '';
             $is_public   = isset($_POST['is_public']) ? 1 : 0;
 
-            // Insert document record
+            // Insert document
             $insert_document = $db->prepare("
                 INSERT INTO documents 
                 (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
@@ -221,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $unique_filename,
                 $new_name,
                 $file_size,
-                $mime, // use real MIME type
+                $mime,
                 $destination,
                 $current_folder_id,
                 $category_id,
@@ -230,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $tags
             ]);
 
-            // Insert report
+            //Insert report using real local time
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
                 VALUES (?, ?, ?, ?)
@@ -241,7 +239,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $destination,
                 date('Y-m-d H:i:s')
             ]);
-            $insert_report->execute([$title, $_SESSION['user_id'], $destination]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         } else {
@@ -249,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         }
     }
 
-    // Show skipped files summary if any
+    // Skipped summary
     if (!empty($skipped_files)) {
         $msg = implode("<br>", array_map('htmlspecialchars', $skipped_files));
         $_SESSION['alert_message'] = "Some files were skipped:<br>$msg";
@@ -258,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         exit();
     }
 
-    // Set success message and redirect
+    // Success message
     $_SESSION['alert_message'] = "Upload completed!";
     $_SESSION['alert_type'] = 'success';
     
