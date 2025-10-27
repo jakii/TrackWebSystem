@@ -153,12 +153,6 @@ $search = trim($_GET['search'] ?? '');
                                         
                                         <?php if ($item['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item text-danger" 
-                                                   href="delete.php?id=<?= $item['id'] ?>&type=document&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
-                                                   <i class="fas fa-trash me-2"></i> Delete
-                                                </a>
-                                            </li>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </ul>
