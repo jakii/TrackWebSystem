@@ -185,16 +185,39 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="docActions<?= $doc['id'] ?>">
-                                    <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Preview"><i class="fas fa-eye me-2"></i> Preview</a></li>
-                                    <li><a class="dropdown-item" href="view.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="View Details"><i class="fas fa-info-circle me-2"></i> View Details</a></li>
-                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
-                                        <li><a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Share"><i class="fas fa-share me-2"></i> Share</a></li>
+                                    <?php if (!isAdmin()): ?>
+                                        <li>
+                                            <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Request File">
+                                                <i class="fas fa-key me-2"></i> Request File
+                                            </a>
+                                        </li>
                                     <?php endif; ?>
+                                    
+                                    <li>
+                                        <a class="dropdown-item" href="view.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-info-circle me-2"></i> View Details
+                                        </a>
+                                    </li>
+                                    
+                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id']): ?>
+                                        <li>
+                                            <a class="dropdown-item" href="share.php?id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Share">
+                                                <i class="fas fa-share me-2"></i> Share
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                    
                                     <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" data-bs-toggle="tooltip" title="Delete"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" 
+                                               href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" 
+                                               data-bs-toggle="tooltip" title="Delete">
+                                               <i class="fas fa-trash me-2"></i> Delete
+                                            </a>
+                                        </li>
                                     <?php endif; ?>
-                                </ul>
+                                </ul>   
                             </div>
                         </td>
                     </tr>

@@ -156,16 +156,6 @@ $search = trim($_GET['search'] ?? '');
                     <?php endforeach; ?>
                 </tbody>
             </table>
-
-            <script>
-            function handleRowClick(type, id) {
-                if (type === 'folder') {
-                    window.location.href = 'browse.php?folder=' + id;
-                } else {
-                    window.location.href = 'preview.php?id=' + id;
-                }
-            }
-            </script>
         <?php endif; ?>
     </div>
 </div>

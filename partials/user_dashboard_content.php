@@ -117,7 +117,7 @@ try {
         <div class="empty-state">
           <i class="fas fa-file-upload"></i>
           <p>You haven’t uploaded any documents yet.</p>
-          <a href="documents/upload.php" class="btn btn-accent-custom" style="">
+          <a href="documents/browse.php" class="btn btn-accent-custom" style="">
             <i class="fas fa-upload me-2"></i>Upload Document
           </a>
         </div>
