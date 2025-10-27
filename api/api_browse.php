@@ -232,9 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             // Insert report
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
-                VALUES (?, ?, ?, NOW())
+                VALUES (?, ?, ?, ?)
             ");
-            $insert_report->execute([$title, $_SESSION['user_id'], $destination]);
+            $insert_report->execute([$title, $_SESSION['user_id'], $destination, $created_at = date('Y-m-d H:i:s')]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         } else {

@@ -7,6 +7,9 @@ require_once 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+// SET TIMEZONE - ADD THIS
+date_default_timezone_set('Asia/Manila'); // Palitan ng timezone mo
+
 // Get filters
 $userFilter = $_GET['user'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
@@ -37,12 +40,17 @@ $query .= " ORDER BY r.created_at DESC";
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// CREATE HELPER FUNCTION FOR DATE FORMATTING - ADD THIS
+function formatDateForDisplay($dateString) {
+    $date = new DateTime($dateString);
+    return $date->format('M d, Y h:i A');
+}
+
 if ($exportType === 'excel' && count($reports) > 0) {
     // Excel export using PhpSpreadsheet
 
     $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('Reports');
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Reports');
 
@@ -60,7 +68,7 @@ if ($exportType === 'excel' && count($reports) > 0) {
         $sheet->setCellValue('A'.$row, $index + 1);
         $sheet->setCellValue('B'.$row, $r['title']);
         $sheet->setCellValue('C'.$row, $r['uploaded_by']);
-        $sheet->setCellValue('D'.$row, date("M d, Y h:i A", strtotime($r['created_at'])));
+        $sheet->setCellValue('D'.$row, formatDateForDisplay($r['created_at'])); // UPDATED
         $row++;
     }
 
@@ -87,7 +95,7 @@ if ($exportType === 'pdf' && count($reports) > 0) {
             <td>" . ($index + 1) . "</td>
             <td>" . htmlspecialchars($r['title']) . "</td>
             <td>" . htmlspecialchars($r['uploaded_by']) . "</td>
-            <td>" . date("M d, Y h:i A", strtotime($r['created_at'])) . "</td>
+            <td>" . formatDateForDisplay($r['created_at']) . "</td> <!-- UPDATED -->
         </tr>";
     }
     $html .= '</tbody></table>';
@@ -153,7 +161,7 @@ if ($exportType === 'pdf' && count($reports) > 0) {
                   <td><?= $index + 1 ?></td>
                   <td><?= htmlspecialchars($report['title']) ?></td>
                   <td><?= htmlspecialchars($report['uploaded_by']) ?></td>
-                  <td><?= date("M d, Y h:i A", strtotime($report['created_at'])) ?></td>
+                  <td><?= formatDateForDisplay($report['created_at']) ?></td> <!-- UPDATED -->
                 </tr>
               <?php endforeach; ?>
             </tbody>

@@ -23,7 +23,7 @@ function logDocumentActivity($document_id, $user_id, $type) {
         return;
     }
 
-    $created_at = date('Y-m-d H:i:s'); // Always PH time
+    $created_at = date('Y-m-d H:i:s');
 
     try {
         $stmt = $db->prepare("INSERT INTO document_activity (document_id, user_id, activity_type, created_at) VALUES (?, ?, ?, ?)");
