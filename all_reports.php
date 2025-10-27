@@ -28,7 +28,7 @@ if (!empty($userFilter)) {
     $params[':user'] = "%$userFilter%";
 }
 if (!empty($dateFilter)) {
-    $query .= " AND DATE(CONVERT_TZ(r.created_at, '+00:00', '+08:00')) = :date";
+    $query .= " AND DATE(CONVERT_TZ(r.created_at, '+00:00')) = :date";
     $params[':date'] = $dateFilter;
 }
 
