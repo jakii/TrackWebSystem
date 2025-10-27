@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                                       VALUES ($doc_id, {$share_user['id']}, {$_SESSION['user_id']}, '$permission')");
                 if ($insert) {
                     $success_msgs[] = "Document '{$document['title']}' shared with {$share_user['username']} ($permission)";
-                    logActivity($db, $_SESSION['user_id'], "Shared document '{$document['title']}' (ID: $doc_id) with {$share_user['username']} permission: $permission");
+                    logActivity($db, $_SESSION['user_id'], "Shared document '{$document['title']}' with {$share_user['username']} permission: $permission");
 
                     // Add document to the user's email list
                     $email_notifications[$share_user['email']]['full_name'] = $share_user['full_name'] ?? $share_user['username'];
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unshare_document'])) 
         $share_id = (int)($_POST['share_id'] ?? 0);
         $delete = $db->query("DELETE FROM document_shares WHERE id=$share_id AND shared_by={$_SESSION['user_id']}");
         if ($delete) {
-            logActivity($db, $_SESSION['user_id'], "Removed sharing (ID: $share_id)");
+            logActivity($db, $_SESSION['user_id'], "Removed sharing");
             $success = 'Sharing removed.';
         } else {
             $error = 'Failed to remove sharing.';

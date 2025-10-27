@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $user_id = $_SESSION['user_id'];
                         $doc_title = $document['title'] ?? 'Unknown';
                         $shared_to = $share_user['full_name'] ?? $share_user['email'];
-                        logActivity($db, $user_id, "Shared document: {$doc_title} (ID: {$document_id}) to {$shared_to} with permission: {$permission}");
+                        logActivity($db, $user_id, "Shared document: {$doc_title} to {$shared_to} with permission: {$permission}");
 
                         // --- Get current user's name for email ---
                         $current_user_stmt = $db->prepare("SELECT full_name FROM users WHERE id = ?");
