@@ -3,18 +3,18 @@ require_once 'includes/auth_check.php';
 require_once 'config/database.php';
 requireAuth();
 
+date_default_timezone_set('Asia/Manila');
+
 require_once 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-// Get filters
+// filters
 $userFilter = $_GET['user'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
-
-// Handle export type
 $exportType = $_GET['export'] ?? null;
 
-// Base query
+// query
 $query = "
     SELECT r.id, r.title, r.created_at, u.full_name AS uploaded_by
     FROM reports r
@@ -28,7 +28,7 @@ if (!empty($userFilter)) {
     $params[':user'] = "%$userFilter%";
 }
 if (!empty($dateFilter)) {
-    $query .= " AND DATE(r.created_at) = :date";
+    $query .= " AND DATE(CONVERT_TZ(r.created_at, '+00:00', '+08:00')) = :date";
     $params[':date'] = $dateFilter;
 }
 
@@ -37,34 +37,32 @@ $query .= " ORDER BY r.created_at DESC";
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
-if ($exportType === 'excel' && count($reports) > 0) {
-    // Excel export using PhpSpreadsheet
 
+// Excel export
+if ($exportType === 'excel' && count($reports) > 0) {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Reports');
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('Reports');
 
-    // Headers
-    $headers = ['ID', 'Title', 'Uploaded By', 'Date Uploaded'];
+    $headers = ['#', 'Title', 'Uploaded By', 'Date Uploaded'];
     $col = 'A';
     foreach ($headers as $header) {
         $sheet->setCellValue($col.'1', $header);
         $col++;
     }
 
-    // Data
     $row = 2;
     foreach ($reports as $index => $r) {
+        $phTime = new DateTime($r['created_at'], new DateTimeZone('UTC'));
+        $phTime->setTimezone(new DateTimeZone('Asia/Manila'));
+
         $sheet->setCellValue('A'.$row, $index + 1);
         $sheet->setCellValue('B'.$row, $r['title']);
         $sheet->setCellValue('C'.$row, $r['uploaded_by']);
-        $sheet->setCellValue('D'.$row, date("M d, Y h:i A", strtotime($r['created_at'])));
+        $sheet->setCellValue('D'.$row, $phTime->format('M d, Y h:i A'));
         $row++;
     }
 
-    // Output file
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="reports.xlsx"');
     $writer = new Xlsx($spreadsheet);
@@ -72,31 +70,34 @@ if ($exportType === 'excel' && count($reports) > 0) {
     exit;
 }
 
+// PDF export
 if ($exportType === 'pdf' && count($reports) > 0) {
-    // PDF export using TCPDF
     require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
-
     $pdf = new TCPDF();
     $pdf->AddPage();
     $pdf->SetFont('helvetica', '', 12);
 
     $html = '<h3>Reports List</h3><table border="1" cellpadding="5">
         <thead><tr><th>#</th><th>Title</th><th>Uploaded By</th><th>Date Uploaded</th></tr></thead><tbody>';
+
     foreach ($reports as $index => $r) {
+        $phTime = new DateTime($r['created_at'], new DateTimeZone('UTC'));
+        $phTime->setTimezone(new DateTimeZone('Asia/Manila'));
         $html .= "<tr>
             <td>" . ($index + 1) . "</td>
             <td>" . htmlspecialchars($r['title']) . "</td>
             <td>" . htmlspecialchars($r['uploaded_by']) . "</td>
-            <td>" . date("M d, Y h:i A", strtotime($r['created_at'])) . "</td>
+            <td>" . $phTime->format('M d, Y h:i A') . "</td>
         </tr>";
     }
-    $html .= '</tbody></table>';
 
+    $html .= '</tbody></table>';
     $pdf->writeHTML($html);
     $pdf->Output('reports.pdf', 'D');
     exit;
 }
 ?>
+
 
 <?php include 'includes/header.php'; ?>
 <div class="container mt-4">
