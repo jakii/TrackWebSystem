@@ -98,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
-date_default_timezone_set('Asia/Manila');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
 
@@ -233,14 +232,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             // Insert report
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, NOW())
             ");
-            $insert_report->execute([
-                $title,
-                $_SESSION['user_id'],
-                $destination,
-                date('Y-m-d H:i:s')
-            ]);
             $insert_report->execute([$title, $_SESSION['user_id'], $destination]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
