@@ -102,18 +102,37 @@ $search = trim($_GET['search'] ?? '');
                                 <?php echo date('M j, Y', strtotime($item['created_at'])); ?>
                             </span>
                         </td>
-
                         <td class="text-center">
-                            <?php if ($item['type'] === 'document'): ?>
-                                <div class="dropdown">
-                                    <button class="btn btn-light btn-sm rounded-circle" type="button" id="actions<?= $item['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
-                                        <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actions<?= $item['id'] ?>">
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" id="actions<?= $item['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                    <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actions<?= $item['id'] ?>">
+
+                                    <?php if ($item['type'] === 'folder'): ?>
+                                        <!-- FOLDER ACTIONS -->
+                                        <li>
+                                            <a class="dropdown-item text-primary" href="browse.php?folder=<?= $item['id'] ?>">
+                                                <i class="fas fa-folder-open me-2"></i> Open Folder
+                                            </a>
+                                        </li>
+                                    
+                                        <?php if ($item['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" 
+                                                   href="delete.php?id=<?= $item['id'] ?>&type=folder&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
+                                                   <i class="fas fa-trash me-2"></i> Delete
+                                                </a>
+                                            </li>
+                                        <?php endif; ?>
+                                        
+                                    <?php else: ?>
+                                        <!-- DOCUMENT ACTIONS -->
                                         <?php if (!isAdmin()): ?>
                                             <li>
                                                 <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $item['id'] ?>">
-                                                    <i class="fas fa-key me-2"></i>Request File
+                                                    <i class="fas fa-key me-2"></i> Request File
                                                 </a>
                                             </li>
                                         <?php endif; ?>
@@ -136,17 +155,15 @@ $search = trim($_GET['search'] ?? '');
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item text-danger" 
-                                                   href="delete.php?id=<?= $item['id'] ?>&type=<?= $item['type'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
+                                                   href="delete.php?id=<?= $item['id'] ?>&type=document&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
                                                    <i class="fas fa-trash me-2"></i> Delete
                                                 </a>
                                             </li>
                                         <?php endif; ?>
-                                    </ul>
-                                </div>
-                            <?php else: ?>
-                                <span class="text-muted">—</span>
-                            <?php endif; ?>
-                        </td>
+                                    <?php endif; ?>
+                                </ul>
+                            </div>
+                        </td>                
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
