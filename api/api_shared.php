@@ -5,8 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    header('Location: ' . BASE_URL . 'auth/login.php?session=expired');
     exit;
 }
 

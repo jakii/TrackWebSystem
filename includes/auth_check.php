@@ -29,7 +29,7 @@ function requireAuth() {
     global $db;
 
     if (!isLoggedIn()) {
-        header('Location: auth/login.php');
+        header('Location: ' . BASE_URL . 'auth/login.php');
         exit();
     }
 
@@ -41,7 +41,7 @@ function requireAuth() {
     if (!$user) {
         session_unset();
         session_destroy();
-        header('Location: auth/login.php');
+        header('Location: ' . BASE_URL . 'auth/login.php');
         exit();
     }
 
@@ -53,7 +53,7 @@ function requireAuth() {
 
         session_unset();
         session_destroy();
-        header("Location: auth/login.php?session=expired");
+        header('Location: ' . BASE_URL . 'auth/login.php?session=expired');
         exit();
     } else {
         $_SESSION['login_time'] = time(); // refresh session
@@ -64,7 +64,7 @@ function requireAuth() {
 function requireAdmin() {
     requireAuth();
     if (!isAdmin()) {
-        header('Location: dashboard.php?error=access_denied');
+        header('Location: ' . BASE_URL . 'dashboard.php?error=access_denied');
         exit();
     }
 }

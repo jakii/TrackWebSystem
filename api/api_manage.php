@@ -9,7 +9,7 @@ $csrf_token = generateCSRFToken();
 
 // --- CREATE CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
-    $name = strtoupper(trim($_POST['category_name'] ?? '')); // 🔹 force uppercase
+    $name = strtoupper(trim($_POST['category_name'] ?? ''));
     $description = trim($_POST['category_description'] ?? '');
     $color = trim($_POST['category_color'] ?? '#007bff');
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
 // --- EDIT CATEGORY ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
     $id = (int)($_POST['category_id'] ?? 0);
-    $name = strtoupper(trim($_POST['category_name'] ?? '')); // 🔹 force uppercase
+    $name = strtoupper(trim($_POST['category_name'] ?? ''));
     $description = trim($_POST['category_description'] ?? '');
     $color = trim($_POST['category_color'] ?? '#007bff');
 
@@ -75,7 +75,7 @@ $category_list_query = $db->prepare("
     SELECT c.*, 
            COUNT(d.id) AS document_count,
            u.full_name AS creator_name,
-           UPPER(c.name) AS name  -- 🔹 display uppercase always
+           UPPER(c.name) AS name  -- display uppercase always
     FROM categories c 
     LEFT JOIN documents d ON c.id = d.category_id 
     LEFT JOIN users u ON c.created_by = u.id
