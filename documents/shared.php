@@ -270,7 +270,6 @@ $mark_read->execute([$_SESSION['user_id']]);
 
           <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
             <div class="modal-body">
-
               <div class="mb-3">
                 <label class="form-label fw-semibold" for="recipient_id">
                   Recipient (Email or Username)
@@ -307,7 +306,8 @@ $mark_read->execute([$_SESSION['user_id']]);
                 </label>
                 <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
               </div>
-            </div> 
+            </div>
+                  
             <div class="modal-footer border-0">
               <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
               <button type="submit" class="btn btn-primary"
@@ -344,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
 .empty-state-icon { opacity: 0.5; }
 .dropdown-item:hover { background-color: rgba(42, 183, 202, 0.1); }
 </style>
+
 <script>
 document.getElementById('requestFileForm').addEventListener('submit', async function(e) {
   e.preventDefault();
