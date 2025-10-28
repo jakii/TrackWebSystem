@@ -1,6 +1,11 @@
 <?php
 require_once '../config/database.php';
 require_once '../includes/header.php';
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -73,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <link rel="stylesheet" href="../assets/css/login.css">
-
 <div class="login-container">
     <div class="login-card">
         <h1 class="login-title">Forgot Password</h1>
