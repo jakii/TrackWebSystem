@@ -172,169 +172,288 @@ $mark_read->execute([$_SESSION['user_id']]);
     $stmt = $db->prepare("
       SELECT fr.*, 
              s.full_name AS sender_name, 
-             r.full_name AS recipient_name
+             r.full_name AS recipient_name,
+             d.title AS document_title,
+             d.original_filename,
+             d.file_size
       FROM file_requests fr
       JOIN users s ON fr.sender_id = s.id
       JOIN users r ON fr.recipient_id = r.id
+      LEFT JOIN documents d ON fr.document_id = d.id
       WHERE fr.sender_id = ? OR fr.recipient_id = ?
       ORDER BY fr.created_at DESC
     ");
     $stmt->execute([$user_id, $user_id]);
     $requests = $stmt->fetchAll();
     ?>
-
+  <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+      <i class="fas fa-check-circle me-2"></i> File request sent successfully!
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <?php elseif (isset($_GET['error']) && $_GET['error'] == 1): ?>
+    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i> Something went wrong while sending your request.
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <?php endif; ?>
     <?php if (empty($requests)): ?>
       <div class="text-center py-5 text-muted">No file requests yet.</div>
     <?php else: ?>
-      <table class="table table-hover align-middle mb-0">
+     <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
-          <tr>
-            <th>From</th>
-            <th>To</th>
-            <th>Description</th>
-            <th>Reason</th>
-            <th>Denied Reason</th>
-            <th>Status</th>
-            <th>Date Requested</th>
-            <th class="text-center">Actions</th>
-          </tr>
+            <tr>
+                <th>Document</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+                <th>Date Requested</th>
+                <th class="text-center">Actions</th>
+            </tr>
         </thead>
         <tbody>
-          <?php foreach ($requests as $req): ?>
+            <?php foreach ($requests as $req): ?>
             <tr>
-              <td><?= htmlspecialchars($req['sender_name']); ?></td>
-              <td><?= htmlspecialchars($req['recipient_name']); ?></td>
-              <td><?= htmlspecialchars($req['description']); ?></td>
-              <td><?= htmlspecialchars($req['reason']); ?></td>
-              <td><?= htmlspecialchars($req['deny_reason'] ?? ''); ?></td>
-              <td>
-                <span class="badge rounded-pill bg-<?= $req['status'] === 'approved' ? 'success' : ($req['status'] === 'denied' ? 'danger' : 'warning'); ?>">
-                  <?= ucfirst($req['status']); ?>
-                </span>
-              </td>
-              <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
-              <td class="text-center">
-                <?php if ($req['recipient_id'] == $user_id && $req['status'] === 'pending'): ?>
-                  <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
-                    <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                    <input type="hidden" name="action" value="approve">
-                    <button class="btn btn-sm btn-success me-1" title="Approve">
-                      <i class="fas fa-check"></i>
-                    </button>
-                  </form>
-                
-                  <!-- Button that opens modal -->
-                  <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#denyReasonModal<?= $req['id']; ?>">
-                    <i class="fas fa-times"></i>
-                  </button>
-                
-                  <!-- Deny Reason Modal -->
-                  <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content border-0 rounded-3">
-                        <div class="modal-header">
-                          <h5 class="modal-title">Reason for Denying</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="file-icon">
+                            <i class="<?= getFileIcon(pathinfo($req['original_filename'] ?? '', PATHINFO_EXTENSION)); ?>" 
+                               style="color: var(--primary-color); font-size: 1.5rem;"></i>
                         </div>
-                        <form method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
-                          <div class="modal-body">
-                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                            <input type="hidden" name="action" value="deny">
-                            <textarea name="deny_reason" class="form-control" rows="3" placeholder="Enter your reason..." required></textarea>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger">Submit</button>
-                          </div>
-                        </form>
-                      </div>
+                        <div>
+                            <div class="fw-semibold"><?= htmlspecialchars($req['document_title'] ?? 'Untitled Document'); ?></div>
+                            <small class="text-muted d-block">
+                                <?= !empty($req['description']) ? htmlspecialchars($req['description']) . '<br>' : '' ?>
+                                <?= !empty($req['reason']) ? 'Reason: ' . htmlspecialchars($req['reason']) . '<br>' : '' ?>
+                                <?php if (!empty($req['deny_reason'])): ?>
+                                    <span class="text-danger">Denied Reason: <?= htmlspecialchars($req['deny_reason']); ?></span>
+                                <?php endif; ?>
+                            </small>
+                        </div>
                     </div>
-                  </div>
-                <?php endif; ?>
-              </td>
+                </td>
+                                
+                <td><?= htmlspecialchars($req['sender_name']); ?></td>
+                <td><?= htmlspecialchars($req['recipient_name']); ?></td>
+                <td>
+                    <span class="badge rounded-pill bg-<?= $req['status'] === 'approved' ? 'success' : ($req['status'] === 'denied' ? 'danger' : 'warning'); ?>">
+                        <?= ucfirst($req['status']); ?>
+                    </span>
+                </td>
+                <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
+                                
+                <td class="text-center">
+                    <?php if ($req['status'] === 'pending' && $req['recipient_id'] == $user_id): ?>
+                        <!-- Approve Button -->
+                        <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                            <input type="hidden" name="action" value="approve">
+                            <button class="btn btn-sm btn-success me-1" title="Approve">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                    
+                        <!-- Deny Button -->
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#denyReasonModal<?= $req['id']; ?>">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    
+                        <!-- Deny Modal -->
+                        <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 rounded-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Reason for Denying</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                                            <input type="hidden" name="action" value="deny">
+                                            <textarea name="deny_reason" class="form-control" rows="3" placeholder="Enter your reason..." required></textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Submit</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <?php elseif ($req['status'] === 'approved'): ?>
+                        <!-- Approved: show Preview & Download -->
+                        <a class="btn btn-sm btn-primary me-1" href="preview.php?id=<?= $req['document_id']; ?>" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a class="btn btn-sm btn-success" href="download.php?id=<?= $req['document_id']; ?>" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    <?php elseif ($req['status'] === 'denied'): ?>
+                        <span class="text-muted">No actions</span>
+                    <?php endif; ?>
+                </td>
             </tr>
-          <?php endforeach; ?>
+            <?php endforeach; ?>
         </tbody>
-      </table>
+    </table>
     <?php endif; ?>
-    <!-- Request File Modal -->
-    <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0">
-          <div class="modal-header border-0">
-            <h5 class="modal-title fw-semibold text-dark">
-              <i class="fas fa-file-import me-2 text-primary"></i>Request a File
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+</div>
+
+<!-- Request File Modal -->
+<div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-semibold text-dark">
+          <i class="fas fa-file-import me-2 text-primary"></i>Request a File
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
+        <div class="modal-body">
+
+          <!-- Recipient -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="recipient_id">
+              Recipient (Email or Username)
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <?php
+            $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $users = $stmt->fetchAll();
+            ?>
+            <select name="recipient_id" id="recipient_id" class="form-select" required>
+              <option value="">-- Select User --</option>
+              <?php foreach ($users as $u): ?>
+                <option value="<?= $u['id']; ?>">
+                  <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
           </div>
 
-          <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label fw-semibold" for="recipient_id">
-                  Recipient (Email or Username)
-                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                </label>
-                <?php
-                $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
-                $stmt->execute([$_SESSION['user_id']]);
-                $users = $stmt->fetchAll();
-                ?>
-                <select name="recipient_id" id="recipient_id" class="form-select" required>
-                  <option value="">-- Select User --</option>
-                  <?php foreach ($users as $u): ?>
-                    <option value="<?= $u['id']; ?>">
-                      <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
-                <small class="text-muted">Select a user to request a file from.</small>
-              </div>
-                  
-              <div class="mb-3">
-                <label class="form-label fw-semibold" for="description">
-                  File Description
-                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                </label>
-                <textarea type="text" id="description" name="description" class="form-control" placeholder="e.g., Project Proposal PDF" required></textarea>
-              </div>
-                  
-              <div class="mb-3">
-                <label class="form-label fw-semibold" for="reason">
-                  Purpose
-                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-                </label>
-                <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
-              </div>
+          <!-- Scrollable Documents -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="document_id">
+              Select Document to Request
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;">
+              <?php
+              $docs_stmt = $db->prepare("SELECT id, title, updated_at FROM documents ORDER BY updated_at DESC");
+              $docs_stmt->execute();
+              $documents = $docs_stmt->fetchAll();
+              if (empty($documents)): ?>
+                <div class="text-muted text-center py-3">No available documents.</div>
+              <?php else: ?>
+                <?php foreach ($documents as $doc): ?>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
+                    <label class="form-check-label" for="doc<?= $doc['id']; ?>">
+                      <?= htmlspecialchars($doc['title']); ?>
+                      <small class="text-muted">(Updated: <?= date('M d, Y', strtotime($doc['updated_at'])); ?>)</small>
+                    </label>
+                  </div>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </div>
-                  
-            <div class="modal-footer border-0">
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary"
-                style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
-                <i class="fas fa-paper-plane me-2"></i>Send Request
-              </button>
-            </div>
-          </form>
+          </div>
+
+          <!-- Purpose -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="reason">
+              Purpose
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
+          </div>
+
+          <!-- Intended Date of Usage -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="intended_date">
+              Intended Date of Usage
+              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            </label>
+            <input type="date" id="intended_date" name="intended_date" class="form-control" required>
+          </div>
+
         </div>
-      </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
+            <i class="fas fa-paper-plane me-2"></i>Send Request
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const fields = ['recipient_id', 'description', 'reason'];
-  fields.forEach(id => {
-    const input = document.getElementById(id);
-    const asterisk = input.closest('.mb-3').querySelector('span.text-danger');
-    input.addEventListener('input', () => {
-      if (input.value.trim() !== '') {
-        asterisk?.classList.add('d-none');
-      } else {
-        asterisk?.classList.remove('d-none');
-      }
-    });
-  });
+document.getElementById('requestFileForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const submitBtn = form.querySelector('button[type="submit"]');
+  
+  // Show loading state
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(form.action, { method: 'POST', body: formData });
+    const data = await res.json();
+
+    // Show Bootstrap alert instead of native alert
+    showAlert(data.message, data.status === 'success' ? 'success' : 'danger');
+
+    if (data.status === 'success') {
+      // Reset form and close modal
+      form.reset();
+      const modal = bootstrap.Modal.getInstance(document.getElementById('requestFileModal'));
+      modal.hide();
+
+      // Reload page after a short delay to show the success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      // Reset button state if failed
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  } catch (error) {
+    showAlert('An error occurred while sending the request.', 'danger');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
 });
+
+// Function to show Bootstrap alert
+function showAlert(message, type) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(alertDiv);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 5000);
+}
 </script>
 
 <style>
@@ -344,21 +463,3 @@ document.addEventListener('DOMContentLoaded', () => {
 .empty-state-icon { opacity: 0.5; }
 .dropdown-item:hover { background-color: rgba(42, 183, 202, 0.1); }
 </style>
-
-<script>
-document.getElementById('requestFileForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
-
-  const res = await fetch(form.action, { method: 'POST', body: formData });
-  const data = await res.json();
-
-  alert(data.message);
-
-  if (data.status === 'success') {
-    form.reset();
-    bootstrap.Modal.getInstance(document.getElementById('requestFileModal')).hide();
-  }
-});
-</script>

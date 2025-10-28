@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../config/database.php';
 requireAuth();
 
-ini_set('display_errors', 1); 
+ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
@@ -28,17 +28,13 @@ if (!$request_id || !in_array($action, $valid_actions)) {
     exit;
 }
 
+// Verify request exists
 $check_stmt = $db->prepare("SELECT id FROM file_requests WHERE id = ? AND recipient_id = ?");
 $check_stmt->execute([$request_id, $user_id]);
 $request_exists = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$request_exists) {
     header('Location: ../documents/shared.php?status=notfound');
-    exit;
-}
-
-if ($action === 'delete') {
-    header('Location: ../documents/shared.php?status=nodelete');
     exit;
 }
 
@@ -60,4 +56,3 @@ if ($action === 'deny') {
     header('Location: ../documents/shared.php?status=denied');
     exit;
 }
-?>
