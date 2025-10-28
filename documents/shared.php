@@ -241,7 +241,6 @@ $mark_read->execute([$_SESSION['user_id']]);
                     </span>
                 </td>
                 <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
-                                
                 <td class="text-center">
                     <?php if ($req['status'] === 'pending' && $req['recipient_id'] == $user_id): ?>
                         <!-- Approve Button -->
@@ -258,7 +257,7 @@ $mark_read->execute([$_SESSION['user_id']]);
                             <i class="fas fa-times"></i>
                         </button>
                     
-                        <!-- Deny Modal -->
+                        <!-- Deny Modal (same as your code) -->
                         <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content border-0 rounded-3">
@@ -280,8 +279,9 @@ $mark_read->execute([$_SESSION['user_id']]);
                                 </div>
                             </div>
                         </div>
-                    <?php elseif ($req['status'] === 'approved'): ?>
-                        <!-- Approved: show Preview & Download -->
+                    
+                    <?php elseif ($req['status'] === 'approved' && $req['recipient_id'] == $user_id): ?>
+                        <!-- Only the requesting user sees Preview & Download -->
                         <a class="btn btn-sm btn-primary me-1" href="preview.php?id=<?= $req['document_id']; ?>" title="Preview">
                             <i class="fas fa-eye"></i>
                         </a>
@@ -292,6 +292,7 @@ $mark_read->execute([$_SESSION['user_id']]);
                         <span class="text-muted">No actions</span>
                     <?php endif; ?>
                 </td>
+                    
             </tr>
             <?php endforeach; ?>
         </tbody>
@@ -299,7 +300,6 @@ $mark_read->execute([$_SESSION['user_id']]);
     <?php endif; ?>
   </div>
 </div>
-
 <!-- Request File Modal -->
 <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
