@@ -62,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <br>
                     <p>— TrackWeb Support Team</p>
                 ";
-                $mail->SMTPDebug = 2;
                 $mail->send();
                 $message = "A password reset link has been sent to your email.";
             } catch (Exception $e) {
