@@ -337,30 +337,45 @@ $mark_read->execute([$_SESSION['user_id']]);
 
           <!-- Scrollable Documents -->
           <div class="mb-3">
-            <label class="form-label fw-semibold" for="document_id">
-              Select Document to Request
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;">
-              <?php
-              $docs_stmt = $db->prepare("SELECT id, title, updated_at FROM documents ORDER BY updated_at DESC");
-              $docs_stmt->execute();
-              $documents = $docs_stmt->fetchAll();
-              if (empty($documents)): ?>
-                <div class="text-muted text-center py-3">No available documents.</div>
-              <?php else: ?>
-                <?php foreach ($documents as $doc): ?>
-                  <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
-                    <label class="form-check-label" for="doc<?= $doc['id']; ?>">
-                      <?= htmlspecialchars($doc['title']); ?>
-                      <small class="text-muted">(Updated: <?= date('M d, Y', strtotime($doc['updated_at'])); ?>)</small>
-                    </label>
-                  </div>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </div>
+              <label class="form-label fw-semibold" for="document_id">
+                  Select Document to Request
+                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+              </label>
+              <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;">
+                  <?php
+                  // Fetch documents NOT owned by the current user
+                  $docs_stmt = $db->prepare("SELECT d.id, d.title, d.filename, d.updated_at, u.email AS owner_email 
+                                             FROM documents d
+                                             JOIN users u ON d.user_id = u.id
+                                             WHERE d.user_id != :current_user
+                                             ORDER BY d.updated_at DESC");
+                  $docs_stmt->execute(['current_user' => $user_id]);
+                  $documents = $docs_stmt->fetchAll();
+                        
+                  if (empty($documents)): ?>
+                      <div class="text-muted text-center py-3">No available documents.</div>
+                  <?php else: ?>
+                      <?php foreach ($documents as $doc): ?>
+                          <div class="form-check mb-2 d-flex align-items-center gap-2">
+                              <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
+                              <label class="form-check-label d-flex align-items-center gap-2" for="doc<?= $doc['id']; ?>">
+                                  <!-- File icon -->
+                                  <i class="<?= getFileIcon(pathinfo($doc['filename'] ?? '', PATHINFO_EXTENSION)); ?>" 
+                                     style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                                  <div>
+                                      <?= htmlspecialchars($doc['title']); ?><br>
+                                      <small class="text-muted">
+                                          Owner: <?= htmlspecialchars($doc['owner_email']); ?><br>
+                                          Updated: <?= date('M d, Y', strtotime($doc['updated_at'])); ?>
+                                      </small>
+                                  </div>
+                              </label>
+                          </div>
+                      <?php endforeach; ?>
+                  <?php endif; ?>
+              </div>
           </div>
+                      
 
           <!-- Purpose -->
           <div class="mb-3">
