@@ -300,178 +300,192 @@ $mark_read->execute([$_SESSION['user_id']]);
     <?php endif; ?>
   </div>
 </div>
-<!-- Request File Modal -->
-<div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content rounded-4 border-0">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-semibold text-dark">
-          <i class="fas fa-file-import me-2 text-primary"></i>Request a File
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+  <!-- Request File Modal -->
+  <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-4 border-0">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-semibold text-dark">
+            <i class="fas fa-file-import me-2 text-primary"></i>Request a File
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
 
-      <form id="requestFileForm" action="<?php echo BASE_URL; ?>api/api_request_file.php" method="post">
-        <div class="modal-body">
+        <form id="requestFileForm" action="<?= BASE_URL; ?>api/api_request_file.php" method="post">
+          <div class="modal-body">
 
-          <!-- Recipient -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="recipient_id">
-              Recipient (Email or Username)
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <?php
-            $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $users = $stmt->fetchAll();
-            ?>
-            <select name="recipient_id" id="recipient_id" class="form-select" required>
-              <option value="">-- Select User --</option>
-              <?php foreach ($users as $u): ?>
-                <option value="<?= $u['id']; ?>">
-                  <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <!-- Scrollable Documents -->
-          <div class="mb-3">
-              <label class="form-label fw-semibold" for="document_id">
-                  Select Document to Request
-                  <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+            <!-- Recipient -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="recipient_id">
+                Recipient (Email or Username)
+                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
               </label>
-              <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;">
-                  <?php
-                  // Fetch documents NOT owned by the current user
-                  $docs_stmt = $db->prepare("SELECT d.id, d.title, d.filename, d.updated_at, u.email AS owner_email 
-                                             FROM documents d
-                                             JOIN users u ON d.user_id = u.id
-                                             WHERE d.user_id != :current_user
-                                             ORDER BY d.updated_at DESC");
-                  $docs_stmt->execute(['current_user' => $user_id]);
-                  $documents = $docs_stmt->fetchAll();
-                        
-                  if (empty($documents)): ?>
-                      <div class="text-muted text-center py-3">No available documents.</div>
-                  <?php else: ?>
-                      <?php foreach ($documents as $doc): ?>
-                          <div class="form-check mb-2 d-flex align-items-center gap-2">
-                              <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
-                              <label class="form-check-label d-flex align-items-center gap-2" for="doc<?= $doc['id']; ?>">
-                                  <!-- File icon -->
-                                  <i class="<?= getFileIcon(pathinfo($doc['filename'] ?? '', PATHINFO_EXTENSION)); ?>" 
-                                     style="color: var(--primary-color); font-size: 1.2rem;"></i>
-                                  <div>
-                                      <?= htmlspecialchars($doc['title']); ?><br>
-                                      <small class="text-muted">
-                                          Owner: <?= htmlspecialchars($doc['owner_email']); ?><br>
-                                          Updated: <?= date('M d, Y', strtotime($doc['updated_at'])); ?>
-                                      </small>
-                                  </div>
-                              </label>
-                          </div>
-                      <?php endforeach; ?>
-                  <?php endif; ?>
+              <?php
+              $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
+              $stmt->execute([$_SESSION['user_id']]);
+              $users = $stmt->fetchAll();
+              ?>
+              <select name="recipient_id" id="recipient_id" class="form-select" required>
+                <option value="">-- Select User --</option>
+                <?php foreach ($users as $u): ?>
+                  <option value="<?= $u['id']; ?>">
+                    <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <!-- Scrollable Documents with Search -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="document_search">
+                Select Document to Request
+                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+              </label>
+
+              <!-- Search Input + Button -->
+              <div class="input-group mb-2">
+                <input type="text" id="document_search" class="form-control" placeholder="Search documents...">
+                <button type="button" id="document_search_btn" class="btn btn-primary">
+                  <i class="fas fa-search me-1"></i>Search
+                </button>
               </div>
+
+              <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;" id="document_list">
+                <?php
+                $docs_stmt = $db->prepare("
+                  SELECT d.id, d.title, d.filename, d.updated_at, u.email AS owner_email 
+                  FROM documents d
+                  JOIN users u ON d.uploaded_by = u.id
+                  WHERE d.uploaded_by != :current_user
+                  ORDER BY d.updated_at DESC
+                ");
+                $docs_stmt->execute(['current_user' => $_SESSION['user_id']]);
+                $documents = $docs_stmt->fetchAll();
+                ?>
+
+                <?php if (empty($documents)): ?>
+                  <div class="text-muted text-center py-3">No available documents.</div>
+                <?php else: ?>
+                  <?php foreach ($documents as $doc): ?>
+                    <div class="form-check mb-2 d-flex align-items-center gap-2 document-item">
+                      <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
+                      <label class="form-check-label d-flex align-items-center gap-2" for="doc<?= $doc['id']; ?>">
+                        <i class="<?= getFileIcon(pathinfo($doc['filename'] ?? '', PATHINFO_EXTENSION)); ?>" 
+                          style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                        <div>
+                          <?= htmlspecialchars($doc['title']); ?><br>
+                          <small class="text-muted">Owner: <?= htmlspecialchars($doc['owner_email']); ?></small>
+                        </div>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                  <div class="text-center text-muted py-2 no-documents" style="display: none;">No matching documents found.</div>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <!-- Purpose -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="reason">
+                Purpose
+                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+              </label>
+              <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
+            </div>
+
+            <!-- Intended Date of Usage -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="intended_date">
+                Intended Date of Usage
+                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
+              </label>
+              <input type="date" id="intended_date" name="intended_date" class="form-control" required>
+            </div>
+
           </div>
-                      
 
-          <!-- Purpose -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="reason">
-              Purpose
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"
+              style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
+              <i class="fas fa-paper-plane me-2"></i>Send Request
+            </button>
           </div>
-
-          <!-- Intended Date of Usage -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="intended_date">
-              Intended Date of Usage
-              <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-            </label>
-            <input type="date" id="intended_date" name="intended_date" class="form-control" required>
-          </div>
-
-        </div>
-
-        <div class="modal-footer border-0">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary"
-            style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
-            <i class="fas fa-paper-plane me-2"></i>Send Request
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-document.getElementById('requestFileForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
-  const submitBtn = form.querySelector('button[type="submit"]');
-  
-  // Show loading state
-  const originalText = submitBtn.innerHTML;
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
-  submitBtn.disabled = true;
+  <!-- JavaScript -->
+  <script>
+    // Filter function
+    function filterDocuments() {
+      const term = document.getElementById('document_search').value.toLowerCase();
+      const items = document.querySelectorAll('#document_list .document-item');
+      const noResultMsg = document.querySelector('#document_list .no-documents');
+      let anyVisible = false;
 
-  try {
-    const res = await fetch(form.action, { method: 'POST', body: formData });
-    const data = await res.json();
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        const match = text.includes(term);
+        item.style.display = match ? 'flex' : 'none';
+        if(match) anyVisible = true;
+      });
 
-    // Show Bootstrap alert instead of native alert
-    showAlert(data.message, data.status === 'success' ? 'success' : 'danger');
-
-    if (data.status === 'success') {
-      // Reset form and close modal
-      form.reset();
-      const modal = bootstrap.Modal.getInstance(document.getElementById('requestFileModal'));
-      modal.hide();
-
-      // Reload page after a short delay to show the success message
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    } else {
-      // Reset button state if failed
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
+      noResultMsg.style.display = anyVisible ? 'none' : 'block';
     }
-  } catch (error) {
-    showAlert('An error occurred while sending the request.', 'danger');
-    submitBtn.innerHTML = originalText;
-    submitBtn.disabled = false;
-  }
-});
 
-// Function to show Bootstrap alert
-function showAlert(message, type) {
-  const alertDiv = document.createElement('div');
-  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-  alertDiv.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  `;
-  
-  document.body.appendChild(alertDiv);
-  
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    if (alertDiv.parentNode) {
-      alertDiv.remove();
+    // Trigger search as you type
+    document.getElementById('document_search').addEventListener('input', filterDocuments);
+    // Trigger search on button click
+    document.getElementById('document_search_btn').addEventListener('click', filterDocuments);
+
+    // Handle form submission with AJAX
+    document.getElementById('requestFileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(form.action, { method: 'POST', body: formData });
+        const data = await res.json();
+
+        showAlert(data.message, data.status === 'success' ? 'success' : 'danger');
+
+        if (data.status === 'success') {
+          form.reset();
+          const modal = bootstrap.Modal.getInstance(document.getElementById('requestFileModal'));
+          modal.hide();
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      } catch (error) {
+        showAlert('An error occurred while sending the request.', 'danger');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Bootstrap alert helper
+    function showAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+      document.body.appendChild(alertDiv);
+      setTimeout(() => { if(alertDiv.parentNode) alertDiv.remove(); }, 5000);
     }
-  }, 5000);
-}
-</script>
+  </script>
 
 <style>
+.document-item { cursor: pointer; }
 .document-row:hover { background-color: rgba(42, 183, 202, 0.05) !important; }
 .file-icon-wrapper { width: 40px; height: 40px; border-radius: 8px; background-color: rgba(42, 183, 202, 0.1); display: flex; align-items: center; justify-content: center; color: #2AB7CA; }
 .avatar-sm { width: 32px; height: 32px; font-size: 0.8rem; }

@@ -434,7 +434,7 @@ $view = $_GET['view'] ?? 'list';
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $doc['id'] ?>"><i class="fas fa-key me-2"></i>Request File</a>
+                                                        <a class="dropdown-item text-primary" href="shared.php"><i class="fas fa-key me-2"></i>Request File</a>
                                                     </li>
                                                 <?php endif; ?>
                                             </ul>
