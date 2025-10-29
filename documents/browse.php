@@ -326,6 +326,50 @@ $view = $_GET['view'] ?? 'list';
             </div>
         </div>
     </div>
+    <!-- ================== REQUEST FILE MODAL ================== -->
+<div class="modal fade" id="requestFileModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content shadow border-0 rounded-4">
+      <div class="modal-header" style="background-color:#004F80;color:white;">
+        <h5 class="modal-title">
+          <i class="fas fa-key me-2"></i> Request File Access
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="requestFileForm">
+        <div class="modal-body">
+          <input type="hidden" name="document_id" id="request_document_id">
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Document Title</label>
+            <input type="text" class="form-control" id="request_document_title" name="document_title" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Uploader Email</label>
+            <input type="email" class="form-control" id="request_uploader_email" name="uploader_email" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Reason for Request</label>
+            <textarea class="form-control" id="request_reason" name="reason" rows="3" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Intended Date of Use</label>
+            <input type="date" class="form-control" id="request_intended_date" name="intended_date" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn" style="background-color:#004F80;color:white;">
+            <i class="fas fa-paper-plane me-2"></i>Send Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
     <!-- SEARCH BAR -->
     <div class="row mb-3">
@@ -340,244 +384,318 @@ $view = $_GET['view'] ?? 'list';
     </div>
 
     <!-- =============== LIST VIEW =============== -->
-    <div id="listView" class="<?php echo $view === 'grid' ? 'd-none' : ''; ?>">
-        <?php if (!empty($subfolders) || !empty($documents)): ?>
-            <div class="mt-3 shadow rounded-4 border-0">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">Name</th>
-                            <th>Size</th>
-                            <th>Owner</th>
-                            <th>Modified</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($subfolders as $folder): ?>
-                            <tr ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'" style="cursor:pointer;">
-                                <td><i class="fas fa-folder me-2" style="color:<?= $folder['color'] ?>"></i><?= htmlspecialchars($folder['name']) ?></td>
-                                <td></td>
-                                <td><?= htmlspecialchars($folder['owner'] ?? '—') ?></td>
-                                <td><?= date('M j, Y', strtotime($folder['created_at'])) ?></td>
-                                <td class="text-center">
-                                    <div class="dropdown">
-                                        <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <!-- Common option: Open Folder -->
-                                            <li>
-                                                <a class="dropdown-item" href="browse.php?folder=<?= $folder['id'] ?>">
-                                                    <i class="fas fa-folder-open me-2"></i>Open Folder
-                                                </a>
-                                            </li>
-                        
-                                            <?php if (isAdmin()): ?>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <a class="dropdown-item" href="#" onclick="
-                                                        document.getElementById('edit_id').value='<?= $folder['id'] ?>';
-                                                        document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
-                                                        document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
-                                                        document.getElementById('edit_color').value='<?= $folder['color'] ?>';
-                                                        var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
-                                                        <i class='fas fa-edit me-2'></i>Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="
-                                                        document.getElementById('delete_id').value='<?= $folder['id'] ?>';
-                                                        var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
-                                                        <i class='fas fa-trash me-2'></i>Delete
-                                                    </a>
-                                                </li>
-                                            <?php endif; ?>
-                                        </ul>
-                                    </div>
-                                </td>
+        <div id="listView" class="<?php echo $view === 'grid' ? 'd-none' : ''; ?>">
+            <?php if (!empty($subfolders) || !empty($documents)): ?>
+                <div class="mt-3 shadow rounded-4 border-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Name</th>
+                                <th>Size</th>
+                                <th>Owner</th>
+                                <th>Modified</th>
+                                <th class="text-center">Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                                            
-                            <?php foreach ($documents as $doc): ?>
-                                <tr>
-                                    <td>
-                                        <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2"></i>
-                                        <?= htmlspecialchars($doc['title']) ?>
-                                    </td>
-                                    <td><?= formatFileSize($doc['file_size']) ?></td>
-                                    <td><?= htmlspecialchars($doc['uploader_name']) ?></td>
-                                    <td><?= date('M j, Y', strtotime($doc['created_at'])) ?></td>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($subfolders as $folder): ?>
+                                <tr ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'" style="cursor:pointer;">
+                                    <td><i class="fas fa-folder me-2" style="color:<?= $folder['color'] ?>"></i><?= htmlspecialchars($folder['name']) ?></td>
+                                    <td></td>
+                                    <td><?= htmlspecialchars($folder['owner'] ?? '—') ?></td>
+                                    <td><?= date('M j, Y', strtotime($folder['created_at'])) ?></td>
                                     <td class="text-center">
                                         <div class="dropdown">
                                             <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
-                                                <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                                    <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
-                                                    <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                                <!-- Common option: Open Folder -->
+                                                <li>
+                                                    <a class="dropdown-item" href="browse.php?folder=<?= $folder['id'] ?>">
+                                                        <i class="fas fa-folder-open me-2"></i>Open Folder
+                                                    </a>
+                                                </li>
+                            
+                                                <?php if (isAdmin()): ?>
+                                                    <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item" href="#" onclick="
-                                                            document.getElementById('move_document_id').value='<?= $doc['id'] ?>';
-                                                            document.getElementById('move_document_name').textContent='<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>';
-                                                            var modal=new bootstrap.Modal(document.getElementById('moveDocumentModal'));modal.show();">
-                                                            <i class='fas fa-arrows-alt me-2'></i>Move
-                                                        </a>
-                                                    </li>
-                                                    <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                <?php else: ?>
-                                                    <li>
-                                                        <a class="dropdown-item text-warning" href="view.php?id=<?= $doc['id'] ?>">
-                                                            <i class="fas fa-info-circle me-2"></i>View Details
+                                                            document.getElementById('edit_id').value='<?= $folder['id'] ?>';
+                                                            document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
+                                                            document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
+                                                            document.getElementById('edit_color').value='<?= $folder['color'] ?>';
+                                                            var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
+                                                            <i class='fas fa-edit me-2'></i>Edit
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item text-primary" href="shared.php"><i class="fas fa-key me-2"></i>Request File</a>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="
+                                                            document.getElementById('delete_id').value='<?= $folder['id'] ?>';
+                                                            var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
+                                                            <i class='fas fa-trash me-2'></i>Delete
+                                                        </a>
                                                     </li>
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>              
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
-                <h5 class="text-muted">No folders or documents found</h5>
-                <p class="text-secondary mb-0">Try uploading a document or creating a new folder.</p>
-            </div>
-        <?php endif; ?>
-    </div>
+                            <?php endforeach; ?>
+                                                
+                                <?php foreach ($documents as $doc): ?>
+                                    <tr>
+                                        <td>
+                                            <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> me-2"></i>
+                                            <?= htmlspecialchars($doc['title']) ?>
+                                        </td>
+                                        <td><?= formatFileSize($doc['file_size']) ?></td>
+                                        <td><?= htmlspecialchars($doc['uploader_name']) ?></td>
+                                        <td><?= date('M j, Y', strtotime($doc['created_at'])) ?></td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
+                                                        <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                                        <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" onclick="
+                                                                document.getElementById('move_document_id').value='<?= $doc['id'] ?>';
+                                                                document.getElementById('move_document_name').textContent='<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>';
+                                                                var modal=new bootstrap.Modal(document.getElementById('moveDocumentModal'));modal.show();">
+                                                                <i class='fas fa-arrows-alt me-2'></i>Move
+                                                            </a>
+                                                        </li>
+                                                        <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                                        <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                    <?php else: ?>
+                                                        <li>
+                                                            <a class="dropdown-item text-warning" href="view.php?id=<?= $doc['id'] ?>">
+                                                                <i class="fas fa-info-circle me-2"></i>View Details
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item text-primary" href="#" onclick="requestFile(<?= $doc['id'] ?>)">
+                                                              <i class="fas fa-key me-2"></i>Request File
+                                                            </a>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>              
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                    <h5 class="text-muted">No folders or documents found</h5>
+                    <p class="text-secondary mb-0">Try uploading a document or creating a new folder.</p>
+                </div>
+            <?php endif; ?>
+        </div>
 
-    <!-- =============== GRID VIEW =============== -->
-<div id="gridView" class="<?= $view === 'grid' ? '' : 'd-none' ?>">
-    <div class="row g-3 mt-2">
+        <!-- =============== GRID VIEW =============== -->
+    <div id="gridView" class="<?= $view === 'grid' ? '' : 'd-none' ?>">
+        <div class="row g-3 mt-2">
 
-        <!-- SUBFOLDERS -->
-        <?php foreach ($subfolders as $folder): ?>
-            <div class="col-md-3 col-sm-6">
-                <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale"
-                    style="cursor:pointer;"
-                    ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <i class="fas fa-folder fa-2x" style="color:<?= $folder['color'] ?>"></i>
+            <!-- SUBFOLDERS -->
+            <?php foreach ($subfolders as $folder): ?>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale"
+                        style="cursor:pointer;"
+                        ondblclick="window.location.href='browse.php?folder=<?= $folder['id'] ?>'">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <i class="fas fa-folder fa-2x" style="color:<?= $folder['color'] ?>"></i>
 
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="browse.php?folder=<?= $folder['id'] ?>">
-                                        <i class="fas fa-folder-open me-2"></i>Open Folder
-                                    </a>
-                                </li>
-
-                                <?php if (isAdmin()): ?>
-                                    <li><hr class="dropdown-divider"></li>
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="#" onclick="
-                                            document.getElementById('edit_id').value='<?= $folder['id'] ?>';
-                                            document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
-                                            document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
-                                            document.getElementById('edit_color').value='<?= $folder['color'] ?>';
-                                            var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
-                                            <i class='fas fa-edit me-2'></i>Edit
+                                        <a class="dropdown-item" href="browse.php?folder=<?= $folder['id'] ?>">
+                                            <i class="fas fa-folder-open me-2"></i>Open Folder
                                         </a>
                                     </li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" onclick="
-                                            document.getElementById('delete_id').value='<?= $folder['id'] ?>';
-                                            var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
-                                            <i class='fas fa-trash me-2'></i>Delete
-                                        </a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
+
+                                    <?php if (isAdmin()): ?>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="
+                                                document.getElementById('edit_id').value='<?= $folder['id'] ?>';
+                                                document.getElementById('edit_name').value='<?= htmlspecialchars($folder['name'], ENT_QUOTES) ?>';
+                                                document.getElementById('edit_description').value='<?= htmlspecialchars($folder['description'], ENT_QUOTES) ?>';
+                                                document.getElementById('edit_color').value='<?= $folder['color'] ?>';
+                                                var modal=new bootstrap.Modal(document.getElementById('editFolderModal'));modal.show();">
+                                                <i class='fas fa-edit me-2'></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="
+                                                document.getElementById('delete_id').value='<?= $folder['id'] ?>';
+                                                var modal=new bootstrap.Modal(document.getElementById('deleteFolderModal'));modal.show();">
+                                                <i class='fas fa-trash me-2'></i>Delete
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($folder['name']) ?></h6>
+                            <small class="text-muted"><?= htmlspecialchars($folder['owner'] ?? '—') ?></small>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($folder['name']) ?></h6>
-                        <small class="text-muted"><?= htmlspecialchars($folder['owner'] ?? '—') ?></small>
-                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
 
-        <!-- DOCUMENTS -->
-        <?php foreach ($documents as $doc): ?>
-            <div class="col-md-3 col-sm-6">
-                <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> fa-2x text-secondary"></i>
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                    <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
-                                    <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="
-                                            document.getElementById('move_document_id').value='<?= $doc['id'] ?>';
-                                            document.getElementById('move_document_name').textContent='<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>';
-                                            var modal=new bootstrap.Modal(document.getElementById('moveDocumentModal'));modal.show();">
-                                            <i class='fas fa-arrows-alt me-2'></i>Move
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>">
-                                            <i class="fas fa-archive me-2"></i>Archive
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>">
-                                            <i class="fas fa-trash me-2"></i>Delete
-                                        </a>
-                                    </li>
-                                <?php else: ?>
-                                    <li>
-                                        <a class="dropdown-item text-warning" href="view.php?id=<?= $doc['id'] ?>">
-                                            <i class="fas fa-info-circle me-2"></i>View Details
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $doc['id'] ?>">
-                                            <i class="fas fa-key me-2"></i>Request File
-                                        </a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
+            <!-- DOCUMENTS -->
+            <?php foreach ($documents as $doc): ?>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card shadow-sm border-0 rounded-4 p-3 hover-scale">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <i class="<?= getFileIcon(pathinfo($doc['filename'], PATHINFO_EXTENSION)) ?> fa-2x text-secondary"></i>
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" style="border:none;">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
+                                        <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                        <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="
+                                                document.getElementById('move_document_id').value='<?= $doc['id'] ?>';
+                                                document.getElementById('move_document_name').textContent='<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>';
+                                                var modal=new bootstrap.Modal(document.getElementById('moveDocumentModal'));modal.show();">
+                                                <i class='fas fa-arrows-alt me-2'></i>Move
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>">
+                                                <i class="fas fa-archive me-2"></i>Archive
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>">
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    <?php else: ?>
+                                        <li>
+                                            <a class="dropdown-item text-warning" href="view.php?id=<?= $doc['id'] ?>">
+                                                <i class="fas fa-info-circle me-2"></i>View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-primary" href="#" onclick="requestFile(<?= $doc['id'] ?>)">
+                                                <i class="fas fa-key me-2"></i>Request File
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($doc['title']) ?></h6>
+                            <small class="text-muted"><?= htmlspecialchars($doc['uploader_name']) ?></small>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <h6 class="fw-bold mb-1 text-truncate"><?= htmlspecialchars($doc['title']) ?></h6>
-                        <small class="text-muted"><?= htmlspecialchars($doc['uploader_name']) ?></small>
-                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
 
-        <!-- EMPTY STATE -->
-        <?php if (empty($subfolders) && empty($documents)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
-                <h5 class="text-muted">No folders or documents found</h5>
-                <p class="text-secondary mb-0">Try uploading a document or creating a new folder.</p>
-            </div>
-        <?php endif; ?>
-
-    </div>
+            <!-- EMPTY STATE -->
+            <?php if (empty($subfolders) && empty($documents)): ?>
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                    <h5 class="text-muted">No folders or documents found</h5>
+                    <p class="text-secondary mb-0">Try uploading a document or creating a new folder.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>                                  
 </div>
+<script>
+async function requestFile(documentId) {
+  try {
+    // Fetch document info
+    const res = await fetch(`../api/get_document_info.php?id=${documentId}`);
+    const data = await res.json();
 
-                                        
-</div>
+    if (!data || data.error) {
+      alert("Error fetching document details.");
+      return;
+    }
 
+    // Fill modal fields
+    document.getElementById("request_document_id").value = data.id;
+    document.getElementById("request_document_title").value = data.title;
+    document.getElementById("request_uploader_email").value = data.uploader_email;
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById("requestFileModal"));
+    modal.show();
+  } catch (err) {
+    console.error(err);
+    alert("Unable to load file info.");
+  }
+}
+
+// Handle submit
+document.getElementById("requestFileForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const formData = new FormData(form);
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch("../api/api_request_file.php", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.status === "success") {
+      showAlert("File request sent successfully!", "success");
+      form.reset();
+      setTimeout(() => {
+        window.location.href = "../documents/shared.php";
+      }, 1500);
+    } else {
+      showAlert("Error: " + data.message, "danger");
+    }
+  } catch (err) {
+    console.error(err);
+    showAlert("Network error. Please try again.", "danger");
+  } finally {
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
+});
+function showAlert(message, type = "info") {
+  const alertDiv = document.createElement("div");
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+  alertDiv.style.cssText =
+    "top: 20px; right: 20px; z-index: 1055; min-width: 300px;";
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  document.body.appendChild(alertDiv);
+  setTimeout(() => alertDiv.remove(), 4000);
+}
+</script>
 <!-- ========== SCRIPT TO TOGGLE VIEW ========== -->
 <script src="../assets/js/browse.js"></script>

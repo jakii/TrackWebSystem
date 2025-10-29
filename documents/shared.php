@@ -186,17 +186,17 @@ $mark_read->execute([$_SESSION['user_id']]);
     $stmt->execute([$user_id, $user_id]);
     $requests = $stmt->fetchAll();
     ?>
-  <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
-    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-      <i class="fas fa-check-circle me-2"></i> File request sent successfully!
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  <?php elseif (isset($_GET['error']) && $_GET['error'] == 1): ?>
-    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-      <i class="fas fa-exclamation-circle me-2"></i> Something went wrong while sending your request.
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  <?php endif; ?>
+    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+      <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> File request sent successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <?php elseif (isset($_GET['error']) && $_GET['error'] == 1): ?>
+      <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> Something went wrong while sending your request.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <?php endif; ?>
     <?php if (empty($requests)): ?>
       <div class="text-center py-5 text-muted">No file requests yet.</div>
     <?php else: ?>
@@ -280,7 +280,7 @@ $mark_read->execute([$_SESSION['user_id']]);
                             </div>
                         </div>
                     
-                    <?php elseif ($req['status'] === 'approved' && $req['recipient_id'] == $user_id): ?>
+                    <?php elseif ($req['status'] === 'approved' && $req['sender_id'] == $user_id): ?>
                         <!-- Only the requesting user sees Preview & Download -->
                         <a class="btn btn-sm btn-primary me-1" href="preview.php?id=<?= $req['document_id']; ?>" title="Preview">
                             <i class="fas fa-eye"></i>
@@ -300,121 +300,7 @@ $mark_read->execute([$_SESSION['user_id']]);
     <?php endif; ?>
   </div>
 </div>
-  <!-- Request File Modal -->
-  <div class="modal fade" id="requestFileModal" tabindex="-1" aria-labelledby="requestFileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content rounded-4 border-0">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-semibold text-dark">
-            <i class="fas fa-file-import me-2 text-primary"></i>Request a File
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
 
-        <form id="requestFileForm" action="<?= BASE_URL; ?>api/api_request_file.php" method="post">
-          <div class="modal-body">
-
-            <!-- Recipient -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold" for="recipient_id">
-                Recipient (Email or Username)
-                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-              </label>
-              <?php
-              $stmt = $db->prepare("SELECT id, username, email FROM users WHERE id != ?");
-              $stmt->execute([$_SESSION['user_id']]);
-              $users = $stmt->fetchAll();
-              ?>
-              <select name="recipient_id" id="recipient_id" class="form-select" required>
-                <option value="">-- Select User --</option>
-                <?php foreach ($users as $u): ?>
-                  <option value="<?= $u['id']; ?>">
-                    <?= htmlspecialchars($u['username']) . " (" . htmlspecialchars($u['email']) . ")"; ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
-            <!-- Scrollable Documents with Search -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold" for="document_search">
-                Select Document to Request
-                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-              </label>
-
-              <!-- Search Input + Button -->
-              <div class="input-group mb-2">
-                <input type="text" id="document_search" class="form-control" placeholder="Search documents...">
-                <button type="button" id="document_search_btn" class="btn btn-primary">
-                  <i class="fas fa-search me-1"></i>Search
-                </button>
-              </div>
-
-              <div class="border rounded-3 p-2" style="max-height: 250px; overflow-y: auto;" id="document_list">
-                <?php
-                $docs_stmt = $db->prepare("
-                  SELECT d.id, d.title, d.filename, d.updated_at, u.email AS owner_email 
-                  FROM documents d
-                  JOIN users u ON d.uploaded_by = u.id
-                  WHERE d.uploaded_by != :current_user
-                  ORDER BY d.updated_at DESC
-                ");
-                $docs_stmt->execute(['current_user' => $_SESSION['user_id']]);
-                $documents = $docs_stmt->fetchAll();
-                ?>
-
-                <?php if (empty($documents)): ?>
-                  <div class="text-muted text-center py-3">No available documents.</div>
-                <?php else: ?>
-                  <?php foreach ($documents as $doc): ?>
-                    <div class="form-check mb-2 d-flex align-items-center gap-2 document-item">
-                      <input class="form-check-input" type="radio" name="document_id" id="doc<?= $doc['id']; ?>" value="<?= $doc['id']; ?>" required>
-                      <label class="form-check-label d-flex align-items-center gap-2" for="doc<?= $doc['id']; ?>">
-                        <i class="<?= getFileIcon(pathinfo($doc['filename'] ?? '', PATHINFO_EXTENSION)); ?>" 
-                          style="color: var(--primary-color); font-size: 1.2rem;"></i>
-                        <div>
-                          <?= htmlspecialchars($doc['title']); ?><br>
-                          <small class="text-muted">Owner: <?= htmlspecialchars($doc['owner_email']); ?></small>
-                        </div>
-                      </label>
-                    </div>
-                  <?php endforeach; ?>
-                  <div class="text-center text-muted py-2 no-documents" style="display: none;">No matching documents found.</div>
-                <?php endif; ?>
-              </div>
-            </div>
-
-            <!-- Purpose -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold" for="reason">
-                Purpose
-                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-              </label>
-              <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Why do you need this file?" required></textarea>
-            </div>
-
-            <!-- Intended Date of Usage -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold" for="intended_date">
-                Intended Date of Usage
-                <span class="text-danger fw-bold" style="font-size:1.5em;">*</span>
-              </label>
-              <input type="date" id="intended_date" name="intended_date" class="form-control" required>
-            </div>
-
-          </div>
-
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary"
-              style="background: linear-gradient(135deg, #004F80, #0073b6); border: none;">
-              <i class="fas fa-paper-plane me-2"></i>Send Request
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 
   <!-- JavaScript -->
   <script>

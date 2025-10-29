@@ -19,12 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $sender_id     = $_SESSION['user_id'];
-$recipient_id  = $_POST['recipient_id'] ?? null;
-$reason        = trim($_POST['reason'] ?? '');
 $document_id   = $_POST['document_id'] ?? null;
+$reason        = trim($_POST['reason'] ?? '');
 $intended_date = $_POST['intended_date'] ?? null;
 
-if (!$recipient_id || !$reason || !$document_id || !$intended_date) {
+if (!$document_id || !$reason || !$intended_date) {
     echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
     exit;
 }
@@ -35,40 +34,40 @@ if (!DateTime::createFromFormat('Y-m-d', $intended_date)) {
 }
 
 try {
-    // Get document details
-    $doc_stmt = $db->prepare("SELECT title FROM documents WHERE id = ?");
+    //Get document + uploader info
+    $doc_stmt = $db->prepare("
+        SELECT d.title, u.id AS uploader_id, u.full_name AS uploader_name, u.email AS uploader_email
+        FROM documents d
+        JOIN users u ON d.uploaded_by = u.id
+        WHERE d.id = ?
+    ");
     $doc_stmt->execute([$document_id]);
-    $document = $doc_stmt->fetch();
+    $document = $doc_stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$document) {
         echo json_encode(['status' => 'error', 'message' => 'Document not found.']);
         exit;
     }
 
-    // Insert file request
+    $recipient_id = $document['uploader_id'];
+
+    //Insert file request record
     $stmt = $db->prepare("
         INSERT INTO file_requests (sender_id, recipient_id, document_id, reason, intended_date, status, created_at)
         VALUES (?, ?, ?, ?, ?, 'pending', NOW())
     ");
     $stmt->execute([$sender_id, $recipient_id, $document_id, $reason, $intended_date]);
 
-    // Get sender and recipient info
-    $user_stmt = $db->prepare("SELECT id, full_name, email FROM users WHERE id IN (?, ?)");
-    $user_stmt->execute([$sender_id, $recipient_id]);
-    $users = $user_stmt->fetchAll(PDO::FETCH_ASSOC);
+    //Get sender info
+    $sender_stmt = $db->prepare("SELECT full_name, email FROM users WHERE id = ?");
+    $sender_stmt->execute([$sender_id]);
+    $sender = $sender_stmt->fetch(PDO::FETCH_ASSOC);
 
-    $sender = null;
-    $recipient = null;
-    foreach ($users as $u) {
-        if ($u['id'] == $sender_id) $sender = $u;
-        if ($u['id'] == $recipient_id) $recipient = $u;
-    }
-
-    // Send email notification
-    if ($recipient && !empty($recipient['email'])) {
+    //Send email to the uploader
+    if (!empty($document['uploader_email'])) {
         $mail = new PHPMailer(true);
         try {
-            // SMTP Configuration
+            // SMTP settings
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
@@ -77,17 +76,17 @@ try {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
 
-            // Sender and recipient
+            // Email headers
             $mail->setFrom('reytabasan123@gmail.com', 'Document Tracker');
-            $mail->addAddress($recipient['email'], $recipient['full_name']);
+            $mail->addAddress($document['uploader_email'], $document['uploader_name']);
 
             // Email content
             $mail->isHTML(true);
-            $mail->Subject = "New File Request from {$sender['full_name']}";
+            $mail->Subject = "File Request: {$document['title']}";
             $mail->Body = "
                 <div style='font-family:Arial, sans-serif; color:#333;'>
-                    <h3>You have a new file request!</h3>
-                    <p><strong>From:</strong> {$sender['full_name']}</p>
+                    <h3>New File Request Received</h3>
+                    <p><strong>From:</strong> {$sender['full_name']} ({$sender['email']})</p>
                     <p><strong>Requested Document:</strong> {$document['title']}</p>
                     <p><strong>Purpose:</strong> {$reason}</p>
                     <p><strong>Intended Date of Usage:</strong> " . date('F d, Y', strtotime($intended_date)) . "</p>
@@ -101,18 +100,17 @@ try {
 
             $mail->send();
         } catch (Exception $e) {
-            error_log("Email failed: " . $mail->ErrorInfo);
+            error_log("Email send error: " . $mail->ErrorInfo);
         }
     }
 
-    // Return success message for frontend alert
+    // Response to frontend
     echo json_encode([
         'status' => 'success',
-        'message' => 'File request sent successfully! An email notification was sent to the recipient.'
+        'message' => 'File request sent successfully! The document uploader was notified by email.'
     ]);
 
 } catch (PDOException $e) {
     echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-    exit;
 }
 ?>
