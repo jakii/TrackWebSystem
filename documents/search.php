@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <i class="fas fa-ellipsis-v" style="font-size: 1.2rem; color: #2F4858;"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="docActions<?= $doc['id'] ?>">
-                                    <?php if (!isAdmin()): ?>
+                                    <?php if (!isAdmin() && $doc['uploaded_by'] != $_SESSION['user_id']): ?>
                                         <li>
                                             <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $doc['id'] ?>" data-bs-toggle="tooltip" title="Request File">
                                                 <i class="fas fa-key me-2"></i> Request File
@@ -208,7 +208,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <?php endif; ?>
                                     
                                     <?php if ($doc['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="preview.php?id=<?= $item['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                        <li><a class="dropdown-item" href="download.php?id=<?= $item['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                        <li><a class="dropdown-item" href="archive.php?id=<?= $item['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                         <li>
                                             <a class="dropdown-item text-danger" 
                                                href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" 

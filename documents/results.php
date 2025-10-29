@@ -116,37 +116,31 @@ $search = trim($_GET['search'] ?? '');
                                                 <i class="fas fa-folder-open me-2"></i> Open Folder
                                             </a>
                                         </li>
-                                    
-                                        <?php if ($item['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                            <li><hr class="dropdown-divider"></li>
-                                        <?php endif; ?>
                                         
                                     <?php else: ?>
                                         <!-- DOCUMENT ACTIONS -->
-                                        <?php if (!isAdmin()): ?>
+                                        <?php if (!isAdmin() && $item['uploaded_by'] != $_SESSION['user_id']): ?>
                                             <li>
                                                 <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $item['id'] ?>">
                                                     <i class="fas fa-key me-2"></i> Request File
                                                 </a>
                                             </li>
                                         <?php endif; ?>
-                                        
                                         <li>
                                             <a class="dropdown-item" href="view.php?id=<?= $item['id'] ?>">
                                                 <i class="fas fa-info-circle me-2"></i> View Details
                                             </a>
                                         </li>
-                                        
-                                        <?php if ($item['uploaded_by'] == $_SESSION['user_id']): ?>
+                                        <?php if ($item['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
                                             <li>
                                                 <a class="dropdown-item" href="share.php?id=<?= $item['id'] ?>">
                                                     <i class="fas fa-share me-2"></i> Share
                                                 </a>
                                             </li>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($item['uploaded_by'] == $_SESSION['user_id'] || isAdmin()): ?>
-                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="preview.php?id=<?= $item['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                            <li><a class="dropdown-item" href="download.php?id=<?= $item['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
+                                            <li><a class="dropdown-item" href="archive.php?id=<?= $item['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                            <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $item['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </ul>
