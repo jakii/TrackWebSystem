@@ -310,7 +310,7 @@ $view = $_GET['view'] ?? 'list';
                 <form method="POST" action="../api/api_folder_delete.php">
                     <input type="hidden" name="folder_id" id="delete_id">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-3"></i>Delete Folder</h5>
+                        <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-3"></i>Delete Folder</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
