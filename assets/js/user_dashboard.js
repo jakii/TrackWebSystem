@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   checkboxes.forEach(cb => cb.addEventListener("change", updateBulkState));
 
-  // Bulk actions (simulate API call / redirect)
   document.querySelectorAll(".bulk-action-user").forEach(btn => {
     btn.addEventListener("click", () => {
       const action = btn.dataset.action;
@@ -45,8 +44,6 @@ document.addEventListener("DOMContentLoaded", function() {
       if (action === "delete" && !confirm("Are you sure you want to delete selected documents?")) return;
 
       console.log("User bulk action:", action, "on IDs:", selected);
-      // You can call an API or redirect to a PHP script here:
-      // window.location.href = `documents/bulk_action.php?action=${action}&ids=${selected.join(",")}`;
     });
   });
 

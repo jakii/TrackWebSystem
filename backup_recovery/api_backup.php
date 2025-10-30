@@ -77,7 +77,7 @@ function handleRestoreBackup($db) {
     restoreBackup($db, $backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup restored: {$backup_folder}");
 
-    echo json_encode(['success' => true, 'message' => "Backup restored success"]);
+    echo json_encode(['success' => true, 'message' => "Backup restored"]);
 }
 
 function handleDeleteBackup($db) {
@@ -89,6 +89,6 @@ function handleDeleteBackup($db) {
     deleteBackup($backup_folder);
     logActivity($db, $_SESSION['user_id'], "Backup deleted: {$backup_folder}");
 
-    echo json_encode(['success' => true, 'message' => "Backup deleted successfully"]);
+    echo json_encode(['success' => true, 'message' => "Backup deleted"]);
 }
 ?>

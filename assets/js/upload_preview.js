@@ -117,7 +117,7 @@ function displayFiles() {
       newFiles.forEach(f => newDt.items.add(f));
 
       fileInput.files = newDt.files;
-      displayFiles(); // refresh the list
+      displayFiles();
     });
   });
 

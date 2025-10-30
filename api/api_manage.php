@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
     if ($id <= 0 || empty($name)) {
         $error = 'Invalid category data.';
     } else {
-        // Prevent duplicate name (excluding current ID)
+        // Prevent duplicate name
         $check_query = $db->prepare("SELECT id FROM categories WHERE UPPER(name) = ? AND id != ?");
         $check_query->execute([$name, $id]);
 

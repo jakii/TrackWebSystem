@@ -121,7 +121,7 @@ $search = trim($_GET['search'] ?? '');
                                         <!-- DOCUMENT ACTIONS -->
                                         <?php if (!isAdmin() && $item['uploaded_by'] != $_SESSION['user_id']): ?>
                                             <li>
-                                                <a class="dropdown-item text-primary" href="request_access.php?document_id=<?= $item['id'] ?>">
+                                                <a class="dropdown-item text-primary" href="#" onclick="requestFile(<?= $item['id'] ?>)">
                                                     <i class="fas fa-key me-2"></i> Request File
                                                 </a>
                                             </li>
@@ -151,5 +151,125 @@ $search = trim($_GET['search'] ?? '');
                 </tbody>
             </table>
         <?php endif; ?>
+        
+        <div class="modal fade" id="requestFileModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content shadow border-0 rounded-4">
+              <div class="modal-header" style="background-color:#004F80;color:white;">
+                <h5 class="modal-title">
+                  <i class="fas fa-key me-2"></i> Request File Access
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <form id="requestFileForm">
+                <div class="modal-body">
+                  <input type="hidden" name="document_id" id="request_document_id">
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Document Title</label>
+                    <input type="text" class="form-control" id="request_document_title" name="document_title" readonly>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Uploader Email</label>
+                    <input type="email" class="form-control" id="request_uploader_email" name="uploader_email" readonly>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Reason for Request</label>
+                    <textarea class="form-control" id="request_reason" name="reason" rows="3" required></textarea>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Intended Date of Use</label>
+                    <input type="date" class="form-control" id="request_intended_date" name="intended_date" required>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn" style="background-color:#004F80;color:white;">
+                    <i class="fas fa-paper-plane me-2"></i>Send Request
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
     </div>
 </div>
+<script>
+    async function requestFile(documentId) {
+      try {
+        // Fetch document info
+        const res = await fetch(`../api/get_document_info.php?id=${documentId}`);
+        const data = await res.json();
+    
+        if (!data || data.error) {
+          alert("Error fetching document details.");
+          return;
+        }
+    
+        // Fill modal fields
+        document.getElementById("request_document_id").value = data.id;
+        document.getElementById("request_document_title").value = data.title;
+        document.getElementById("request_uploader_email").value = data.uploader_email;
+    
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById("requestFileModal"));
+        modal.show();
+      } catch (err) {
+        console.error(err);
+        alert("Unable to load file info.");
+      }
+    }
+    
+    // Handle submit
+    document.getElementById("requestFileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+    
+      const form = e.target;
+      const formData = new FormData(form);
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+    
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+      submitBtn.disabled = true;
+    
+      try {
+        const res = await fetch("../api/api_request_file.php", {
+          method: "POST",
+          body: formData,
+        });
+    
+        const data = await res.json();
+    
+        if (data.status === "success") {
+          showAlert("File request sent successfully!", "success");
+          form.reset();
+          setTimeout(() => {
+            window.location.href = "../documents/shared.php";
+          }, 1500);
+        } else {
+          showAlert("Error: " + data.message, "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert("Network error. Please try again.", "danger");
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+    function showAlert(message, type = "info") {
+      const alertDiv = document.createElement("div");
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      alertDiv.style.cssText =
+        "top: 20px; right: 20px; z-index: 1055; min-width: 300px;";
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 4000);
+    }
+</script>

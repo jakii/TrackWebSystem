@@ -11,10 +11,8 @@ if (!$user_id) {
 
 $is_admin = isAdmin();
 
-// Input validation
 $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT, ['options' => ['default' => 1, 'min_range' => 1]]);
 
-// Function to get weekly uploads data
 function getWeeklyUploads($db, $user_id = null, $is_admin = false) {
     try {
         if ($is_admin) {
@@ -45,7 +43,7 @@ function getWeeklyUploads($db, $user_id = null, $is_admin = false) {
     }
 }
 
-// Function to get document statistics
+//get document statistics
 function getDocumentStats($db, $user_id = null, $is_admin = false) {
     try {
         if ($is_admin) {
@@ -62,7 +60,7 @@ function getDocumentStats($db, $user_id = null, $is_admin = false) {
     }
 }
 
-// Function to get recent documents
+//get recent documents
 function getRecentDocuments($db, $user_id = null, $is_admin = false, $limit = null) {
     try {
         if ($is_admin) {
@@ -120,18 +118,18 @@ function getRecentDocuments($db, $user_id = null, $is_admin = false, $limit = nu
 }
 
 
-// 📊 Document Statistics with combined query
+//Document Statistics with combined query
 $stats = getDocumentStats($db, $user_id, $is_admin);
 $total_documents = $stats['total'] ?? 0;
 $total_size = $stats['total_size'] ?? 0;
 
-// 📈 Weekly Uploads
+//Weekly Uploads
 $weekly_uploads = getWeeklyUploads($db, $user_id, $is_admin);
 
-// 📄 Recent Documents (limited to 15 for show more functionality)
+//Recent Documents
 $recent_documents = getRecentDocuments($db, $user_id, $is_admin, 15);
 
-// 📂 5 Documents Shared With User
+//5 Documents Shared With User
 try {
     $shared_documents = $db->prepare("
         SELECT d.*,
@@ -157,7 +155,7 @@ try {
     $shared_documents = [];
 }
 
-// 📋 Get All Categories
+//Get All Categories
 try {
     $categories = $db->prepare("SELECT * FROM categories ORDER BY name");
     $categories->execute();
@@ -167,7 +165,7 @@ try {
     $categories = [];
 }
 
-// Recent Folders
+//Recent Folders
 if (!$is_admin) {
     try {
         $recent_folders_stmt = $db->prepare("
@@ -189,7 +187,7 @@ if (!$is_admin) {
     $recent_folders = [];
 }
 
-// 📂 Total Count of Shared Documents for this user
+//Total Count of Shared Documents for this user
 try {
     $shared_count_stmt = $db->prepare("
         SELECT COUNT(*) AS total_shared

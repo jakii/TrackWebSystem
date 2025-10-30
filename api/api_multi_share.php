@@ -4,7 +4,6 @@ require_once '../config/database.php';
 require_once '../includes/activity_logger.php';
 requireAuth();
 
-// Include PHPMailer
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require '../vendor/autoload.php';

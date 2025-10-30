@@ -16,27 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['folder_id'])) {
         exit;
     }
 
-    // 1️⃣ Check if folder has documents
-    $doc_check = $db->prepare("SELECT COUNT(*) as total FROM documents WHERE folder_id = ? AND (is_deleted IS NULL OR is_deleted = 0)");
-    $doc_check->execute([$folder_id]);
-    $doc_count = $doc_check->fetch()['total'];
-
-    if ($doc_count > 0) {
-        header("Location: browse.php?folder=$folder_id&error=has_documents");
-        exit;
-    }
-
-    // 2️⃣ Check if folder has subfolders
-    $sub_check = $db->prepare("SELECT COUNT(*) as total FROM folders WHERE parent_id = ?");
-    $sub_check->execute([$folder_id]);
-    $sub_count = $sub_check->fetch()['total'];
-
-    if ($sub_count > 0) {
-        header("Location: browse.php?folder=$folder_id&error=has_subfolders");
-        exit;
-    }
-
-    // 3️⃣ Safe to delete
+    //Safe to delete
     $delete = $db->prepare("DELETE FROM folders WHERE id = ?");
     $delete->execute([$folder_id]);
 

@@ -30,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if ($folder_name) {
-        // check for duplicate folder names in the same parent
         $duplicate_check = $db->prepare("
             SELECT name FROM folders 
             WHERE name LIKE ? AND 
@@ -85,11 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         logActivity($db, $_SESSION['user_id'], "Folder created: $folder_name");
 
-        // Set session alert instead of echoing HTML
-        $_SESSION['alert_message'] = "Folder <strong>" . htmlspecialchars($folder_name) . "</strong> created successfully.";
+        $_SESSION['alert_message'] = "Folder <strong>" . htmlspecialchars($folder_name) . "</strong> created.";
         $_SESSION['alert_type'] = 'success';
         
-        // Redirect back to browse page
         header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
         exit();
     }
@@ -220,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 $unique_filename,
                 $new_name,
                 $file_size,
-                $mime, // use real MIME type
+                $mime,
                 $destination,
                 $current_folder_id,
                 $category_id,
@@ -251,7 +248,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         exit();
     }
 
-    // Set success message and redirect
     $_SESSION['alert_message'] = "Upload completed!";
     $_SESSION['alert_type'] = 'success';
     
@@ -319,8 +315,6 @@ $documentsQuery = "
       AND (d.is_deleted IS NULL OR d.is_deleted = 0)
     ORDER BY d.created_at DESC
 ";
-
 $documents = $db->query($documentsQuery)->fetchAll();
-
 $page_title = $current_folder ? $current_folder['name'] . ' - Browse' : 'Document Browser';
 ?>

@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const printBtn = document.getElementById('printBtn');
-    if (!printBtn) return; // PDF or button not present
-
+    if (!printBtn) return;
     printBtn.addEventListener('click', function() {
         const cardBody = document.querySelector('.card-body');
         if (!cardBody) return;
@@ -11,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clone.style.overflow = 'visible';
 
         // Automatic page breaks
-        const pageHeight = 1100; // approx A4
+        const pageHeight = 1100;
         let accumulatedHeight = 0;
 
         const elements = clone.querySelectorAll('div, table, img, pre, .bg-light');

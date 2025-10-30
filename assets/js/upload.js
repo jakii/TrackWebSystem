@@ -1,4 +1,3 @@
-// /assets/js/upload.js
 document.addEventListener("DOMContentLoaded", function () {
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("documents");

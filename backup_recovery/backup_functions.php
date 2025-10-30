@@ -1,9 +1,8 @@
 <?php
 require_once '../config/database.php';
 
-/**
- * === DATABASE BACKUP ===
- */
+//DATABASE BACKUP
+
 function backupDatabase($db, $backup_dir) {
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
     $sql_dump = "";
@@ -34,9 +33,7 @@ function backupDatabase($db, $backup_dir) {
     file_put_contents($backup_dir . 'database_backup.sql', $sql_dump);
 }
 
-/**
- * === FILE BACKUP ===
- */
+//FILE BACKUP
 function backupFiles($backup_dir) {
     $uploads_dir = "/var/www/TrackWeb/documents/uploads/";
     $backup_files_dir = $backup_dir . "uploads/";
@@ -63,9 +60,7 @@ function backupFiles($backup_dir) {
     }
 }
 
-/**
- * === BACKUP INFO ===
- */
+//BACKUP INFO
 function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $schedule_type = null) {
     $info = [
         'created_at' => date('Y-m-d H:i:s'),
@@ -79,9 +74,7 @@ function createBackupInfo($backup_dir, $backup_type, $include_files, $user_id, $
     file_put_contents($backup_dir . 'backup_info.json', json_encode($info, JSON_PRETTY_PRINT));
 }
 
-/**
- * === RESTORE ===
- */
+//RESTORE
 function restoreBackup($db, $backup_folder) {
     $backup_path = __DIR__ . "/../backups/{$backup_folder}/";
 
@@ -95,7 +88,7 @@ function restoreBackup($db, $backup_folder) {
 
     $backup_info = json_decode(file_get_contents($backup_path . 'backup_info.json'), true);
 
-    // === Restore Database ===
+    //Restore Database
     $db_backup_file = $backup_path . 'database_backup.sql';
     if (file_exists($db_backup_file)) {
         $sql = file_get_contents($db_backup_file);
@@ -162,9 +155,7 @@ function restoreBackup($db, $backup_folder) {
 }
 
 
-/**
- * === BACKUP LIST ===
- */
+//BACKUP LIST
 function getBackupList() {
     $backups = [];
     $backups_dir = "../backups/";
@@ -215,9 +206,7 @@ function formatSizeUnits($bytes) {
     return '0 bytes';
 }
 
-/**
- * Create a ZIP of the backup folder
- */
+//Create a ZIP of the backup folder
 function zipBackup($backup_dir) {
     $zip_path = rtrim($backup_dir, '/') . '.zip';
     $zip = new ZipArchive();
@@ -241,9 +230,7 @@ function zipBackup($backup_dir) {
     throw new Exception("Failed to create ZIP file for backup.");
 }
 
-/**
- * Delete backup folder and its ZIP file
- */
+//Delete backup folder and its ZIP file
 function deleteBackup($backup_folder) {
     $backup_dir = "../backups/" . basename($backup_folder);
     $zip_path = $backup_dir . ".zip";

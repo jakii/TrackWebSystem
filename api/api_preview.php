@@ -49,7 +49,7 @@ $is_powerpoint = in_array($file_extension, ['ppt', 'pptx']);
 $is_text = in_array($file_extension, ['txt']);
 $is_archive = in_array($file_extension, ['zip', 'rar']);
 
-// Build public URL for browser preview - FIXED
+// Build public URL for browser preview
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
 $baseUrl = $protocol . '://' . $host;

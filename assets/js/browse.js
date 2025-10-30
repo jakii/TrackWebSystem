@@ -1,4 +1,3 @@
-// ================== VIEW TOGGLE & SEARCH ==================
 document.addEventListener("DOMContentLoaded", function () {
     const toggleBtn = document.getElementById("toggleViewBtn");
     const listView = document.getElementById("listView");

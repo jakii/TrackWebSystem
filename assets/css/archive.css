@@ -1,4 +1,3 @@
-/* ==== ARCHIVE PAGE (Flat Design, No Gradient) ==== */
 :root {
   --primary: #004f80;
   --accent: #007bff;
@@ -39,7 +38,7 @@ body {
   border-top-right-radius: 12px !important;
 }
 
-/* Nested Card (document details) */
+/* Nested Card */
 .card.bg-light {
   border: 1px solid var(--border-color);
   background-color: #f1f3f5 !important;
