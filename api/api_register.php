@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // --- Create new user (unverified/pending) ---
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $role = 'user';
-            $status = 'unverified';
+            $status = 'pending';
 
             $insert_user_query = $db->prepare("
                 INSERT INTO users (username, email, password, full_name, role, status, created_at)
