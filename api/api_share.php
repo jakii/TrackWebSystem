@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                             $mail->Port = 587;
 
-                            $mail->setFrom('reytabasan123@gmail.com', 'TVET Record System');
+                            $mail->setFrom('reytabasan123@gmail.com', 'Track');
                             $mail->addAddress($share_user['email'], $share_user['full_name'] ?? '');
 
                             $mail->isHTML(true);

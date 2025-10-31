@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->Port = 587;
 
                 // Sender and recipient
-                $mail->setFrom('reytabasan123@gmail.com', 'TrackWeb Support');
+                $mail->setFrom('reytabasan123@gmail.com', 'Track');
                 $mail->addAddress($email, $user['full_name']);
 
                 // Email content
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p><a href='$reset_link'>$reset_link</a></p>
                     <p>If you didn't request this, please ignore this email.</p>
                     <br>
-                    <p>— TrackWeb Support Team</p>
+                    <p>— TVET Record and Archival Control Kiosk</p>
                 ";
                 $mail->send();
                 $message = "A password reset link has been sent to your email.";

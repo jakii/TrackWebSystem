@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 587;
 
-                    $mail->setFrom('reytabasan123@gmail.com', 'TrackWeb Document Portal');
+                    $mail->setFrom('reytabasan123@gmail.com', 'Track');
                     $mail->addAddress($email, $info['full_name']);
 
                     $mail->isHTML(true);
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                     }
                     $body .= "</ul><p><a href='https://csutrack.site/documents/shared.php'>
                                 Log in to the portal to view them.</a></p>";
-                    $body .= "<p>Best regards,<br>Document Portal Team</p>";
+                    $body .= "<p>Best regards,<br>TVET Record and Archival Control Kiosk</p>";
 
                     $mail->Body = $body;
                     $mail->send();

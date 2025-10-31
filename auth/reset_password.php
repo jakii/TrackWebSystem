@@ -45,6 +45,7 @@ if (isset($_GET['token'])) {
     <meta charset="UTF-8">
     <title>Reset Password</title>
     <link rel="stylesheet" href="../assets/css/login.css">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/LOGO.png">
 </head>
 <body>
 <div class="login-container">
