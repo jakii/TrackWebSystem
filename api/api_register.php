@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($insert_user_query->execute([$username, $email, $hashed_password, $full_name, $role, $status])) {
                 $user_id = $db->lastInsertId();
-                logActivity($db, $user_id, 'User registered (awaiting email verification).');
+                logActivity($db, $user_id, 'User registered.');
 
                 // --- Generate OTP ---
                 $otp = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);

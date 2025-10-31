@@ -26,7 +26,7 @@ if (isset($_POST['verify'])) {
         $otpRow = $stmt->fetch();
 
         if ($otpRow) {
-            $db->prepare("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?")->execute([$user['id']]);
+            $db->prepare("UPDATE users SET is_verified = 1 WHERE id = ?")->execute([$user['id']]);
             $db->prepare("UPDATE email_otps SET is_used = 1 WHERE id = ?")->execute([$otpRow['id']]);
             logActivity($db, $user['id'], 'Email verified via OTP.');
 
