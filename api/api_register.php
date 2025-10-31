@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mail->send();
 
                     // --- Redirect to OTP verification page ---
-                    header("Location: ../auth/verify_otp.php?email=" . urlencode($email));
+                    header("Location: verify_otp.php?email=" . urlencode($email));
                     exit;
                 } catch (Exception $e) {
                     $error = "Registration successful but failed to send OTP: " . $mail->ErrorInfo;
