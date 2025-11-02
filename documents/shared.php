@@ -185,6 +185,14 @@ $mark_read->execute([$_SESSION['user_id']]);
     ");
     $stmt->execute([$user_id, $user_id]);
     $requests = $stmt->fetchAll();
+    
+    foreach ($requests as &$req) {
+    if (!empty($req['intended_date']) && strtotime($req['intended_date']) < time()) {
+        $req['status'] = 'expired';
+        }
+    }
+    unset($req);
+
     ?>
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
       <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
@@ -208,6 +216,7 @@ $mark_read->execute([$_SESSION['user_id']]);
                 <th>To</th>
                 <th>Status</th>
                 <th>Date Requested</th>
+                <th>Intended Date</th>
                 <th class="text-center">Actions</th>
             </tr>
         </thead>
@@ -240,59 +249,79 @@ $mark_read->execute([$_SESSION['user_id']]);
                         <?= ucfirst($req['status']); ?>
                     </span>
                 </td>
-                <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
-                <td class="text-center">
-                    <?php if ($req['status'] === 'pending' && $req['recipient_id'] == $user_id): ?>
-                        <!-- Approve Button -->
-                        <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
-                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                            <input type="hidden" name="action" value="approve">
-                            <button class="btn btn-sm btn-success me-1" title="Approve">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </form>
-                    
-                        <!-- Deny Button -->
-                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#denyReasonModal<?= $req['id']; ?>">
-                            <i class="fas fa-times"></i>
+              <td><?= date('M d, Y h:i A', strtotime($req['created_at'])); ?></td>
+
+              <td>
+                <?php if (!empty($req['intended_date'])): ?>
+                  <?php if (strtotime($req['intended_date']) < time()): ?>
+                    <span class="badge bg-secondary">Expired (<?= date('M d, Y', strtotime($req['intended_date'])); ?>)</span>
+                  <?php else: ?>
+                    <?= date('M d, Y', strtotime($req['intended_date'])); ?>
+                  <?php endif; ?>
+                <?php else: ?>
+                  <span class="text-muted">N/A</span>
+                <?php endif; ?>
+              </td>
+                
+              <td class="text-center">
+                <?php if ($req['status'] === 'expired'): ?>
+                    <span class="text-muted">No actions (Expired)</span>
+                
+                <?php elseif ($req['status'] === 'pending' && $req['recipient_id'] == $user_id): ?>
+                    <!-- Approve -->
+                    <form class="d-inline" method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                        <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                        <input type="hidden" name="action" value="approve">
+                        <button class="btn btn-sm btn-success me-1" title="Approve">
+                            <i class="fas fa-check"></i>
                         </button>
-                    
-                        <!-- Deny Modal (same as your code) -->
-                        <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 rounded-3">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Reason for Denying</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
-                                        <div class="modal-body">
-                                            <input type="hidden" name="id" value="<?= $req['id']; ?>">
-                                            <input type="hidden" name="action" value="deny">
-                                            <textarea name="deny_reason" class="form-control" rows="3" placeholder="Enter your reason..." required></textarea>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-danger">Submit</button>
-                                        </div>
-                                    </form>
+                    </form>
+                
+                    <!-- Deny -->
+                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#denyReasonModal<?= $req['id']; ?>">
+                        <i class="fas fa-times"></i>
+                    </button>
+                
+                    <!-- Deny Modal -->
+                    <div class="modal fade" id="denyReasonModal<?= $req['id']; ?>" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 rounded-3">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reason for Denying</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
+                                <form method="post" action="<?= BASE_URL; ?>api/api_manage_request.php">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="id" value="<?= $req['id']; ?>">
+                                        <input type="hidden" name="action" value="deny">
+                                        <textarea name="deny_reason" class="form-control" rows="3" placeholder="Enter your reason..." required></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Submit</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
-                    
-                    <?php elseif ($req['status'] === 'approved' && $req['sender_id'] == $user_id): ?>
-                        <!-- Only the requesting user sees Preview & Download -->
+                    </div>
+                <?php elseif ($req['status'] === 'approved' && $req['sender_id'] == $user_id): ?>
+                    <!-- Only show if not expired -->
+                    <?php if (empty($req['intended_date']) || strtotime($req['intended_date']) >= time()): ?>
                         <a class="btn btn-sm btn-primary me-1" href="preview.php?id=<?= $req['document_id']; ?>" title="Preview">
                             <i class="fas fa-eye"></i>
                         </a>
                         <a class="btn btn-sm btn-success" href="download.php?id=<?= $req['document_id']; ?>" title="Download">
                             <i class="fas fa-download"></i>
                         </a>
-                    <?php elseif ($req['status'] === 'denied'): ?>
-                        <span class="text-muted">No actions</span>
+                    <?php else: ?>
+                        <span class="text-muted">No actions (Expired)</span>
                     <?php endif; ?>
-                </td>
                     
+                <?php elseif ($req['status'] === 'denied'): ?>
+                    <span class="text-muted">No actions</span>
+                
+                <?php endif; ?>
+              </td>
             </tr>
             <?php endforeach; ?>
         </tbody>

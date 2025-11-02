@@ -75,8 +75,8 @@ require_once '../includes/header.php';
                         <form method="POST" action="share.php?id=<?php echo $document['id']; ?>" class="shadow-sm p-4 bg-white rounded">
                             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                             <div class="mb-3">
-                                <label for="share_with" class="form-label">Username or Email</label>
-                                <input type="text" class="form-control" id="share_with" name="share_with" placeholder="Enter username or email" required>
+                                <label for="share_with" class="form-label">Email</label>
+                                <input type="text" class="form-control" id="share_with" name="share_with" placeholder="Enter email" required>
                             </div>
                             <div class="mb-3">
                                 <label for="permission" class="form-label">Permission Level</label>

@@ -2,11 +2,6 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/auth_check.php';
 
-$unread_shared_count = $db->prepare("
-    SELECT COUNT(*) 
-    FROM document_shares 
-    WHERE shared_with = ? AND is_read = 0
-");
 $user_full_name = $_SESSION['full_name'] ?? null;
 $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest';
 ?>
@@ -69,10 +64,6 @@ $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest
          href="<?php echo BASE_URL; ?>documents/shared.php">
         <i class="fas fa-users me-2"></i>
         <span>Shared with Me</span>
-        <?php if($unread_shared_count > 0): ?>
-            <span class="ms-auto bg-danger rounded-circle" 
-                  style="width:10px; height:10px; display:inline-block;"></span>
-        <?php endif; ?>
       </a>
     </li>
 
