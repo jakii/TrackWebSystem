@@ -83,7 +83,7 @@ require_once '../includes/header.php';
                         $available_users = $user_query->fetchAll(PDO::FETCH_ASSOC);
                         ?>
                     
-                        <select class="form-select" id="share_with" name="share_with[]" multiple required>
+                        <select class="form-select" id="share_with" name="share_with" multiple required>
                             <?php foreach ($available_users as $u): ?>
                                 <option value="<?= htmlspecialchars($u['email']) ?>">
                                     <?= htmlspecialchars($u['full_name'] . ' (' . $u['email'] . ')') ?>
