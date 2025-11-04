@@ -16,7 +16,7 @@ $doc_query = $db->prepare("SELECT d.*, c.name AS category_name FROM documents d 
 $doc_query->execute([$document_id]);
 $document = $doc_query->fetch();
 
-if (!$document || ($document['uploaded_by'] != $_SESSION['user_id'] && !isAdmin() && $document['visibility'] != 'public')) {
+if (!$document || ($document['uploaded_by'] != $_SESSION['user_id'] && !isAdmin() && $document['visibility'] != 'is_public')) {
     header("Location: ../dashboard.php?error=" . urlencode('Document not found or access denied.'));
     exit();
 }
