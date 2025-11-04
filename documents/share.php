@@ -74,10 +74,26 @@ require_once '../includes/header.php';
                         <h6>Share with User</h6>
                         <form method="POST" action="share.php?id=<?php echo $document['id']; ?>" class="shadow-sm p-4 bg-white rounded">
                             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+
+                            <?php
+                            // ✅ Fetch all user emails except the current one
+                            $email_query = $db->prepare("SELECT id, full_name, email FROM users WHERE id != ?");
+                            $email_query->execute([$_SESSION['user_id']]);
+                            $available_users = $email_query->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+
                             <div class="mb-3">
-                                <label for="share_with" class="form-label">Email</label>
-                                <input type="text" class="form-control" id="share_with" name="share_with" placeholder="Enter email" required>
+                                <label for="share_with" class="form-label">Select Email</label>
+                                <select class="form-select" id="share_with" name="share_with" required>
+                                    <option value="" selected disabled>-- Choose a user to share with --</option>
+                                    <?php foreach ($available_users as $u): ?>
+                                        <option value="<?php echo htmlspecialchars($u['email']); ?>">
+                                            <?php echo htmlspecialchars($u['full_name'] . " (" . $u['email'] . ")"); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
+                                    
                             <div class="mb-3">
                                 <label for="permission" class="form-label">Permission Level</label>
                                 <select class="form-select" id="permission" name="permission">
@@ -85,6 +101,7 @@ require_once '../includes/header.php';
                                     <option value="download">View & Download</option>
                                 </select>
                             </div>
+                                    
                             <button type="submit" name="share_document" class="btn" style="background-color:#004F80;color:white;">
                                 <i class="fas fa-share me-2"></i>Share Document
                             </button>
