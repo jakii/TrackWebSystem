@@ -99,45 +99,53 @@ $username_display = $user_full_name ? htmlspecialchars($user_full_name) : 'Guest
 </div>
 
 <!-- Topbar -->
-<div class="topbar d-flex justify-content-between align-items-center px-4 py-2" id="topbar">
+<div class="topbar d-flex justify-content-between align-items-center px-3 py-2" id="topbar">
   <!-- Sidebar Toggle for Mobile -->
-  <button class="btn btn-light rounded-circle d-lg-none" id="sidebarToggle">
+  <button class="btn btn-light rounded-circle d-lg-none" id="sidebarToggle" title="Menu">
     <i class="fas fa-bars"></i>
   </button>
 
+  <!-- Logo -->
   <div class="d-flex align-items-center flex-shrink-0">
-    <img src="<?php echo BASE_URL; ?>assets/images/LOGO.png" alt="TrackWeb Logo" class="img-fluid me-2" style="max-height: 40px;">
+    <a href="<?php echo BASE_URL; ?>dashboard.php">
+      <img src="<?php echo BASE_URL; ?>assets/images/LOGO.png" alt="TrackWeb Logo"
+           class="img-fluid me-2" style="max-height: 36px;">
+    </a>
   </div>
 
-  <form class="d-flex align-items-center me-4 flex-grow-1 search-form"
+  <!-- Search Form -->
+  <form class="d-flex align-items-center me-2 flex-grow-1 search-form"
         action="<?php echo BASE_URL; ?>documents/results.php" method="get">
-    <input class="form-control me-2 rounded-pill" type="search" name="search" placeholder="Search documents..." aria-label="Search">
-    <button class="btn btn-light rounded-circle d-none d-md-inline me-2" type="submit" title="Search">
+    <input class="form-control me-2 rounded-pill" type="search" name="search"
+           placeholder="Search documents..." aria-label="Search">
+    <button class="btn btn-light rounded-circle me-2" type="submit" title="Search">
       <i class="fas fa-search"></i>
     </button>
   </form>
 
+  <!-- Settings (admin only) -->
   <?php if (isAdmin()): ?>
-  <a href="<?php echo BASE_URL; ?>settings/system.php" 
-     class="btn btn-light rounded-circle d-none d-md-inline me-2" title="Advanced Search">
+  <a href="<?php echo BASE_URL; ?>settings/system.php"
+     class="btn btn-light rounded-circle me-2" title="Settings">
     <i class="fas fa-cog"></i>
   </a>
   <?php endif; ?>
 
-  <a href="<?php echo BASE_URL; ?>documents/search.php" 
-     class="btn btn-light rounded-circle d-none d-md-inline me-2" title="Advanced Search">
+  <!-- Filter -->
+  <a href="<?php echo BASE_URL; ?>documents/search.php"
+     class="btn btn-light rounded-circle me-2" title="Filter">
     <i class="fas fa-filter"></i>
   </a>
 
+  <!-- Username -->
   <div>
-<div style="padding: 6px 14px; border-radius: 50px;
-            background: linear-gradient(135deg, #004F80, #0073b6);
-            display: flex; align-items: center; justify-content: center;
-            color: white !important; font-weight: 600; font-size: 0.9rem;
-            white-space: nowrap;">
-  <?php echo $username_display; ?>
-</div>
-
+    <div style="padding: 6px 14px; border-radius: 50px;
+                background: linear-gradient(135deg, #004F80, #0073b6);
+                display: flex; align-items: center; justify-content: center;
+                color: white !important; font-weight: 600; font-size: 0.9rem;
+                white-space: nowrap;">
+      <?php echo $username_display; ?>
+    </div>
   </div>
 </div>
 

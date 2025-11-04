@@ -149,14 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['limit_gb']) && $is_ad
     <div class="card-body">
       <h5 class="mb-3"><i class="fas fa-file-alt me-2 text-success"></i>Top Documents by Size</h5>
       <table class="table table-hover align-middle">
-        <thead class="table-light"><tr><th>File Name</th><th>Size</th><th>Uploaded By</th><th>Date</th></tr></thead>
+        <thead class="table-light"><tr><th>File Name</th><th>Size</th><th>Uploaded By</th></tr></thead>
         <tbody>
           <?php foreach ($files as $f): ?>
           <tr>
             <td><?= htmlspecialchars($f['original_filename']) ?></td>
             <td><?= formatBytes($f['file_size']) ?></td>
             <td><?= htmlspecialchars($f['uploader_name']) ?></td>
-            <td><?= date("M d, Y h:i A", strtotime($f['created_at'])) ?></td>
           </tr>
           <?php endforeach; ?>
         </tbody>

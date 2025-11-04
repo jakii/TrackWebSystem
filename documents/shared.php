@@ -29,13 +29,6 @@ $mark_read->execute([$_SESSION['user_id']]);
 
           <!-- Right: Button + Badge -->
           <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#requestFileModal"
-              style="background: linear-gradient(135deg, #004F80, #0073b6); color: white;">
-              <i class="fas fa-plus me-1"></i> Request Files
-            </button>
-
             <?php if (!empty($shared_documents)): ?>
               <span class="badge rounded-pill px-3 py-2 fw-medium" style="background-color: #2AB7CA; color: white;">
                 <?php echo count($shared_documents); ?> shared document<?php echo count($shared_documents) !== 1 ? 's' : ''; ?>
