@@ -75,9 +75,27 @@ require_once '../includes/header.php';
 
                     <!-- Users Input -->
                     <div class="mb-3">
-                        <label for="share_with" class="form-label">Username or Email</label>
-                        <input type="text" class="form-control" id="share_with" name="share_with" placeholder="Enter usernames or emails, comma separated" required>
+                        <label for="share_with" class="form-label">Select Users to Share With</label>
+                                                
+                        <?php
+                        $user_query = $db->prepare("SELECT id, full_name, email FROM users WHERE id != ?");
+                        $user_query->execute([$_SESSION['user_id']]);
+                        $available_users = $user_query->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
+                    
+                        <select class="form-select" id="share_with" name="share_with[]" multiple required>
+                            <?php foreach ($available_users as $u): ?>
+                                <option value="<?= htmlspecialchars($u['email']) ?>">
+                                    <?= htmlspecialchars($u['full_name'] . ' (' . $u['email'] . ')') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                            
+                        <div class="form-text text-muted">
+                            Hold <strong>Ctrl</strong> to select multiple users.
+                        </div>
                     </div>
+                            
 
                     <!-- Permission -->
                     <div class="mb-3">
