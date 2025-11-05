@@ -161,6 +161,7 @@ $mark_read->execute([$_SESSION['user_id']]);
 
   <div class="card-body p-0">
     <?php
+    date_default_timezone_set('Asia/Manila');
     $user_id = $_SESSION['user_id'];
     $stmt = $db->prepare("
       SELECT fr.*, 
