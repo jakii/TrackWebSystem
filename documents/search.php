@@ -21,7 +21,7 @@ include '../api/api_search.php';
         <label for="search" class="form-label">Search</label>
         <input type="text" class="form-control rounded-pill" id="search" name="search"
                value="<?= htmlspecialchars($search ?? '') ?>"
-               placeholder="Search by title, description, tags, or filename">
+               placeholder="Search by title or filename">
       </div>
 
       <!-- Category -->
