@@ -60,8 +60,8 @@ if (isset($_POST['resend'])) {
             $mail->SMTPAuth = true;
             $mail->Username = 'reytabasan123@gmail.com';
             $mail->Password = 'ujhwoulkhmjiekof';
-            $mail->SMTPSecure = 'tls';
-            $mail->Port = 587;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
 
             $mail->setFrom('reytabasan123@gmail.com', 'Track');
             $mail->addAddress($email, $user['full_name']);

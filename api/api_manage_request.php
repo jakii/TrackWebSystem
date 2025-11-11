@@ -62,8 +62,8 @@ function sendNotification($to, $toName, $subject, $messageHtml)
         $mail->SMTPAuth = true;
         $mail->Username = 'reytabasan123@gmail.com';
         $mail->Password = 'ujhwoulkhmjiekof';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = 465;
 
         // Sender info
         $mail->setFrom('reytabasan123@gmail.com', 'File Request System');

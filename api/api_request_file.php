@@ -69,15 +69,15 @@ try {
         try {
             // SMTP settings
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'reytabasan123@gmail.com';
-            $mail->Password   = 'ujhwoulkhmjiekof';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'reytabasan123@gmail.com';
+            $mail->Password = 'ujhwoulkhmjiekof';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
 
             // Email headers
-            $mail->setFrom('reytabasan123@gmail.com', 'Document Tracker');
+            $mail->setFrom('reytabasan123@gmail.com', 'Track');
             $mail->addAddress($document['uploader_email'], $document['uploader_name']);
 
             // Email content

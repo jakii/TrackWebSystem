@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                     $mail->Username = 'reytabasan123@gmail.com';
                     $mail->Password = 'ujhwoulkhmjiekof';
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port = 587;
+                    $mail->Port = 465;
 
                     $mail->setFrom('reytabasan123@gmail.com', 'Track');
                     $mail->addAddress($email, $info['full_name']);

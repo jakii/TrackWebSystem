@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $mail->SMTPAuth = true;
                             $mail->Username = 'reytabasan123@gmail.com';
                             $mail->Password = 'ujhwoulkhmjiekof';
-                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                            $mail->Port = 587;
+                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                            $mail->Port = 465;
 
                             $mail->setFrom('reytabasan123@gmail.com', 'Track');
                             $mail->addAddress($share_user['email'], $share_user['full_name'] ?? '');
