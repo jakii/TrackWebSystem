@@ -83,16 +83,42 @@ require_once '../includes/header.php';
                         $available_users = $user_query->fetchAll(PDO::FETCH_ASSOC);
                         ?>
                     
-                        <select class="form-select" id="share_with" name="share_with" multiple required>
-                            <?php foreach ($available_users as $u): ?>
-                                <option value="<?= htmlspecialchars($u['email']) ?>">
-                                    <?= htmlspecialchars($u['full_name'] . ' (' . $u['email'] . ')') ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                            
-                        <div class="form-text text-muted">
-                            Hold <strong>Ctrl</strong> to select multiple users.
+                        <div class="mb-3">
+                            <div class="border rounded overflow-auto" style="max-height:250px;">
+                                <!-- Select All -->
+                                <div class="form-check mb-2 ms-4 p-2 border-bottom">
+                                    <input class="form-check-input" type="checkbox" id="select_all_users">
+                                    <label class="form-check-label fw-bold" for="select_all_users">Select All</label>
+                                </div>
+
+                                <?php if (!empty($available_users)): ?>
+                                    <table class="table table-hover mb-0">
+                                        <tbody>
+                                            <?php foreach ($available_users as $u): ?>
+                                                <tr>
+                                                    <td class="align-middle">
+                                                        <div class="form-check d-flex align-items-center">
+                                                            <input class="form-check-input user-checkbox" 
+                                                                   type="checkbox" 
+                                                                   name="share_with[]" 
+                                                                   value="<?= htmlspecialchars($u['email']) ?>" 
+                                                                   id="user_<?= $u['id'] ?>">
+                                                            <label class="form-check-label ms-2 w-100" for="user_<?= $u['id'] ?>">
+                                                                <div class="d-flex flex-column">
+                                                                    <span class="fw-semibold"><?= htmlspecialchars($u['full_name']) ?></span>
+                                                                    <small class="text-muted"><?= htmlspecialchars($u['email']) ?></small>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                <?php else: ?>
+                                    <div class="p-2 text-muted">No users found.</div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                             
@@ -180,6 +206,13 @@ require_once '../includes/header.php';
         selectAll.addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('.doc-checkbox');
             checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    }
+    // Select/Deselect all users
+    const selectAllUsers = document.getElementById('select_all_users');
+    if (selectAllUsers) {
+        selectAllUsers.addEventListener('change', function() {
+            document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = this.checked);
         });
     }
 </script>

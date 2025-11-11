@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const maxFileSize = 50 * 1024 * 1024;
 
-  // Drop Zone
+  // Drop Zone behavior
   dropZone.addEventListener('click', () => fileInput.click());
   dropZone.addEventListener('dragover', e => {
     e.preventDefault();
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fileInput.addEventListener('change', displayFiles);
 
-  // Hide/show asterisk for category
+  // Category asterisk logic
   categorySelect.addEventListener('change', () => {
     if (categorySelect.value) {
       categorySelect.classList.remove('is-invalid');
@@ -63,70 +63,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initialize both asterisks on page load
+  // Initialize asterisks on load
   updateAsterisks();
 
-function displayFiles() {
-  fileList.innerHTML = '';
-  let hasError = false;
-  const dt = new DataTransfer();
+  // =============================
+  // Display selected files
+  // =============================
+  function displayFiles() {
+    fileList.innerHTML = '';
+    let hasError = false;
+    const dt = new DataTransfer();
 
-  Array.from(fileInput.files).forEach((file, index) => {
-    const fileName = file.name;
-    const ext = fileName.split('.').pop().toLowerCase();
-    const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    let error = '';
+    Array.from(fileInput.files).forEach((file, index) => {
+      const fileName = file.name;
+      const ext = fileName.split('.').pop().toLowerCase();
+      const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+      let error = '';
 
-    if (!allowedExtensions.includes(ext) ||
-        (!allowedMIMEs.includes(file.type) && file.type !== '')) {
-      error = 'Invalid file type';
-      hasError = true;
-    } else if (file.size > maxFileSize) {
-      error = 'File too large (max 50MB)';
-      hasError = true;
-    }
+      if (!allowedExtensions.includes(ext) ||
+          (!allowedMIMEs.includes(file.type) && file.type !== '')) {
+        error = 'Invalid file type';
+        hasError = true;
+      } else if (file.size > maxFileSize) {
+        error = 'File too large (max 50MB)';
+        hasError = true;
+      }
 
-    // create file item
-    const fileItem = document.createElement('div');
-    fileItem.className = 'border rounded-3 p-2 mb-2 bg-white shadow-sm';
-    fileItem.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-file me-2 text-secondary"></i>${fileName}</span>
-        <div class="d-flex align-items-center">
-          <small class="text-muted me-2">${fileSize}</small>
-          <button type="button" class="btn btn-sm btn-outline-danger remove-file" data-index="${index}">
-            <i class="fas fa-times"></i>
-          </button>
+      const fileItem = document.createElement('div');
+      fileItem.className = 'border rounded-3 p-2 mb-2 bg-white shadow-sm';
+      fileItem.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-file me-2 text-secondary"></i>${fileName}</span>
+          <div class="d-flex align-items-center">
+            <small class="text-muted me-2">${fileSize}</small>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-file" data-index="${index}">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
-      </div>
-      ${error ? `<div class="text-danger small mt-1">${error}</div>` : ''}
-    `;
-    fileList.appendChild(fileItem);
+        ${error ? `<div class="text-danger small mt-1">${error}</div>` : ''}
+      `;
+      fileList.appendChild(fileItem);
 
-    // add valid files to DataTransfer
-    if (!error) dt.items.add(file);
-  });
-
-  // attach remove event handlers
-  fileList.querySelectorAll('.remove-file').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const removeIndex = parseInt(e.currentTarget.dataset.index, 10);
-      const newFiles = Array.from(fileInput.files).filter((_, i) => i !== removeIndex);
-
-      const newDt = new DataTransfer();
-      newFiles.forEach(f => newDt.items.add(f));
-
-      fileInput.files = newDt.files;
-      displayFiles();
+      // Add only valid files
+      if (!error) dt.items.add(file);
     });
-  });
 
-  uploadBtn.disabled = hasError || fileInput.files.length === 0;
-  uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
+    // Handle file removal
+    fileList.querySelectorAll('.remove-file').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const removeIndex = parseInt(e.currentTarget.dataset.index, 10);
+        const newFiles = Array.from(fileInput.files).filter((_, i) => i !== removeIndex);
+        const newDt = new DataTransfer();
+        newFiles.forEach(f => newDt.items.add(f));
+        fileInput.files = newDt.files;
+        displayFiles();
+      });
+    });
 
-  updateAsterisks();
-}
+    // Disable upload if errors or no files
+    uploadBtn.disabled = hasError || fileInput.files.length === 0;
+    uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
 
+    updateAsterisks();
+  }
+
+  // =============================
+  // Update required asterisks
+  // =============================
   function updateAsterisks() {
     if (fileAsterisk) {
       if (fileInput.files && fileInput.files.length > 0) {
@@ -143,5 +147,16 @@ function displayFiles() {
         categoryAsterisk.classList.remove('d-none');
       }
     }
+  }
+
+  // =============================
+  // Add Spinner on Submit
+  // =============================
+  const form = uploadBtn.closest('form');
+  if (form) {
+    form.addEventListener('submit', () => {
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    });
   }
 });
