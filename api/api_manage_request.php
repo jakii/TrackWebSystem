@@ -66,7 +66,7 @@ function sendNotification($to, $toName, $subject, $messageHtml)
         $mail->Port = 465;
 
         // Sender info
-        $mail->setFrom('reytabasan123@gmail.com', 'File Request System');
+        $mail->setFrom('reytabasan123@gmail.com', 'Track');
         $mail->addAddress($to, $toName);
 
         // Email content
