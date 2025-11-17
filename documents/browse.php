@@ -240,8 +240,6 @@ $view = $_GET['view'] ?? 'list';
   <script src="../assets/js/upload_preview.js"></script>
 </div>
 
-
-
     <!-- ================== FOLDER MODALS ================== -->
     <!-- Create Folder -->
     <div class="modal fade" id="createFolderModal" tabindex="-1">
