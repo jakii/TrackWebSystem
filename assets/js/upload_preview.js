@@ -33,38 +33,29 @@ document.addEventListener('DOMContentLoaded', () => {
     'application/octet-stream'
   ];
 
-  const maxFileSize = 50 * 1024 * 1024;
+  const maxFileSize = 50 * 1024 * 1024; // 50MB
 
+  // =============================
   // Drop Zone behavior
+  // =============================
   dropZone.addEventListener('click', () => fileInput.click());
   dropZone.addEventListener('dragover', e => {
     e.preventDefault();
     dropZone.classList.add('bg-primary-subtle');
   });
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('bg-primary-subtle');
-  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('bg-primary-subtle'));
   dropZone.addEventListener('drop', e => {
     e.preventDefault();
     dropZone.classList.remove('bg-primary-subtle');
-    fileInput.files = e.dataTransfer.files;
+
+    const dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+
     displayFiles();
   });
 
   fileInput.addEventListener('change', displayFiles);
-
-  // Category asterisk logic
-  categorySelect.addEventListener('change', () => {
-    if (categorySelect.value) {
-      categorySelect.classList.remove('is-invalid');
-      if (categoryAsterisk) categoryAsterisk.classList.add('d-none');
-    } else {
-      if (categoryAsterisk) categoryAsterisk.classList.remove('d-none');
-    }
-  });
-
-  // Initialize asterisks on load
-  updateAsterisks();
 
   // =============================
   // Display selected files
@@ -80,8 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
       let error = '';
 
-      if (!allowedExtensions.includes(ext) ||
-          (!allowedMIMEs.includes(file.type) && file.type !== '')) {
+      if (!allowedExtensions.includes(ext) || (!allowedMIMEs.includes(file.type) && file.type !== '')) {
         error = 'Invalid file type';
         hasError = true;
       } else if (file.size > maxFileSize) {
@@ -105,9 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       fileList.appendChild(fileItem);
 
-      // Add only valid files
+      // Only add valid files to DataTransfer (so they will be submitted)
       if (!error) dt.items.add(file);
     });
+
+    // Update file input to only include valid files
+    fileInput.files = dt.files;
 
     // Handle file removal
     fileList.querySelectorAll('.remove-file').forEach(btn => {
@@ -121,42 +114,36 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Disable upload if errors or no files
-    uploadBtn.disabled = hasError || fileInput.files.length === 0;
+    uploadBtn.disabled = fileInput.files.length === 0; // Only disable if no valid files
     uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
 
     updateAsterisks();
   }
 
   // =============================
-  // Update required asterisks
+  // Category & file asterisks
   // =============================
   function updateAsterisks() {
-    if (fileAsterisk) {
-      if (fileInput.files && fileInput.files.length > 0) {
-        fileAsterisk.classList.add('d-none');
-      } else {
-        fileAsterisk.classList.remove('d-none');
-      }
-    }
-
-    if (categoryAsterisk) {
-      if (categorySelect.value) {
-        categoryAsterisk.classList.add('d-none');
-      } else {
-        categoryAsterisk.classList.remove('d-none');
-      }
-    }
+    if (fileAsterisk) fileAsterisk.classList.toggle('d-none', fileInput.files.length > 0);
+    if (categoryAsterisk) categoryAsterisk.classList.toggle('d-none', !!categorySelect.value);
   }
 
+  categorySelect.addEventListener('change', updateAsterisks);
+
   // =============================
-  // Add Spinner on Submit
+  // Submit Spinner
   // =============================
   const form = uploadBtn.closest('form');
   if (form) {
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', e => {
+      if (uploadBtn.disabled) {
+        e.preventDefault(); // Prevent submit if no valid files
+        return;
+      }
       uploadBtn.disabled = true;
       uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
     });
   }
+
+  updateAsterisks();
 });
