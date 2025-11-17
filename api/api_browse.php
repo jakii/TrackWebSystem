@@ -98,12 +98,16 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     $current_folder_id = !empty($_POST['current_folder_id']) ? (int)$_POST['current_folder_id'] : null;
 
+    // Validate folder
     if ($current_folder_id) {
         $folder_check = $db->prepare("SELECT id FROM folders WHERE id = ?");
         $folder_check->execute([$current_folder_id]);
-        if (!$folder_check->fetch()) $current_folder_id = null;
+        if (!$folder_check->fetch()) {
+            $current_folder_id = null;
+        }
     }
 
+    // Storage limit check
     $total_used = getTotalStorageUsed($db);
     $limit = getStorageLimit($db);
     $batch_total = array_sum($_FILES['documents']['size']);
@@ -116,6 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     }
 
     $skipped_files = [];
+
+    // Define allowed extensions and MIME types
     $allowed_mimes = [
         'application/pdf',
         'application/msword',
@@ -130,34 +136,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         'application/zip', 'application/x-rar-compressed'
     ];
 
+    // Iterate through all uploaded files
     foreach ($_FILES['documents']['name'] as $i => $name) {
         $tmp_file   = $_FILES['documents']['tmp_name'][$i];
         $file_size  = $_FILES['documents']['size'][$i];
+        $file_type  = $_FILES['documents']['type'][$i];
         $file_error = $_FILES['documents']['error'][$i];
 
         if ($file_error !== UPLOAD_ERR_OK) {
-            $skipped_files[] = "$name (upload error code: $file_error)";
-            error_log("Upload error for file $name: code $file_error");
+            $skipped_files[] = "$name (upload error)";
             continue;
         }
 
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $base_name = pathinfo($name, PATHINFO_FILENAME);
 
+        // Check real MIME type using fileinfo
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $tmp_file);
         finfo_close($finfo);
 
+        // Validate MIME type and extension
         if (!in_array($mime, $allowed_mimes)) {
             $skipped_files[] = "$name (invalid MIME type: $mime)";
             continue;
         }
 
+        // Check file size (max size constant)
         if ($file_size > MAX_FILE_SIZE) {
             $skipped_files[] = "$name (too large)";
             continue;
         }
 
+        // Handle duplicates within same folder
         $counter = 1;
         $new_name = $name;
         while (true) {
@@ -166,12 +177,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 WHERE original_filename = ? AND (folder_id = ? OR (? IS NULL AND folder_id IS NULL))
             ");
             $duplicate_check->execute([$new_name, $current_folder_id, $current_folder_id]);
-            if ($duplicate_check->fetchColumn() == 0) break;
+            $exists = $duplicate_check->fetchColumn();
+            if ($exists == 0) break;
             $new_name = $base_name . " ($counter)." . $ext;
             $counter++;
         }
 
         $title = pathinfo($new_name, PATHINFO_FILENAME);
+
+        // Check remaining storage before each file
         $total_used = getTotalStorageUsed($db);
         if (($total_used + $file_size) > $limit) {
             $_SESSION['alert_message'] = "Upload blocked: Not enough remaining storage.";
@@ -180,9 +194,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             exit();
         }
 
+
+        // Save file with a unique filename
         $unique_filename = uniqid('doc_', true) . '.' . $ext;
         $destination = UPLOAD_DIR . $unique_filename;
-        $file_path_db = 'documents/uploads/' . $unique_filename;
 
         if (move_uploaded_file($tmp_file, $destination)) {
             $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;
@@ -190,38 +205,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
             $tags        = $_POST['tags'] ?? '';
             $is_public   = isset($_POST['is_public']) ? 1 : 0;
 
+            // Insert document record
             $insert_document = $db->prepare("
                 INSERT INTO documents 
                 (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            try {
-                $insert_document->execute([
-                    $title,
-                    $description,
-                    $unique_filename,
-                    $new_name,
-                    $file_size,
-                    $mime,
-                    $file_path_db,
-                    $current_folder_id,
-                    $category_id,
-                    $_SESSION['user_id'],
-                    $is_public,
-                    $tags
-                ]);
-            } catch (PDOException $e) {
-                error_log("Document insert failed: " . $e->getMessage());
-                $_SESSION['alert_message'] = "Database error: " . $e->getMessage();
-                $_SESSION['alert_type'] = 'danger';
-                header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
-                exit();
-            }
+            $insert_document->execute([
+                $title,
+                $description,
+                $unique_filename,
+                $new_name,
+                $file_size,
+                $mime,
+                $destination,
+                $current_folder_id,
+                $category_id,
+                $_SESSION['user_id'],
+                $is_public,
+                $tags
+            ]);
+
+            // Insert report
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
                 VALUES (?, ?, ?, ?)
             ");
-            $insert_report->execute([$title, $_SESSION['user_id'], $file_path_db, date('Y-m-d H:i:s')]);
+            $insert_report->execute([$title, $_SESSION['user_id'], $destination, $created_at = date('Y-m-d H:i:s')]);
 
             logActivity($db, $_SESSION['user_id'], "Document uploaded: $title");
         } else {
@@ -229,6 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         }
     }
 
+    // Show skipped files summary if any
     if (!empty($skipped_files)) {
         $msg = implode("<br>", array_map('htmlspecialchars', $skipped_files));
         $_SESSION['alert_message'] = "Some files were skipped:<br>$msg";
@@ -239,9 +250,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
     $_SESSION['alert_message'] = "Upload completed!";
     $_SESSION['alert_type'] = 'success';
+    
     $redirect = $current_folder_id 
         ? "../documents/browse.php?folder=$current_folder_id" 
         : "../documents/browse.php";
+
     header('Location: ' . $redirect);
     exit();
 }
