@@ -2,7 +2,6 @@
 require_once '../config/database.php';
 
 //DATABASE BACKUP
-
 function backupDatabase($db, $backup_dir) {
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
     $sql_dump = "";
