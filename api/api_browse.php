@@ -195,21 +195,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
                 (title, description, filename, original_filename, file_size, file_type, file_path, folder_id, category_id, uploaded_by, is_public, tags) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $insert_document->execute([
-                $title,
-                $description,
-                $unique_filename,
-                $new_name,
-                $file_size,
-                $mime,
-                $file_path_db,
-                $current_folder_id,
-                $category_id,
-                $_SESSION['user_id'],
-                $is_public,
-                $tags
-            ]);
-
+            try {
+                $insert_document->execute([
+                    $title,
+                    $description,
+                    $unique_filename,
+                    $new_name,
+                    $file_size,
+                    $mime,
+                    $file_path_db,
+                    $current_folder_id,
+                    $category_id,
+                    $_SESSION['user_id'],
+                    $is_public,
+                    $tags
+                ]);
+            } catch (PDOException $e) {
+                error_log("Document insert failed: " . $e->getMessage());
+                $_SESSION['alert_message'] = "Database error: " . $e->getMessage();
+                $_SESSION['alert_type'] = 'danger';
+                header('Location: ../documents/browse.php' . ($current_folder_id ? "?folder=$current_folder_id" : ""));
+                exit();
+            }
             $insert_report = $db->prepare("
                 INSERT INTO reports (title, uploaded_by, file_path, created_at) 
                 VALUES (?, ?, ?, ?)

@@ -1,7 +1,9 @@
 <?php
 include '../api/api_browse.php';
 require_once '../api/delete_folder.php';
+
 requireAuth();
+
 include '../includes/header.php';
 
 $current_folder_id = $_GET['folder'] ?? null;
@@ -163,10 +165,11 @@ $view = $_GET['view'] ?? 'list';
     </div>
 
     <!-- ================== UPLOAD MODAL ================== --> 
-<!-- Upload Document Modal -->
+<!-- Upload Document Modal (No JS version) -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content shadow-lg rounded-4 border-0">
+      
       <div class="modal-header" style="background-color:#004F80;color:white;">
         <h5 class="modal-title" id="uploadModalLabel">
           <i class="fas fa-cloud-upload-alt me-2"></i> Upload Document
@@ -175,24 +178,17 @@ $view = $_GET['view'] ?? 'list';
       </div>
 
       <div class="modal-body">
-        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <form method="POST" enctype="multipart/form-data">
           <input type="hidden" name="current_folder_id" value="<?php echo $current_folder_id ?? ''; ?>">
 
           <!-- File Upload -->
           <div class="mb-4">
             <label for="documents" class="form-label fw-bold">
-              Upload Files <span id="file-asterisk" class="text-danger">*</span>
+              Upload Files <span class="text-danger">*</span>
             </label>
-            <div id="drop-zone"
-                 class="border border-2 border-dashed rounded-4 p-5 text-center bg-light"
-                 style="cursor:pointer;">
-              <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-              <p class="mb-1 fw-semibold">Drag & drop files here</p>
-              <small class="text-muted">or click to select files</small>
-            </div>
-            <input type="file" class="form-control d-none" id="documents" name="documents[]" multiple required
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip,.rar,.mp4">
-            <div id="file-list" class="mt-3 small text-muted"></div>
+            <input type="file" class="form-control" id="documents" name="documents[]" multiple required
+                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip,.rar,.mp4">
+            <small class="text-muted">You can select multiple files.</small>
           </div>
 
           <!-- Description -->
@@ -204,7 +200,7 @@ $view = $_GET['view'] ?? 'list';
           <!-- Category -->
           <div class="mb-3">
             <label for="category_id" class="form-label fw-bold">
-              Category <span id="category-asterisk" class="text-danger">*</span>
+              Category <span class="text-danger">*</span>
             </label>
             <select class="form-select" id="category_id" name="category_id" required>
               <option value="">Select a category</option>
@@ -235,14 +231,15 @@ $view = $_GET['view'] ?? 'list';
               <i class="fas fa-upload me-2"></i> Upload
             </button>
           </div>
+
         </form>
       </div>
+
     </div>
   </div>
+  <script src="../assets/js/upload_preview.js"></script>
 </div>
 
-<!-- Include Fixed Upload Preview JS -->
-<script src="../assets/js/upload_preview.js"></script>
 
 
     <!-- ================== FOLDER MODALS ================== -->

@@ -14,25 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'jpg','jpeg','png','zip','rar','mp4'
   ];
 
-  const allowedMIMEs = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain',
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'application/zip',
-    'application/x-zip-compressed',
-    'application/x-rar-compressed',
-    'video/mp4',
-    'application/octet-stream'
-  ];
-
   const maxFileSize = 50 * 1024 * 1024; // 50MB
 
   // =============================
@@ -48,8 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     dropZone.classList.remove('bg-primary-subtle');
 
+    // Append dropped files to existing files
     const dt = new DataTransfer();
-    Array.from(e.dataTransfer.files).forEach(file => dt.items.add(file));
+    Array.from(fileInput.files).forEach(f => dt.items.add(f)); // existing
+    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f)); // new
     fileInput.files = dt.files;
 
     displayFiles();
@@ -62,28 +45,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   function displayFiles() {
     fileList.innerHTML = '';
-    let hasError = false;
-    const dt = new DataTransfer();
-
     Array.from(fileInput.files).forEach((file, index) => {
-      const fileName = file.name;
-      const ext = fileName.split('.').pop().toLowerCase();
+      const ext = file.name.split('.').pop().toLowerCase();
       const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
       let error = '';
 
-      if (!allowedExtensions.includes(ext) || (!allowedMIMEs.includes(file.type) && file.type !== '')) {
+      if (!allowedExtensions.includes(ext)) {
         error = 'Invalid file type';
-        hasError = true;
       } else if (file.size > maxFileSize) {
         error = 'File too large (max 50MB)';
-        hasError = true;
       }
 
       const fileItem = document.createElement('div');
       fileItem.className = 'border rounded-3 p-2 mb-2 bg-white shadow-sm';
       fileItem.innerHTML = `
         <div class="d-flex justify-content-between align-items-center">
-          <span><i class="fas fa-file me-2 text-secondary"></i>${fileName}</span>
+          <span><i class="fas fa-file me-2 text-secondary"></i>${file.name}</span>
           <div class="d-flex align-items-center">
             <small class="text-muted me-2">${fileSize}</small>
             <button type="button" class="btn btn-sm btn-outline-danger remove-file" data-index="${index}">
@@ -94,13 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${error ? `<div class="text-danger small mt-1">${error}</div>` : ''}
       `;
       fileList.appendChild(fileItem);
-
-      // Only add valid files to DataTransfer (so they will be submitted)
-      if (!error) dt.items.add(file);
     });
-
-    // Update file input to only include valid files
-    fileInput.files = dt.files;
 
     // Handle file removal
     fileList.querySelectorAll('.remove-file').forEach(btn => {
@@ -114,14 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    uploadBtn.disabled = fileInput.files.length === 0; // Only disable if no valid files
+    // Disable upload button if no files
+    uploadBtn.disabled = fileInput.files.length === 0;
     uploadBtn.classList.toggle('disabled', uploadBtn.disabled);
 
     updateAsterisks();
   }
 
   // =============================
-  // Category & file asterisks
+  // Update asterisks
   // =============================
   function updateAsterisks() {
     if (fileAsterisk) fileAsterisk.classList.toggle('d-none', fileInput.files.length > 0);
@@ -131,13 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
   categorySelect.addEventListener('change', updateAsterisks);
 
   // =============================
-  // Submit Spinner
+  // Submit spinner
   // =============================
   const form = uploadBtn.closest('form');
   if (form) {
     form.addEventListener('submit', e => {
       if (uploadBtn.disabled) {
-        e.preventDefault(); // Prevent submit if no valid files
+        e.preventDefault(); // Prevent submit if no files
         return;
       }
       uploadBtn.disabled = true;
