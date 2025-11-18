@@ -74,12 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mail->isSMTP();
                     $mail->Host = 'smtp.gmail.com';
                     $mail->SMTPAuth = true;
-                    $mail->Username = 'reytabasan123@gmail.com';
-                    $mail->Password = 'ujhwoulkhmjiekof';
+                    $mail->Username = 'r3ytabasan@gmail.com';
+                    $mail->Password = 'hdqgmfhwaulriuvp';
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                     $mail->Port = 465;
 
-                    $mail->setFrom('reytabasan123@gmail.com', 'Track');
+                    $mail->setFrom('r3ytabasan@gmail.com', 'Track');
                     $mail->addAddress($email, $full_name);
                     $mail->isHTML(true);
                     $mail->Subject = 'Your Email Verification Code';

@@ -71,13 +71,13 @@ try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'reytabasan123@gmail.com';
-            $mail->Password = 'ujhwoulkhmjiekof';
+            $mail->Username = 'r3ytabasan@gmail.com';
+            $mail->Password = 'hdqgmfhwaulriuvp';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
 
             // Email headers
-            $mail->setFrom('reytabasan123@gmail.com', 'Track');
+            $mail->setFrom('r3ytabasan@gmail.com', 'Track');
             $mail->addAddress($document['uploader_email'], $document['uploader_name']);
 
             // Email content

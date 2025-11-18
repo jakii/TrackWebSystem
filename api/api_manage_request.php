@@ -60,13 +60,13 @@ function sendNotification($to, $toName, $subject, $messageHtml)
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'reytabasan123@gmail.com';
-        $mail->Password = 'ujhwoulkhmjiekof';
+        $mail->Username = 'r3ytabasan@gmail.com';
+        $mail->Password = 'hdqgmfhwaulriuvp';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port = 465;
 
         // Sender info
-        $mail->setFrom('reytabasan123@gmail.com', 'Track');
+        $mail->setFrom('r3ytabasan@gmail.com', 'Track');
         $mail->addAddress($to, $toName);
 
         // Email content

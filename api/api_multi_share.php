@@ -78,12 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                     $mail->isSMTP();
                     $mail->Host = 'smtp.gmail.com';
                     $mail->SMTPAuth = true;
-                    $mail->Username = 'reytabasan123@gmail.com';
-                    $mail->Password = 'ujhwoulkhmjiekof';
+                    $mail->Username = 'r3ytabasan@gmail.com';
+                    $mail->Password = 'hdqgmfhwaulriuvp';
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 465;
 
-                    $mail->setFrom('reytabasan123@gmail.com', 'Track');
+                    $mail->setFrom('r3ytabasan@gmail.com', 'Track');
                     $mail->addAddress($email, $info['full_name']);
 
                     $mail->isHTML(true);
