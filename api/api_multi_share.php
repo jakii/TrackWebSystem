@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_document'])) {
                     $mail->SMTPAuth = true;
                     $mail->Username = 'r3ytabasan@gmail.com';
                     $mail->Password = 'hdqgmfhwaulriuvp';
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                     $mail->Port = 465;
 
                     $mail->setFrom('r3ytabasan@gmail.com', 'Track');
