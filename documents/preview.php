@@ -3,7 +3,7 @@ include '../api/api_preview.php';
 require_once '../includes/preview_helpers.php';
 require_once '../includes/header.php';
 ?>
-<div>
+<div class="container my-4 h-100">
     <div>
         <div class="card shadow rounded-4 border-0">
             <div class="card-header d-flex justify-content-between align-items-center">

@@ -58,19 +58,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $mail->isSMTP();
                             $mail->Host = 'smtp.gmail.com';
                             $mail->SMTPAuth = true;
-                            $mail->Username = 'reytabasan123@gmail.com';
-                            $mail->Password = 'ujhwoulkhmjiekof';
+                            $mail->Username = 'r3ytabasan@gmail.com';
+                            $mail->Password = 'hdqgmfhwaulriuvp';
                             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                             $mail->Port = 465;
 
-                            $mail->setFrom('reytabasan123@gmail.com', 'Track');
+                            $mail->setFrom('r3ytabasan@gmail.com', 'Track');
                             $mail->addAddress($share_user['email'], $share_user['full_name'] ?? '');
 
                             $mail->isHTML(true);
                             $mail->Subject = "A Document Has Been Shared With You";
                             $mail->Body = "
                                 <p>Hello <strong>{$share_user['full_name']}</strong>,</p>
-                                <p>{$current_user_name} has shared the document <strong>{$doc_title}</strong> with you.</p>
+                                <p>{$current_user_name} has shared the document with you.</p>
                                 <p>Permission: <b>{$permission}</b></p>
                                 <p><a href='https://csutrack.site/documents/shared.php'>
                                     Click here to view the document
