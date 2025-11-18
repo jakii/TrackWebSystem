@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <li><a class="dropdown-item" href="preview.php?id=<?= $doc['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
                                         <li><a class="dropdown-item" href="download.php?id=<?= $doc['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
                                         <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                        <?php if (isAdmin()): ?>
                                         <li>
                                             <a class="dropdown-item text-danger" 
                                                href="delete.php?id=<?= $doc['id'] ?>&redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>" 
@@ -218,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                <i class="fas fa-trash me-2"></i> Delete
                                             </a>
                                         </li>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </ul>   
                             </div>

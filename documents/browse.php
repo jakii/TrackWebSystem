@@ -464,7 +464,9 @@ $view = $_GET['view'] ?? 'list';
                                                             </a>
                                                         </li>
                                                         <li><a class="dropdown-item" href="archive.php?id=<?= $doc['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                                        <?php if (isAdmin()): ?>
                                                         <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $doc['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                        <?php endif; ?>
                                                     <?php else: ?>
                                                         <li>
                                                             <a class="dropdown-item text-warning" href="view.php?id=<?= $doc['id'] ?>">

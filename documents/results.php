@@ -140,7 +140,9 @@ $search = trim($_GET['search'] ?? '');
                                             <li><a class="dropdown-item" href="preview.php?id=<?= $item['id'] ?>"><i class="fas fa-eye me-2"></i>Preview</a></li>
                                             <li><a class="dropdown-item" href="download.php?id=<?= $item['id'] ?>"><i class="fas fa-download me-2"></i>Download</a></li>
                                             <li><a class="dropdown-item" href="archive.php?id=<?= $item['id'] ?>"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                            <?php if (isAdmin()): ?>
                                             <li><a class="dropdown-item text-danger" href="delete.php?id=<?= $item['id'] ?>"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </ul>

@@ -67,7 +67,7 @@ requireAuth();
 </style>
 <div class="container">
   <div class="trash-card">
-    <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Trash Bin</h4>
+    <h4><i class="fas fa-trash-alt me-2 text-danger"></i>Recycle Bin</h4>
 
     <p class="text-muted mb-2">You can restore or permanently delete them before they expire.</p>
     <hr>
@@ -78,7 +78,9 @@ requireAuth();
   <form id="bulkActionForm" method="POST">
     <div class="d-flex justify-content-end mb-2">
       <button type="submit" name="bulk_restore" class="btn btn-restore me-2">Restore</button>
+      <?php if ($is_admin): ?>
       <button type="submit" name="bulk_delete" class="btn btn-delete">Delete</button>
+      <?php endif; ?>
     </div>
 
     <div class="table-responsive fade-in delay-2">
